@@ -21,7 +21,7 @@ use OpenEMR\Modules\ClaimRevConnector\RevenueToolsRequest;
 
 class EligibilityObjectCreator
 {
-    public static function buildRevenueToolsRequest($pid, $pr, $eventDate = null, $providerId = null, $facilityId = null)
+    public static function buildRevenueToolsRequest($pid, $pr, $eventDate = null, $providerId = null, $facilityId = null, $productsToRun = null)
     {
         $facilityName = "";
         $facilityState = "";
@@ -32,7 +32,9 @@ class EligibilityObjectCreator
         $useFacility = OEGlobalsBag::getInstance()->get('oe_claimrev_config_use_facility_for_eligibility');
         $serviceTypeCodes = OEGlobalsBag::getInstance()->get('oe_claimrev_config_service_type_codes');
         $accountNumber = "";
-        $productsToRun = [1];
+        if (empty($productsToRun)) {
+            $productsToRun = [1];
+        }
 
 
         $revenueTools = new RevenueToolsRequest();
@@ -100,14 +102,14 @@ class EligibilityObjectCreator
         }
         return $revenueTools;
     }
-    public static function buildObject($pid, $payer_responsibility, $eventDate = null, $facilityId = null, $providerId = null)
+    public static function buildObject($pid, $payer_responsibility, $eventDate = null, $facilityId = null, $providerId = null, $productsToRun = null)
     {
         $results = [];
         $resultSubscribers = EligibilityData::getSubscriberData($pid, $payer_responsibility);
         foreach ($resultSubscribers as $subscriberRow) {
             $payers = [];
             $pr = ValueMapping::mapPayerResponsibility($subscriberRow['type']);
-            $revenueTools = EligibilityObjectCreator::buildRevenueToolsRequest($pid, $pr, $eventDate, $providerId, $facilityId);
+            $revenueTools = EligibilityObjectCreator::buildRevenueToolsRequest($pid, $pr, $eventDate, $providerId, $facilityId, $productsToRun);
             $payer = new RevenueToolsPayer();
             $payer->payerNumber = $subscriberRow['payerId'];
             $payer->payerName = $subscriberRow['payer_name'];

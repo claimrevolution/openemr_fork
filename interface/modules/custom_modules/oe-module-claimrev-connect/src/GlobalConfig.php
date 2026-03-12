@@ -39,6 +39,11 @@ class GlobalConfig
     public const CONFIG_ENABLE_RESULTS_ELIGIBILITY = "oe_claimrev_eligibility_results_age";
     public const CONFIG_ENABLE_AUTO_SEND_ELIGIBILITY = "oe_claimrev_send_eligibility";
     public const CONFIG_X12_PARTNER_NAME = "oe_claimrev_x12_partner_name";
+    public const CONFIG_ENABLE_WATCHDOG = "oe_claimrev_enable_watchdog";
+    public const CONFIG_ENABLE_NOTIFICATIONS = "oe_claimrev_enable_notifications";
+    public const CONFIG_NOTIFICATION_RECIPIENT = "oe_claimrev_notification_recipient";
+    public const CONFIG_BENEFIT_CODE_FILTER = "oe_claimrev_benefit_code_filter";
+    public const CONFIG_OPTION_PORTAL_URL = "oe_claimrev_config_portal_url";
     public const CONFIG_OPTION_DEV_API_URL = 'oe_claimrev_config_dev_api_url';
     public const CONFIG_OPTION_DEV_SCOPE = 'oe_claimrev_config_dev_scope';
     public const CONFIG_OPTION_DEV_AUTHORITY = 'oe_claimrev_config_dev_authority';
@@ -92,6 +97,10 @@ class GlobalConfig
             'P' => 'https://api.claimrev.com',
             'S' => 'https://testapi.claimrev.com',
         ],
+        'portal' => [
+            'P' => 'https://portal.claimrev.com',
+            'S' => 'https://testportal.claimrev.com',
+        ],
     ];
 
     private const DEV_URL_CONFIG_KEYS = [
@@ -139,6 +148,23 @@ class GlobalConfig
         return $this->getEnvironmentUrl('api_server');
     }
 
+    /**
+     * Get the ClaimRev portal URL for claim editor links.
+     */
+    public function getPortalUrl(): string
+    {
+        $override = $this->getGlobalSetting(self::CONFIG_OPTION_PORTAL_URL);
+        if (is_string($override) && $override !== '') {
+            return rtrim($override, '/');
+        }
+
+        try {
+            return $this->getEnvironmentUrl('portal');
+        } catch (ModuleNotConfiguredException) {
+            return 'https://portal.claimrev.com';
+        }
+    }
+
 
 
     public function getAutoSendFiles()
@@ -155,32 +181,14 @@ class GlobalConfig
     {
         $settings = [
             self::CONFIG_OPTION_ENVIRONMENT => [
-                'title' => 'ClaimRev Environment (P=Production)',
-                'description' => 'The system you connect to. P for production',
+                'title' => 'ClaimRev Environment',
+                'description' => 'Leave as P for production. Only change to D if directed by ClaimRev support.',
                 'type' => GlobalSetting::DATA_TYPE_TEXT,
                 'default' => 'P',
             ],
-            self::CONFIG_OPTION_DEV_API_URL => [
-                'title' => 'Development API Server URL',
-                'description' => 'API server URL when environment is set to D (Development)',
-                'type' => GlobalSetting::DATA_TYPE_TEXT,
-                'default' => '',
-            ],
-            self::CONFIG_OPTION_DEV_SCOPE => [
-                'title' => 'Development Scope URL',
-                'description' => 'OAuth scope URL when environment is set to D (Development)',
-                'type' => GlobalSetting::DATA_TYPE_TEXT,
-                'default' => '',
-            ],
-            self::CONFIG_OPTION_DEV_AUTHORITY => [
-                'title' => 'Development Authority URL',
-                'description' => 'OAuth authority URL when environment is set to D (Development)',
-                'type' => GlobalSetting::DATA_TYPE_TEXT,
-                'default' => '',
-            ],
             self::CONFIG_OPTION_CLIENTID => [
                 'title' => 'Client ID',
-                'description' => 'Contact ClaimRev for the client ID',
+                'description' => 'Available in the ClaimRev Portal under Client Connect',
                 'type' => GlobalSetting::DATA_TYPE_TEXT,
                 'default' => '',
             ],
@@ -200,7 +208,13 @@ class GlobalConfig
                 'title' => 'Eligibility Service Type Codes',
                 'description' => 'Comma Separated List of Service Type Codes',
                 'type' => GlobalSetting::DATA_TYPE_TEXT,
-                'default' => '30',
+                'default' => '',
+            ],
+            self::CONFIG_BENEFIT_CODE_FILTER => [
+                'title' => 'Benefit Code Filter',
+                'description' => 'Comma separated benefit information codes to display (e.g. 1,6,A,B,C). Leave blank to show all. Filtered locally only - does not affect what is sent to ClaimRev.',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => '',
             ],
             self::CONFIG_AUTO_SEND_CLAIM_FILES => [
                 'title' => 'Auto Send Claim Files',
@@ -242,6 +256,49 @@ class GlobalConfig
                 'title' => 'Turn on Eligibility Send Service',
                 'description' => 'Enables the sending of eligibility json to ClaimRev',
                 'type' => GlobalSetting::DATA_TYPE_BOOL,
+                'default' => '',
+            ],
+            self::CONFIG_ENABLE_NOTIFICATIONS => [
+                'title' => 'Enable ClaimRev Notifications',
+                'description' => 'Poll ClaimRev for account notifications and deliver them to OpenEMR user messages',
+                'type' => GlobalSetting::DATA_TYPE_BOOL,
+                'default' => '1',
+            ],
+            self::CONFIG_NOTIFICATION_RECIPIENT => [
+                'title' => 'Notification Recipient Username(s)',
+                'description' => 'OpenEMR username(s) to receive ClaimRev notifications. Separate multiple with semicolons (e.g. admin;biller1;biller2).',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => 'admin',
+            ],
+            self::CONFIG_ENABLE_WATCHDOG => [
+                'title' => 'Enable Service Watchdog',
+                'description' => 'Automatically resets ClaimRev background services that get stuck. Recommended to leave enabled.',
+                'type' => GlobalSetting::DATA_TYPE_BOOL,
+                'default' => '1',
+            ],
+            // --- Override settings (auto-configured for production, configurable for alternate identity providers) ---
+            self::CONFIG_OPTION_PORTAL_URL => [
+                'title' => 'Portal URL Override',
+                'description' => 'Auto-configured for production. Override only if using a custom portal URL.',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => '',
+            ],
+            self::CONFIG_OPTION_DEV_API_URL => [
+                'title' => 'API Server URL Override',
+                'description' => 'Auto-configured for production. Override to use a different API server or identity provider.',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => '',
+            ],
+            self::CONFIG_OPTION_DEV_SCOPE => [
+                'title' => 'OAuth Scope Override',
+                'description' => 'Auto-configured for production. Override when switching identity providers (e.g. Entra ID External, Zitadel).',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => '',
+            ],
+            self::CONFIG_OPTION_DEV_AUTHORITY => [
+                'title' => 'OAuth Authority URL Override',
+                'description' => 'Auto-configured for production. Override when switching identity providers (e.g. Entra ID External, Zitadel).',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
                 'default' => '',
             ],
         ];

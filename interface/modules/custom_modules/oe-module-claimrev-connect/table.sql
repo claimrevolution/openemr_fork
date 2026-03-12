@@ -46,3 +46,24 @@ INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_r
 INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
 ('ClaimRev_Elig_Send_Receive', 'Send and Receive Eligibility from ClaimRev', 1, 0, '2017-05-09 17:39:10', 1, 'start_send_eligibility', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_ClaimRev_Service.php', 100);
 #Endif
+
+CREATE TABLE IF NOT EXISTS `mod_claimrev_notifications`(
+    `id` INT(11) PRIMARY KEY AUTO_INCREMENT NOT NULL
+    ,`portal_notification_id` bigint(20) NOT NULL
+    ,`message_title` varchar(255)
+    ,`message_body` TEXT
+    ,`pnote_id` bigint(20)
+    ,`created_date` datetime default NULL
+    ,`processed_date` datetime default NULL
+    ,UNIQUE KEY `uk_portal_notification` (`portal_notification_id`)
+);
+
+#IfNotRow background_services name ClaimRev_Notifications
+INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
+('ClaimRev_Notifications', 'ClaimRev Notification Check', 1, 0, '2017-05-09 17:39:10', 60, 'start_claimrev_notifications', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php', 100);
+#Endif
+
+#IfNotRow background_services name ClaimRev_Watchdog
+INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
+('ClaimRev_Watchdog', 'ClaimRev Stuck Service Watchdog', 1, 0, '2017-05-09 17:39:10', 20, 'start_claimrev_watchdog', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Watchdog_Service.php', 50);
+#Endif

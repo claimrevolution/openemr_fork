@@ -33,6 +33,11 @@
                                 } ?>">
                 <a class="nav-link" href="era.php"><?php echo xlt("ERAs"); ?></a>
             </li>
+            <li class="nav-item <?php if ($tab == "appointments") {
+                echo "active";
+                                } ?>" >
+                <a class="nav-link" href="appointments.php"><?php echo xlt("Appointments"); ?></a>
+            </li>
             <li class="nav-item <?php if ($tab == "x12") {
                 echo "active";
                                 } ?>" >

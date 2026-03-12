@@ -33,6 +33,25 @@ readonly class ClaimRevApi
     }
 
     /**
+     * Build version-tracking headers for API calls.
+     *
+     * @return array<string, string>
+     */
+    private static function getVersionHeaders(): array
+    {
+        // Use include (not include_once) so local vars are always set,
+        // even if version.php was already loaded elsewhere in the request.
+        @include(OEGlobalsBag::getInstance()->get('fileroot') . "/version.php");
+        $oemrVersion = ($v_major ?? '?') . '.' . ($v_minor ?? '?') . '.' . ($v_patch ?? '?') . ($v_tag ?? '');
+
+        return [
+            'X-Module-Version' => Bootstrap::MODULE_VERSION,
+            'X-OpenEMR-Version' => $oemrVersion,
+            'X-Client-Platform' => 'openemr',
+        ];
+    }
+
+    /**
      * Create a ClaimRevApi instance using global configuration.
      *
      * Acquires an OAuth access token and returns a configured client.
@@ -62,10 +81,10 @@ readonly class ClaimRevApi
 
         $client = new Client([
             'base_uri' => $apiServer,
-            'headers' => [
+            'headers' => array_merge([
                 'accept' => 'application/json',
                 'content-type' => 'application/json',
-            ],
+            ], self::getVersionHeaders()),
         ]);
 
         return new self($client, $token);
@@ -163,14 +182,124 @@ readonly class ClaimRevApi
     }
 
     /**
-     * Search for claims.
+     * Anonymous call (no auth token required) to get ClaimRev contact info.
+     *
+     * @return array<string, mixed>|false Returns false on failure
+     */
+    public static function getSupportInfo(): array|false
+    {
+        try {
+            $bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
+            $globalsConfig = $bootstrap->getGlobalConfig();
+            $apiServer = $globalsConfig->getApiServer();
+        } catch (\Throwable) {
+            return false;
+        }
+
+        $client = new Client([
+            'headers' => array_merge([
+                'accept' => 'application/json',
+                'content-type' => 'application/json',
+            ], self::getVersionHeaders()),
+            'timeout' => 5,
+        ]);
+
+        try {
+            $response = $client->request('GET', $apiServer . '/api/SupportInfo/v1/GetSupportInfo');
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+            return self::parseResponse($response);
+        } catch (GuzzleException) {
+            return false;
+        }
+    }
+
+    /**
+     * Search for claims (paginated).
      *
      * @return array<string, mixed>
      * @throws ClaimRevApiException on API error
      */
     public function searchClaims(object $claimSearch): array
     {
-        return $this->post('/api/ClaimView/v1/SearchClaims', $claimSearch);
+        return $this->post('/api/ClaimView/v1/SearchClaimsPaged', $claimSearch);
+    }
+
+    /**
+     * Export claims search results as CSV.
+     *
+     * @return array<string, mixed> Contains 'fileText' and 'fileName'
+     * @throws ClaimRevApiException on API error
+     */
+    public function searchClaimsCsv(object $claimSearch): array
+    {
+        return $this->post('/api/ClaimView/v1/SearchClaimsCsv', $claimSearch);
+    }
+
+    /**
+     * Get errors for a specific claim.
+     *
+     * @return list<array<string, mixed>>
+     * @throws ClaimRevApiException on API error
+     */
+    public function getClaimErrors(string $claimId): array
+    {
+        return $this->get('/api/ClaimView/v1/GetClaimErrors', ['claimId' => $claimId]);
+    }
+
+    /**
+     * Get available claim statuses.
+     *
+     * @return list<array<string, mixed>>
+     * @throws ClaimRevApiException on API error
+     */
+    public function getClaimStatuses(): array
+    {
+        return $this->get('/api/ClaimView/v1/GetClaimStatuses');
+    }
+
+    /**
+     * Get portal notifications.
+     *
+     * @return list<array<string, mixed>>
+     * @throws ClaimRevApiException on API error
+     */
+    public function getPortalNotifications(bool $isReadFilter = false): array
+    {
+        return $this->get('/api/NotificationMgmt/v1/GetPortalNotifications', [
+            'isReadFilter' => $isReadFilter ? 'true' : 'false',
+        ]);
+    }
+
+    /**
+     * Set notification read status on ClaimRev.
+     *
+     * @throws ClaimRevApiException on API error
+     */
+    public function setNotificationReadStatus(int|string $portalNotificationId, bool $isRead = true): bool
+    {
+        $payload = (object) [
+            'portalNotificationId' => $portalNotificationId,
+            'isRead' => $isRead,
+        ];
+        $this->post('/api/NotificationMgmt/v1/SetNotificationReadStatus', $payload);
+        return true;
+    }
+
+    /**
+     * Mark a claim as worked or unworked.
+     *
+     * @throws ClaimRevApiException on API error
+     */
+    public function markClaimAsWorked(string $objectId, bool $isWorked): bool
+    {
+        $payload = (object) [
+            'objectId' => $objectId,
+            'statusId' => $isWorked ? 1 : 0,
+        ];
+        $this->post('/api/ClaimManager/v1/MarkClaimAsWorked', $payload);
+        return true;
     }
 
     /**
@@ -209,6 +338,21 @@ readonly class ClaimRevApi
     }
 
     /**
+     * Get a SharpRevenue visit result by claimRevResultId.
+     *
+     * Used to poll for async results (e.g. coverage discovery).
+     *
+     * @return array<string, mixed>
+     * @throws ClaimRevApiException on API error
+     */
+    public function getSharpRevenueVisit(string $claimRevResultId): array
+    {
+        return $this->get('/api/SharpRevenue/v1/GetEligibilityVisit', [
+            'sharpRevenueRtEligibilityObjectId' => $claimRevResultId,
+        ]);
+    }
+
+    /**
      * Upload an eligibility request.
      *
      * @return array<string, mixed>
@@ -217,6 +361,73 @@ readonly class ClaimRevApi
     public function uploadEligibility(object $eligibility): array
     {
         return $this->post('/api/SharpRevenue/v1/RunSharpRevenue', $eligibility);
+    }
+
+    /**
+     * Ask an AI question about an eligibility response.
+     *
+     * The API streams back a JSON array of chunks. This method collects the
+     * full response and concatenates the text parts into a single string.
+     *
+     * @return string The AI-generated answer text
+     * @throws ClaimRevApiException on API error
+     */
+    public function askEligibilityQuestion(string $sharpRevenueObjectId, string $question, ?string $payerCode = null): string
+    {
+        $payload = (object) [
+            'sharpRevenueObjectId' => $sharpRevenueObjectId,
+            'question' => $question,
+            'payerCode' => $payerCode,
+            'model' => null,
+        ];
+
+        try {
+            $response = $this->client->request('POST', '/api/SharpRevenue/v1/AskEligibilityQuestion', [
+                'json' => $payload,
+                'headers' => array_merge($this->getAuthHeaders(), [
+                    'Accept' => 'text/event-stream',
+                ]),
+                'timeout' => 120,
+            ]);
+        } catch (GuzzleException $e) {
+            throw new ClaimRevApiException(
+                'ClaimRev API request failed: ' . $e->getMessage(),
+                0,
+                '',
+                '/api/SharpRevenue/v1/AskEligibilityQuestion',
+                $e
+            );
+        }
+
+        $statusCode = $response->getStatusCode();
+        if ($statusCode !== 200) {
+            throw new ClaimRevApiException(
+                "ClaimRev API returned HTTP {$statusCode}",
+                $statusCode,
+                (string) $response->getBody(),
+                '/api/SharpRevenue/v1/AskEligibilityQuestion'
+            );
+        }
+
+        $body = (string) $response->getBody();
+        $chunks = json_decode($body, true);
+        if (!is_array($chunks)) {
+            return $body;
+        }
+
+        // Concatenate text from all chunks: candidates[0].content.parts[0].text
+        $text = '';
+        foreach ($chunks as $chunk) {
+            $candidates = $chunk['candidates'] ?? [];
+            foreach ($candidates as $candidate) {
+                $parts = $candidate['content']['parts'] ?? [];
+                foreach ($parts as $part) {
+                    $text .= $part['text'] ?? '';
+                }
+            }
+        }
+
+        return $text;
     }
 
     /**
@@ -315,7 +526,13 @@ readonly class ClaimRevApi
         if ($json === '') {
             return [];
         }
-        /** @var array<string, mixed> */
-        return json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+        $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
+        // API may return a scalar (e.g. a plain string); wrap it so callers
+        // always receive an array.
+        if (!is_array($decoded)) {
+            return ['value' => $decoded];
+        }
+        /** @var array<string, mixed> $decoded */
+        return $decoded;
     }
 }

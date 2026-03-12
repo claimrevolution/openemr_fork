@@ -23,11 +23,7 @@ class ClaimSearch
      */
     public static function search(object $search): array|false
     {
-        try {
-            $api = ClaimRevApi::makeFromGlobals();
-            return $api->searchClaims($search);
-        } catch (ClaimRevException) {
-            return false;
-        }
+        $api = ClaimRevApi::makeFromGlobals();
+        return $api->searchClaims($search);
     }
 }

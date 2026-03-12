@@ -21,8 +21,8 @@ class X12TrackerPage
      */
     public static function searchX12Tracker(array $postData)
     {
-        $startDate = $postData['startDate'] ?? '';
-        $endDate = $postData['endDate'] ?? '';
+        $startDate = ($postData['startDate'] ?? '') . ' 00:00:00';
+        $endDate = ($postData['endDate'] ?? '') . ' 23:59:59';
 
         $sql = "SELECT * FROM x12_remote_tracker where created_at BETWEEN ? AND ?";
         $files = sqlStatementNoLog($sql, [$startDate,$endDate]);
