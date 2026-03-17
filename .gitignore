@@ -19,6 +19,10 @@ ccdaservice/node_modules
 *.stackdump
 interface/modules/custom_modules/*.zip
 
+# Claude Code config
+CLAUDE.md
+.claude/
+
 # dev editor configs
 /.idea/*
 /.vscode/*
