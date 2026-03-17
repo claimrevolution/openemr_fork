@@ -12,7 +12,11 @@ $ignoreAuth = 1;
 require_once '/var/www/localhost/htdocs/openemr/interface/globals.php';
 require_once dirname(__DIR__) . '/src/Compat/compat.php';
 
-echo "=== 8.x Integration Test ===\n\n";
+// Register module autoloader (on 8.x this is done by the bootstrap, on 7.x test we do it manually)
+$classLoader = new \OpenEMR\Core\ModulesClassLoader($GLOBALS['fileroot']);
+$classLoader->registerNamespaceIfNotExists('OpenEMR\\Modules\\ClaimRevConnector\\', dirname(__DIR__) . DIRECTORY_SEPARATOR . 'src');
+
+echo "=== Integration Test ===\n\n";
 
 // On 8.x, real classes should be loaded — compat.php should be a no-op
 $rc = new ReflectionClass('OpenEMR\Core\OEGlobalsBag');
