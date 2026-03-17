@@ -58,13 +58,14 @@
                                 } ?>">
                 <a class="nav-link" href="claim_status.php"><?php echo xlt("Claim Status"); ?></a>
             </li>
-            <li class="nav-item dropdown <?php if (in_array($tab, ['aging_report', 'denial_analytics'])) {
+            <li class="nav-item dropdown <?php if (in_array($tab, ['aging_report', 'denial_analytics', 'recoupment_report'])) {
                 echo "active";
                                          } ?>">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown"><?php echo xlt("Analytics"); ?></a>
                 <div class="dropdown-menu">
                     <a class="dropdown-item <?php echo ($tab == 'aging_report') ? 'active' : ''; ?>" href="aging_report.php"><?php echo xlt("AR Aging Report"); ?></a>
                     <a class="dropdown-item <?php echo ($tab == 'denial_analytics') ? 'active' : ''; ?>" href="denial_analytics.php"><?php echo xlt("Denial Analytics"); ?></a>
+                    <a class="dropdown-item <?php echo ($tab == 'recoupment_report') ? 'active' : ''; ?>" href="recoupment_report.php"><?php echo xlt("Recoupment Report"); ?></a>
                 </div>
             </li>
             <li class="nav-item <?php if ($tab == "x12") {
