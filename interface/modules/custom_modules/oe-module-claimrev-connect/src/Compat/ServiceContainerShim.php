@@ -17,6 +17,7 @@
 namespace OpenEMR\Modules\ClaimRevConnector\Compat;
 
 use OpenEMR\Common\Crypto\CryptoGen;
+use OpenEMR\Common\Logging\SystemLogger;
 
 class ServiceContainerShim
 {
@@ -26,5 +27,30 @@ class ServiceContainerShim
     public static function getCrypto()
     {
         return new CryptoGen();
+    }
+
+    /**
+     * @return \Psr\Log\LoggerInterface
+     */
+    public static function getLogger()
+    {
+        return new SystemLogger();
+    }
+
+    /**
+     * @return \Psr\Clock\ClockInterface|object
+     */
+    public static function getClock()
+    {
+        // Lcobucci\Clock may not exist on 7.x — return a simple wrapper
+        if (class_exists('Lcobucci\Clock\SystemClock')) {
+            return \Lcobucci\Clock\SystemClock::fromSystemTimezone();
+        }
+        return new class () {
+            public function now(): \DateTimeImmutable
+            {
+                return new \DateTimeImmutable();
+            }
+        };
     }
 }

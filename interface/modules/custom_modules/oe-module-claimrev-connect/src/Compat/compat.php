@@ -26,7 +26,15 @@ if (!class_exists('OpenEMR\Core\OEGlobalsBag', false)) {
     }
 }
 
-// ServiceContainer shim — returns CryptoGen directly
+// CryptoInterface shim — on 7.x CryptoGen doesn't implement an interface
+if (!interface_exists('OpenEMR\Common\Crypto\CryptoInterface', false)) {
+    if (!interface_exists('OpenEMR\Common\Crypto\CryptoInterface')) {
+        require_once __DIR__ . '/CryptoInterfaceShim.php';
+        class_alias('OpenEMR\Modules\ClaimRevConnector\Compat\CryptoInterfaceShim', 'OpenEMR\Common\Crypto\CryptoInterface');
+    }
+}
+
+// ServiceContainer shim — returns CryptoGen, SystemLogger, Clock
 if (!class_exists('OpenEMR\BC\ServiceContainer', false)) {
     if (!class_exists('OpenEMR\BC\ServiceContainer')) {
         require_once __DIR__ . '/ServiceContainerShim.php';
