@@ -21,10 +21,11 @@ use OpenEMR\BC\ServiceContainer;
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Common\Crypto\KeySource;
+use OpenEMR\Common\Crypto\KeyVersion;
+use OpenEMR\Common\Crypto\PasswordBasedCrypto;
 use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Common\Logging\EventAuditLogger;
-use OpenEMR\Common\Logging\SystemLogger;
 use OpenEMR\Common\Session\SessionWrapperFactory;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Events\PatientDocuments\PatientDocumentTreeViewFilterEvent;
@@ -211,7 +212,7 @@ class C_Document extends Controller
             if (AclMain::aclCheckAcoSpec($acoSpec) === false) {
                 $error = xl("Not authorized to upload to the selected category.\n");
                 $skipUpload = true;
-                (new SystemLogger())->debug("An attempt was made to upload a document to an unauthorized category", ['user-id' => $session->get('authUserID'), 'patient-id' => $patient_id, 'category-id' => $category_id]);
+                ServiceContainer::getLogger()->debug("An attempt was made to upload a document to an unauthorized category", ['user-id' => $session->get('authUserID'), 'patient-id' => $patient_id, 'category-id' => $category_id]);
             }
         }
 
@@ -289,8 +290,10 @@ class C_Document extends Controller
                     $filetext = fread($tmpfile, $_FILES['file']['size'][$key]);
                     fclose($tmpfile);
                     if ($doDecryption) {
-                        $filetext = $this->cryptoGen->decryptStandard($filetext, $passphrase);
-                        if ($filetext === false) {
+                        $passwordCrypto = new PasswordBasedCrypto(KeyVersion::CURRENT);
+                        try {
+                            $filetext = $passwordCrypto->decrypt((string) $filetext, (string) $passphrase);
+                        } catch (\OpenEMR\Common\Crypto\CryptoGenException) {
                             error_log("OpenEMR Error: Unable to decrypt a document since decryption failed.");
                             $filetext = "";
                         }
@@ -458,7 +461,7 @@ class C_Document extends Controller
         // Verify the document belongs to the requested patient to prevent IDOR.
         $doc_pid = $d->get_foreign_id();
         if ($patient_id !== null && (int)$doc_pid !== (int)$patient_id) {
-            (new SystemLogger())->warning(
+            ServiceContainer::getLogger()->warning(
                 "An attempt was made to view a document belonging to a different patient",
                 ['user-id' => $session->get('authUserID'), 'requested-patient-id' => $patient_id, 'document-patient-id' => $doc_pid, 'document-id' => $doc_id]
             );
@@ -729,7 +732,8 @@ class C_Document extends Controller
             header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
             header('Pragma: public');
             if ($doEncryption) {
-                $ciphertext = $this->cryptoGen->encryptStandard($filetext, $passphrase);
+                $passwordCrypto = new PasswordBasedCrypto(KeyVersion::CURRENT);
+                $ciphertext = $passwordCrypto->encrypt((string) $filetext, (string) $passphrase);
                 header('Content-Disposition: attachment; filename="' . "/encrypted_aes_" . $d->get_name() . '"');
                 header("Content-Type: application/octet-stream");
                 header("Content-Length: " . strlen($ciphertext));
@@ -878,7 +882,7 @@ class C_Document extends Controller
         }
 
         if (!file_exists($url)) {
-            (new SystemLogger())->error(
+            ServiceContainer::getLogger()->error(
                 "Document file not found or insufficient permissions",
                 ['url' => $url, 'document_id' => $document_id, 'patient_id' => $patient_id]
             );
@@ -902,7 +906,8 @@ class C_Document extends Controller
             header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
             header('Pragma: public');
             if ($doEncryption) {
-                $ciphertext = $this->cryptoGen->encryptStandard($filetext, $passphrase);
+                $passwordCrypto = new PasswordBasedCrypto(KeyVersion::CURRENT);
+                $ciphertext = $passwordCrypto->encrypt((string) $filetext, (string) $passphrase);
                 header('Content-Disposition: attachment; filename="' . "/encrypted_aes_" . $d->get_name() . '"');
                 header("Content-Type: application/octet-stream");
                 header("Content-Length: " . strlen($ciphertext));
