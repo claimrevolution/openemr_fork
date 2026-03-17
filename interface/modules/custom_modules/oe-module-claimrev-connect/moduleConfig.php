@@ -17,6 +17,9 @@ use OpenEMR\Core\OEGlobalsBag;
 
 require_once dirname(__FILE__, 4) . '/globals.php';
 
+// Load compatibility shims for OpenEMR 7.x (no-op on 8.x)
+require_once __DIR__ . '/src/Compat/compat.php';
+
 /* required for config before install */
 $classLoader = new ModulesClassLoader(OEGlobalsBag::getInstance()->get('fileroot'));
 $classLoader->registerNamespaceIfNotExists("OpenEMR\\Modules\\ClaimRevConnector\\", __DIR__ . DIRECTORY_SEPARATOR . 'src');

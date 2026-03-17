@@ -14,10 +14,12 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
+use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
+use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 
 $tab = "claims";
 
@@ -30,6 +32,8 @@ $claimStatuses = ClaimsPage::getClaimStatuses();
 
 $bootstrap = new Bootstrap($GLOBALS['kernel']->getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
+$csrfToken = CsrfUtils::collectCsrfToken('claims');
+$webRoot = $GLOBALS['webroot'];
 ?>
 
 <html>
@@ -66,6 +70,9 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
             .status-icon.text-era-denied { color: #f44336; }
             .status-icon.text-era-pending { color: #6c757d; }
             .status-label { font-size: 0.8em; display: block; margin-top: 2px; }
+            .badge-oe-status { font-size: 0.8em; padding: 3px 7px; }
+            .oe-status-cell { min-width: 80px; }
+            .action-btn-group .btn { padding: 2px 6px; font-size: 0.8em; }
         </style>
     </head>
     <body class="body_top">
@@ -255,6 +262,7 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
                         <th scope="col" class="sortable-header" data-sort="receivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('receivedDate', $currentSort, $currentDir); ?></th>
                         <th scope="col" class="sortable-header text-right" data-sort="billedAmount"><?php echo xlt("Billed"); ?><?php echo sortIcon('billedAmount', $currentSort, $currentDir); ?></th>
                         <th scope="col" class="sortable-header text-right" data-sort="payerPaidAmount"><?php echo xlt("Paid"); ?><?php echo sortIcon('payerPaidAmount', $currentSort, $currentDir); ?></th>
+                        <th scope="col"><?php echo xlt("OE Status"); ?></th>
                         <th scope="col" class="text-center"><?php echo xlt("Actions"); ?></th>
                     </tr>
                 </thead>
@@ -355,6 +363,11 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
                             $rowClass = 'row-pending';
                         }
 
+                        // Look up OpenEMR claim status
+                        $pcn = $data->patientControlNumber ?? '';
+                        $oeStatus = PaymentAdvicePage::getOpenEmrClaimStatus($pcn);
+                        $isRejected = in_array($statusId, [10, 16, 17]) || $payerAcceptanceStatusId === 3;
+
                         $isWorked = isset($data->isWorked) && $data->isWorked;
                         $objectId = $data->objectId ?? '';
                         $claimTypeId = $data->claimTypeId ?? 1;
@@ -424,23 +437,67 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
                             <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>
                             <td class="text-right"><?php echo text(number_format((float)($data->billedAmount ?? 0), 2)); ?></td>
                             <td class="text-right"><?php echo text(number_format((float)($data->payerPaidAmount ?? 0), 2)); ?></td>
-                            <td class="text-center">
-                                <?php if (!empty($objectId) && !empty($editorRoute)) { ?>
-                                    <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-outline-primary btn-sm" title="<?php echo xla("Edit in Portal"); ?>" onclick="event.stopPropagation();">
-                                        <i class="fa fa-external-link-alt"></i>
-                                    </a>
+                            <td class="oe-status-cell" id="oe-status-<?php echo attr($rowIndex); ?>">
+                                <?php if ($oeStatus !== null) {
+                                    $oeBadgeClass = match ($oeStatus['status']) {
+                                        0 => 'badge-light text-dark',
+                                        1 => 'badge-warning',
+                                        2 => 'badge-primary',
+                                        6 => 'badge-info',
+                                        7 => 'badge-danger',
+                                        -1 => 'badge-light text-muted',
+                                        default => 'badge-secondary',
+                                    };
+                                ?>
+                                    <span class="badge <?php echo attr($oeBadgeClass); ?> badge-oe-status"><?php echo text($oeStatus['status_label']); ?></span>
+                                <?php } else { ?>
+                                    <span class="text-muted small">—</span>
                                 <?php } ?>
-                                <button type="button" class="btn btn-sm ml-1 worked-toggle <?php echo $isWorked ? 'btn-success' : 'btn-outline-secondary'; ?>"
-                                    data-objectid="<?php echo attr($objectId); ?>"
-                                    data-worked="<?php echo $isWorked ? '1' : '0'; ?>"
-                                    title="<?php echo $isWorked ? xla("Worked - click to unmark") : xla("Not worked - click to mark"); ?>"
-                                    onclick="event.stopPropagation(); toggleWorked(this);">
-                                    <i class="fa fa-check"></i>
-                                </button>
+                            </td>
+                            <td class="text-center" onclick="event.stopPropagation();">
+                                <div class="btn-group btn-group-sm action-btn-group">
+                                    <?php if ($oeStatus !== null && $oeStatus['status'] !== -1) { ?>
+                                        <a href="<?php echo attr($webRoot); ?>/interface/billing/sl_eob_search.php?form_pid=<?php echo attr($oeStatus['pid']); ?>&form_encounter=<?php echo attr($oeStatus['encounter']); ?>"
+                                           target="_blank" class="btn btn-outline-info" title="<?php echo xla("Open Encounter in Billing"); ?>">
+                                            <i class="fa fa-folder-open"></i>
+                                        </a>
+                                    <?php } ?>
+                                    <?php if ($isRejected && $oeStatus !== null && $oeStatus['status'] !== 7) { ?>
+                                        <button type="button" class="btn btn-outline-danger sync-status-btn"
+                                            data-rowindex="<?php echo attr($rowIndex); ?>"
+                                            data-pcn="<?php echo attr($pcn); ?>"
+                                            data-statusid="<?php echo attr($statusId); ?>"
+                                            data-statusname="<?php echo attr($statusName); ?>"
+                                            data-payeracceptance="<?php echo attr($payerAcceptanceStatusId); ?>"
+                                            title="<?php echo xla("Sync rejected status to OpenEMR"); ?>">
+                                            <i class="fa fa-sync-alt"></i>
+                                        </button>
+                                    <?php } ?>
+                                    <?php if ($oeStatus !== null && in_array($oeStatus['status'], [2, 7])) { ?>
+                                        <button type="button" class="btn btn-outline-warning requeue-btn"
+                                            data-rowindex="<?php echo attr($rowIndex); ?>"
+                                            data-pcn="<?php echo attr($pcn); ?>"
+                                            title="<?php echo xla("Requeue for billing"); ?>">
+                                            <i class="fa fa-redo"></i>
+                                        </button>
+                                    <?php } ?>
+                                    <?php if (!empty($objectId) && !empty($editorRoute)) { ?>
+                                        <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-outline-primary" title="<?php echo xla("Edit in Portal"); ?>">
+                                            <i class="fa fa-external-link-alt"></i>
+                                        </a>
+                                    <?php } ?>
+                                    <button type="button" class="btn worked-toggle <?php echo $isWorked ? 'btn-success' : 'btn-outline-secondary'; ?>"
+                                        data-objectid="<?php echo attr($objectId); ?>"
+                                        data-worked="<?php echo $isWorked ? '1' : '0'; ?>"
+                                        title="<?php echo $isWorked ? xla("Worked - click to unmark") : xla("Not worked - click to mark"); ?>"
+                                        onclick="toggleWorked(this);">
+                                        <i class="fa fa-check"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         <tr class="claim-detail-row" id="detail-<?php echo attr($rowIndex); ?>">
-                            <td colspan="9" class="claim-detail-cell p-3">
+                            <td colspan="10" class="claim-detail-cell p-3">
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="detail-label"><?php echo xlt("ClaimRev Status"); ?></div>
@@ -477,13 +534,36 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
                                                 <span class="text-muted"><i class="fa fa-circle"></i> <?php echo xlt("No"); ?></span>
                                             <?php } ?>
                                         </div>
-                                        <?php if (!empty($objectId) && !empty($editorRoute)) { ?>
-                                            <div class="mt-3">
+                                        <?php if ($oeStatus !== null && $oeStatus['status'] !== -1) { ?>
+                                            <div class="detail-label mt-2"><?php echo xlt("OpenEMR Status"); ?></div>
+                                            <div class="detail-value">
+                                                <?php
+                                                    $oeBadgeClass = match ($oeStatus['status']) {
+                                                        0 => 'badge-light text-dark',
+                                                        1 => 'badge-warning',
+                                                        2 => 'badge-primary',
+                                                        6 => 'badge-info',
+                                                        7 => 'badge-danger',
+                                                        default => 'badge-secondary',
+                                                    };
+                                                ?>
+                                                <span class="badge <?php echo attr($oeBadgeClass); ?>"><?php echo text($oeStatus['status_label']); ?></span>
+                                                <small class="text-muted ml-1">(<?php echo text($oeStatus['pid'] . '-' . $oeStatus['encounter']); ?>)</small>
+                                            </div>
+                                        <?php } ?>
+                                        <div class="mt-3">
+                                            <?php if (!empty($objectId) && !empty($editorRoute)) { ?>
                                                 <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     <i class="fa fa-external-link-alt"></i> <?php echo xlt("Edit in Portal"); ?>
                                                 </a>
-                                            </div>
-                                        <?php } ?>
+                                            <?php } ?>
+                                            <?php if ($oeStatus !== null && $oeStatus['status'] !== -1) { ?>
+                                                <a href="<?php echo attr($webRoot); ?>/interface/billing/sl_eob_search.php?form_pid=<?php echo attr($oeStatus['pid']); ?>&form_encounter=<?php echo attr($oeStatus['encounter']); ?>"
+                                                   target="_blank" class="btn btn-sm btn-outline-info">
+                                                    <i class="fa fa-folder-open"></i> <?php echo xlt("Open Encounter"); ?>
+                                                </a>
+                                            <?php } ?>
+                                        </div>
                                     </div>
                                 </div>
                                 <?php if ($errorCount > 0) { ?>
@@ -525,6 +605,8 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
         ?>
         </div>
         <script>
+            var csrfToken = <?php echo json_encode($csrfToken); ?>;
+
             function toggleWorked(btn) {
                 var $btn = $(btn);
                 var objectId = $btn.data('objectid');
@@ -659,6 +741,82 @@ $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
                         $btn.prop('disabled', false).html('<i class="fa fa-download"></i> ' + <?php echo xlj("Export CSV"); ?>);
                     };
                     xhr.send(formData);
+                });
+
+                // Sync Status button handler
+                $('.sync-status-btn').on('click', function(e) {
+                    e.stopPropagation();
+                    var $btn = $(this);
+                    var rowIndex = $btn.data('rowindex');
+                    var pcn = $btn.data('pcn');
+                    var statusId = $btn.data('statusid');
+                    var statusName = $btn.data('statusname');
+                    var payerAcceptance = $btn.data('payeracceptance');
+
+                    if (!confirm(<?php echo xlj("Sync this rejected claim status to OpenEMR? This will mark the claim as denied."); ?>)) {
+                        return;
+                    }
+
+                    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+                    $.post('claim_sync_status.php', {
+                        csrf_token: csrfToken,
+                        claimData: JSON.stringify({
+                            patientControlNumber: pcn,
+                            statusId: statusId,
+                            statusName: statusName,
+                            payerAcceptanceStatusId: payerAcceptance,
+                            payerAcceptanceStatusName: '',
+                            errorMessage: ''
+                        })
+                    }, function(response) {
+                        if (response.success && response.action === 'denied') {
+                            // Update OE status badge
+                            var $cell = $('#oe-status-' + rowIndex);
+                            $cell.html('<span class="badge badge-danger badge-oe-status">' + <?php echo xlj("Denied"); ?> + '</span>');
+                            $btn.replaceWith('<span class="text-success small"><i class="fa fa-check"></i></span>');
+                            alert(<?php echo xlj("Claim status synced to OpenEMR"); ?>);
+                        } else {
+                            alert(response.message || <?php echo xlj("No sync needed"); ?>);
+                            $btn.prop('disabled', false).html('<i class="fa fa-sync-alt"></i>');
+                        }
+                    }, 'json').fail(function() {
+                        alert(<?php echo xlj("Failed to sync status"); ?>);
+                        $btn.prop('disabled', false).html('<i class="fa fa-sync-alt"></i>');
+                    });
+                });
+
+                // Requeue for Billing button handler
+                $('.requeue-btn').on('click', function(e) {
+                    e.stopPropagation();
+                    var $btn = $(this);
+                    var rowIndex = $btn.data('rowindex');
+                    var pcn = $btn.data('pcn');
+
+                    if (!confirm(<?php echo xlj("Requeue this claim for billing? This will reopen the encounter and create a new claim version so it appears in the next billing batch."); ?>)) {
+                        return;
+                    }
+
+                    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+
+                    $.post('claim_requeue.php', {
+                        csrf_token: csrfToken,
+                        patientControlNumber: pcn
+                    }, function(response) {
+                        if (response.success) {
+                            // Update OE status badge
+                            var $cell = $('#oe-status-' + rowIndex);
+                            $cell.html('<span class="badge badge-warning badge-oe-status">' + <?php echo xlj("Unbilled"); ?> + '</span>');
+                            $btn.replaceWith('<span class="text-success small"><i class="fa fa-check"></i> ' + <?php echo xlj("Requeued"); ?> + '</span>');
+                            alert(<?php echo xlj("Claim requeued for billing"); ?>);
+                        } else {
+                            alert(response.message || <?php echo xlj("Requeue failed"); ?>);
+                            $btn.prop('disabled', false).html('<i class="fa fa-redo"></i>');
+                        }
+                    }, 'json').fail(function() {
+                        alert(<?php echo xlj("Failed to requeue claim"); ?>);
+                        $btn.prop('disabled', false).html('<i class="fa fa-redo"></i>');
+                    });
                 });
             });
         </script>

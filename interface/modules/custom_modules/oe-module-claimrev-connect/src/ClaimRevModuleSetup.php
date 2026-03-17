@@ -159,7 +159,8 @@ class ClaimRevModuleSetup
                 $skipping = !empty($row);
                 continue;
             } elseif (preg_match('/^#IfNotTable\s+(\S+)/', $line, $matches)) {
-                $row = sqlQuery("SHOW TABLES LIKE ?", [$matches[1]]);
+                $tableName = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
+                $row = sqlQuery("SHOW TABLES LIKE '" . add_escape_custom($tableName) . "'");
                 $skipping = !empty($row);
                 continue;
             } elseif (preg_match('/^#IfNotColumnType\s+(\S+)\s+(\S+)\s+(\S+)/', $line, $matches)) {

@@ -27,8 +27,11 @@ class ClaimSearchModel
     public $payerPaidAmtStart;
     public $payerPaidAmtEnd;
     public $traceNumber = "";
+    public $traceNumbers = [];
     public $patientControlNumber = "";
+    public $patientControlNumbers = [];
     public $payerControlNumber = "";
+    public $payerControlNumbers = [];
     public $billingProviderNpi = "";
     public $errorMessage = "";
     public $statusIds = [];
@@ -46,12 +49,4 @@ class ClaimSearchModel
     {
         $this->pagingSearch = new PagingSearchModel();
     }
-}
-
-class PagingSearchModel
-{
-    public $pageIndex = 0;
-    public $pageSize = 50;
-    public $sortField = "";
-    public $sortDirection = "";
 }

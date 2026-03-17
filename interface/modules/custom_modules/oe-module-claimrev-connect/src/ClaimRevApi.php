@@ -216,6 +216,32 @@ readonly class ClaimRevApi
     }
 
     /**
+     * Search for payment advice / ERA claim-level payment info (paginated).
+     *
+     * @return array<string, mixed> Contains 'results' and 'totalRecords'
+     * @throws ClaimRevApiException on API error
+     */
+    public function searchPaymentInfo(object $search): array
+    {
+        return $this->post('/api/PaymentAdvice/v1/SearchPaymentInfo', $search);
+    }
+
+    /**
+     * Toggle the isWorked flag on a payment advice in ClaimRev.
+     *
+     * The API toggles the current value, so only call this when you want to flip it.
+     *
+     * @param array<string, mixed> $paymentAdvice The full ClaimPaymentAggregation object
+     * @return bool True if the toggle succeeded
+     * @throws ClaimRevApiException on API error
+     */
+    public function markPaymentAdviceWorked(array $paymentAdvice): bool
+    {
+        $this->post('/api/PaymentAdvice/v1/UpdateClaimPaymentAdviceIsWorked', (object) $paymentAdvice);
+        return true;
+    }
+
+    /**
      * Search for claims (paginated).
      *
      * @return array<string, mixed>

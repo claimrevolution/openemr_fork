@@ -19,7 +19,6 @@
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\BC\ServiceContainer;
-use OpenEMR\Common\Crypto\CryptoInterface;
 use OpenEMR\Services\Globals\GlobalSetting;
 
 class GlobalConfig
@@ -47,8 +46,10 @@ class GlobalConfig
     public const CONFIG_OPTION_DEV_API_URL = 'oe_claimrev_config_dev_api_url';
     public const CONFIG_OPTION_DEV_SCOPE = 'oe_claimrev_config_dev_scope';
     public const CONFIG_OPTION_DEV_AUTHORITY = 'oe_claimrev_config_dev_authority';
+    public const CONFIG_ENABLE_TEST_MODE = 'oe_claimrev_enable_test_mode';
 
-    private readonly CryptoInterface $cryptoGen;
+    /** @var \OpenEMR\Common\Crypto\CryptoGen */
+    private readonly object $cryptoGen;
 
     public function __construct(private array $globalsArray)
     {
@@ -167,6 +168,11 @@ class GlobalConfig
 
 
 
+    public function isTestModeEnabled(): bool
+    {
+        return !empty($this->getGlobalSetting(self::CONFIG_ENABLE_TEST_MODE));
+    }
+
     public function getAutoSendFiles()
     {
         return $this->getGlobalSetting(self::CONFIG_AUTO_SEND_CLAIM_FILES);
@@ -275,6 +281,12 @@ class GlobalConfig
                 'description' => 'Automatically resets ClaimRev background services that get stuck. Recommended to leave enabled.',
                 'type' => GlobalSetting::DATA_TYPE_BOOL,
                 'default' => '1',
+            ],
+            self::CONFIG_ENABLE_TEST_MODE => [
+                'title' => 'Enable Test Mode',
+                'description' => 'Shows a Test Mode option on the Payment Advice screen that generates simulated ERA data from OpenEMR billing records. For demonstration and training only.',
+                'type' => GlobalSetting::DATA_TYPE_BOOL,
+                'default' => '',
             ],
             // --- Override settings (auto-configured for production, configurable for alternate identity providers) ---
             self::CONFIG_OPTION_PORTAL_URL => [
