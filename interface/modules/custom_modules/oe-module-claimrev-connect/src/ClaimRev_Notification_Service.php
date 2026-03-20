@@ -22,6 +22,42 @@ use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
 
 require_once($GLOBALS['fileroot'] . "/library/pnotes.inc.php");
 
+/**
+ * Convert HTML to readable plain text, preserving paragraph breaks,
+ * list structure, and table rows.
+ */
+function htmlToPlainText(string $html): string
+{
+    // Remove head/style/script blocks entirely
+    $text = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $html);
+    $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $text);
+    $text = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $text);
+
+    // Block-level breaks: </p>, </div>, </tr>, </h1-6>, <br>
+    $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
+    $text = preg_replace('/<\/(?:p|div|tr|h[1-6])>/i', "\n\n", $text);
+
+    // List items
+    $text = preg_replace('/<li\b[^>]*>/i', "\n- ", $text);
+
+    // Table cells: add spacing between <td> content
+    $text = preg_replace('/<\/td>\s*<td/i', "</td>  <td", $text);
+
+    // Strip remaining tags
+    $text = strip_tags($text);
+
+    // Decode HTML entities
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // Collapse runs of whitespace on each line (preserve newlines)
+    $text = preg_replace('/[^\S\n]+/', ' ', $text);
+
+    // Collapse 3+ consecutive newlines into 2
+    $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+    return trim($text);
+}
+
 function start_claimrev_notifications()
 {
     $enabled = $GLOBALS[GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS] ?? '1';
@@ -72,8 +108,14 @@ function start_claimrev_notifications()
             continue;
         }
 
-        $title = $notification['messageTitle'] ?? 'ClaimRev Notification';
-        $body = $notification['messageBody'] ?? '';
+        $title = htmlToPlainText($notification['messageTitle'] ?? 'ClaimRev Notification');
+
+        $bodyText = $notification['messageBodyText'] ?? '';
+        if ($bodyText === '' || $bodyText === null) {
+            $bodyText = $notification['messageBody'] ?? '';
+        }
+        $body = htmlToPlainText($bodyText);
+
         $messageText = "ClaimRev: " . $title . "\n\n" . $body;
 
         // Create pnote for each configured recipient
