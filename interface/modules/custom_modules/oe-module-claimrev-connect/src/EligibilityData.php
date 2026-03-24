@@ -69,6 +69,22 @@ class EligibilityData
         return $res;
     }
 
+    /**
+     * Get the existing eligibility record for merging.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function getExistingRecord($pid, $payer_responsibility)
+    {
+        $pr = ValueMapping::mapPayerResponsibility($payer_responsibility);
+        $sql = "SELECT id, status, individual_json, response_json FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? LIMIT 1";
+        $res = sqlStatement($sql, [$pid, $pr]);
+        foreach ($res as $row) {
+            return $row;
+        }
+        return null;
+    }
+
     public static function updateEligibilityRecord($id, $status, $request_json, $response_json, $updateLastChecked, $responseMessage, $raw271, $eligibility_json, $individual_json)
     {
         $sql = "UPDATE mod_claimrev_eligibility SET status = ? ";
@@ -255,6 +271,22 @@ class EligibilityData
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Get the eligibility record ID and raw271 for a patient + payer responsibility.
+     *
+     * @return array{id: int|string, raw271: string}|null
+     */
+    public static function getRaw271($pid, $payerResponsibility)
+    {
+        $pr = ValueMapping::mapPayerResponsibility($payerResponsibility);
+        $sql = "SELECT id, raw271 FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? AND raw271 IS NOT NULL AND raw271 != '' LIMIT 1";
+        $res = sqlStatement($sql, [$pid, $pr]);
+        foreach ($res as $row) {
+            return $row;
+        }
         return null;
     }
 

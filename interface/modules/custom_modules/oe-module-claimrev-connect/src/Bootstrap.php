@@ -24,6 +24,8 @@ use OpenEMR\Common\Twig\TwigContainer;
 use OpenEMR\Core\Kernel;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Events\Appointments\AppointmentSetEvent;
+use OpenEMR\Events\Appointments\CalendarUserGetEventsFilter;
+use OpenEMR\Events\Core\StyleFilterEvent;
 use OpenEMR\Events\Core\TwigEnvironmentEvent;
 use OpenEMR\Events\Globals\GlobalsInitializedEvent;
 use OpenEMR\Events\Main\Tabs\RenderEvent;
@@ -43,6 +45,7 @@ class Bootstrap
 {
     const MODULE_INSTALLATION_PATH = "/interface/modules/custom_modules/";
     const MODULE_NAME = "oe-module-claimrev-connect";
+    const MODULE_VERSION = "2.1.0";
 
     /**
      * @var GlobalConfig Holds our module global configuration values that can be used throughout the module.
@@ -92,14 +95,31 @@ class Bootstrap
     public function subscribeToEvents()
     {
         $this->addGlobalSettings();
+        $this->registerMenuItems();
 
         // we only add the rest of our event listeners and configuration if we have been fully setup and configured
         if ($this->globalsConfig->isConfigured()) {
-            $this->registerMenuItems();
+            // Ensure the core SFTP global is enabled so claims flow through
+            // the x12_remote_tracker table where our background service picks them up.
+            // Without this, users must manually check "Automatically SFTP Claims To X12 Partner"
+            // in Globals for ClaimRev to work.
+            if ($this->globalsConfig->getGlobalSetting(GlobalConfig::CONFIG_AUTO_SEND_CLAIM_FILES)) {
+                $GLOBALS['auto_sftp_claims_to_x12_partner'] = true;
+                // Persist to the database and activate the X12_SFTP background service
+                // so claims flow through the x12_remote_tracker table.
+                $row = sqlQuery("SELECT gl_value FROM globals WHERE gl_name = 'auto_sftp_claims_to_x12_partner'");
+                if (empty($row['gl_value'])) {
+                    sqlStatement("UPDATE globals SET gl_value = '1' WHERE gl_name = 'auto_sftp_claims_to_x12_partner'");
+                    // Activate the X12_SFTP background service (same as what edit_globals.php does)
+                    sqlStatement("UPDATE background_services SET active = 1, execute_interval = 1 WHERE name = 'X12_SFTP'");
+                }
+            }
+
             $this->registerTemplateEvents();
             $this->subscribeToApiEvents();
             $this->registerDemographicsEvents();
             $this->registerEligibilityEvents();
+            $this->registerCalendarIndicators();
         }
     }
 
@@ -160,6 +180,22 @@ class Bootstrap
     public function renderAppointmentSetEvent(AppointmentSetEvent $event)
     {
         ClaimRevRteService::createEligibilityFromAppointment($event->eid);
+    }
+
+    public function registerCalendarIndicators()
+    {
+        if ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_CALENDAR_INDICATORS)) {
+            $staleAge = (int) ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY) ?: 30);
+            $indicator = new CalendarEligibilityIndicator($staleAge);
+            $this->eventDispatcher->addListener(
+                CalendarUserGetEventsFilter::EVENT_NAME,
+                $indicator->filterCalendarEvents(...)
+            );
+            $this->eventDispatcher->addListener(
+                StyleFilterEvent::EVENT_NAME,
+                $indicator->addCalendarStylesheet(...)
+            );
+        }
     }
     public function renderEligibilitySection(pRenderEvent $event)
     {
