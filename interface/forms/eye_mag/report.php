@@ -38,9 +38,12 @@ require_once(__DIR__ . "/../../../library/forms.inc.php");
 require_once(__DIR__ . "/../../../library/patient.inc.php");
 require_once(__DIR__ . "/../../../controllers/C_Document.class.php");
 
+use OpenEMR\Common\Session\SessionWrapperFactory;
 use OpenEMR\Core\Header;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Services\FacilityService;
+
+$session = SessionWrapperFactory::getInstance()->getActiveSession();
 
 $form_name = "eye_mag";
 global $form_folder;
@@ -77,7 +80,7 @@ if (!($id ?? '')) {
 // Get users preferences, for this user
 // (and if not the default where a fresh install begins from, or someone else's)
 $query  = "SELECT * FROM form_eye_mag_prefs where PEZONE='PREFS' AND id=? ORDER BY ZONE_ORDER,ordering";
-$result = sqlStatement($query, [$_SESSION['authUserID']]);
+$result = sqlStatement($query, [$session->get('authUserID')]);
 while ($prefs = sqlFetchArray($result)) {
     $LOCATION = $prefs['LOCATION'];
     ${$LOCATION} = text($prefs['GOVALUE']);
@@ -144,32 +147,7 @@ function eye_mag_report($pid, $encounter, $cols, $id, $formname = 'eye_mag'): vo
    * @return string => returns the HTML of the report selected
    */
 
-    if ($choice == 'DRAW') {
-        /*
-      $side="OU";
-      $zone = array("HPI","PMH","VISION","NEURO","EXT","ANTSEG","RETINA","IMPPLAN");
-        //  for ($i = 0; $i < count($zone); ++$i) {
-        //  show only 2 for now in the encounter page
-      ($choice =='drawing') ? ($count = count($zone)) : ($count ='2');
-      for ($i = 0; $i < $count; ++$i) {
-        $file_location = $GLOBALS["OE_SITES_BASE"]."/".$_SESSION['site_id']."/documents/".$pid."/".$form_folder."/".$encounter."/".$side."_".$zone[$i]."_VIEW.png";
-        $sql = "SELECT * from documents where url='file://".$file_location."'";
-        $doc = sqlQuery($sql);
-        if (file_exists($file_location) && ($doc['id'] > '0')) {
-        $filetoshow = $GLOBALS['web_root']."/controller.php?document&retrieve&patient_id=$pid&document_id=$doc[id]&as_file=false";
-        ?><div style='position:relative;float:left;width:100px;height:75px;'>
-        <img src='<?php echo attr($filetoshow); ?>' width=100 heght=75>
-        </div> <?
-        } else {
-             // $filetoshow = "../../forms/".$form_folder."/images/".$side."_".$zone[$i]."_BASE.png?".rand();
-        }
-        ?>
-
-        <?php
-      }
-      } else if ($choice == "drawing") {
-        */
-        ?>
+    if ($choice == 'DRAW') { ?>
       <div class="borderShadow">
         <?php display_draw_section("VISION", $encounter, $pid); ?>
     </div>
@@ -226,6 +204,7 @@ function narrative($pid, $encounter, $cols, $form_id, $choice = 'full'): void
     global $PDF_OUTPUT;
     global $facilityService;
 
+    $session = SessionWrapperFactory::getInstance()->getActiveSession();
   //if $cols == 'Fax', we are here from taskman, making a fax and this a one page short form - leave out PMSFH, prescriptions
   //and any clinical area that is blank.
      $query = "  select  *,form_encounter.date as encounter_date
@@ -290,12 +269,8 @@ function narrative($pid, $encounter, $cols, $form_id, $choice = 'full'): void
 
     if ($PDF_OUTPUT) {
         $titleres = getPatientData($pid, "fname,lname,providerID,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS");
-        $facility = null;
-        if ($_SESSION['pc_facility']) {
-            $facility = $facilityService->getById($_SESSION['pc_facility']);
-        } else {
-            $facility = $facilityService->getPrimaryBillingLocation();
-        }
+        $pc_facility = $session->get('pc_facility');
+        $facility = $pc_facility ? $facilityService->getById($pc_facility) : $facilityService->getPrimaryBillingLocation();
     }
 
     ?><br /><br />

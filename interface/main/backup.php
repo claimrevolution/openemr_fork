@@ -38,6 +38,7 @@ use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Common\Logging\EventAuditLogger;
+use OpenEMR\Common\Session\SessionWrapperFactory;
 use OpenEMR\Core\Header;
 use OpenEMR\Core\OEGlobalsBag;
 
@@ -48,8 +49,10 @@ assert($globalsBag instanceof OEGlobalsBag);
 require_once("$srcdir/layout.inc.php");
 require_once("$srcdir/patient.inc.php");
 
+$session = SessionWrapperFactory::getInstance()->getActiveSession();
+
 if (!empty($_POST)) {
-    if (!CsrfUtils::verifyCsrfToken($_POST["csrf_token_form"])) {
+    if (!CsrfUtils::verifyCsrfToken($_POST["csrf_token_form"], session: $session)) {
         CsrfUtils::csrfNotVerified();
     }
 }
@@ -94,7 +97,7 @@ $BTN_TEXT_LOG = xl('Backup/Delete Log Data');
 $BTN_TEXT_CREATE_EVENTLOG = xl('Create Eventlog Backup');
 
 $form_step   = isset($_POST['form_step']) ? trim((string) $_POST['form_step']) : '0';
-$form_status = isset($_POST['form_status' ]) ? trim($_POST['form_status' ]) : '';
+$form_status = isset($_POST['form_status' ]) ? trim((string) $_POST['form_status' ]) : '';
 
 if (!empty($_POST['form_export'])) {
     $form_step = 101;
@@ -444,7 +447,7 @@ function export_submit(step) {
 <center>
 &nbsp;<br />
 <form method='post' action='backup.php' enctype='multipart/form-data' onsubmit='return top.restoreSession()'>
-<input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfUtils::collectCsrfToken()); ?>" />
+<input type="hidden" name="csrf_token_form" value="<?php echo CsrfUtils::collectCsrfToken(session: $session); ?>" />
 
 <table<?php echo ($form_step != 101) ? " style='width:50em'" : ""; ?>>
  <tr>
@@ -563,7 +566,7 @@ if ($form_step == 3) {
 
         if ($filename == 'sites') {
             // Omit other sites.
-            $file_list[] = "$filename/" . $_SESSION['site_id'];
+            $file_list[] = "$filename/" . $session->get('site_id');
         } else {
             $file_list[] = $filename;
         }
@@ -597,7 +600,7 @@ if ($form_step == 5) {   // create the final compressed tar containing all files
     chdir($cur_dir);
     /* To log the backup event */
     if (OEGlobalsBag::getInstance()->getBoolean('audit_events_backup')) {
-        EventAuditLogger::getInstance()->newEvent("backup", $_SESSION['authUser'], $_SESSION['authProvider'], 0, "Backup is completed");
+        EventAuditLogger::getInstance()->newEvent("backup", $session->get('authUser'), $session->get('authProvider'), 0, "Backup is completed");
     }
 
     $auto_continue = true;
