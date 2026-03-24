@@ -51,13 +51,13 @@ if (isset($_POST['SubmitButton'])) {
                             <div class="col">
                                 <div class="form-group">
                                     <label for="startDate"><?php echo xlt("Created Date Start");?></label>
-                                    <input type="date" class="form-control"  id="startDate" name="startDate"  value="<?php echo isset($_POST['startDate']) ? attr($_POST['startDate']) : '' ?>" placeholder="yyyy-mm-dd"/>
+                                    <input type="date" class="form-control"  id="startDate" name="startDate"  value="<?php echo isset($_POST['startDate']) ? attr($_POST['startDate']) : attr(date('Y-m-d')) ?>" placeholder="yyyy-mm-dd"/>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="form-group">
                                     <label for="endDate"><?php echo xlt("Created Date End");?></label>
-                                    <input type="date" class="form-control"  id="endDate" name="endDate"  value="<?php echo isset($_POST['endDate']) ? attr($_POST['endDate']) : '' ?>" placeholder="yyyy-mm-dd"/>
+                                    <input type="date" class="form-control"  id="endDate" name="endDate"  value="<?php echo isset($_POST['endDate']) ? attr($_POST['endDate']) : attr(date('Y-m-d')) ?>" placeholder="yyyy-mm-dd"/>
                                 </div>
                             </div>
                             <div class="col">
