@@ -105,8 +105,8 @@ class ModuleManagerListener extends AbstractModuleActionListener
     {
         $logMessage = 'Claimrev Background tasks have been enabled';
         // Register background services
-        $sql = "UPDATE `background_services` SET `active` = '1' WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
-        $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications']);
+        $sql = "UPDATE `background_services` SET `active` = '1' WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
+        $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications', 'ClaimRev_Elig_Sweep']);
         error_log($logMessage . ' ' . text($status));
         // Return the current action status from Module Manager in case of error from its action.
         return $currentActionStatus;
@@ -121,8 +121,8 @@ class ModuleManagerListener extends AbstractModuleActionListener
     {
         $logMessage = 'Claimrev Background tasks have been disabled';
         // Unregister background services
-        $sql = "UPDATE `background_services` SET `active` = '0' WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
-        $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications']);
+        $sql = "UPDATE `background_services` SET `active` = '0' WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
+        $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications', 'ClaimRev_Elig_Sweep']);
         error_log($logMessage . ' ' . text($status));
         return $currentActionStatus;
     }
@@ -135,8 +135,8 @@ class ModuleManagerListener extends AbstractModuleActionListener
     private function unregister($modId, $currentActionStatus)
     {
         $logMessage = 'Claimrev Background tasks have been removed'; // Initialize an empty string to store log messages
-        $sql = "DELETE FROM `background_services` WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
-        $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications']);
+        $sql = "DELETE FROM `background_services` WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
+        $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications', 'ClaimRev_Elig_Sweep']);
         error_log($logMessage . ' ' . text($status));
         return $currentActionStatus;
     }

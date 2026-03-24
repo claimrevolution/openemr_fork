@@ -24,6 +24,8 @@ use OpenEMR\Common\Twig\TwigContainer;
 use OpenEMR\Core\Kernel;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Events\Appointments\AppointmentSetEvent;
+use OpenEMR\Events\Appointments\CalendarUserGetEventsFilter;
+use OpenEMR\Events\Core\StyleFilterEvent;
 use OpenEMR\Events\Core\TwigEnvironmentEvent;
 use OpenEMR\Events\Globals\GlobalsInitializedEvent;
 use OpenEMR\Events\Main\Tabs\RenderEvent;
@@ -117,6 +119,7 @@ class Bootstrap
             $this->subscribeToApiEvents();
             $this->registerDemographicsEvents();
             $this->registerEligibilityEvents();
+            $this->registerCalendarIndicators();
         }
     }
 
@@ -177,6 +180,22 @@ class Bootstrap
     public function renderAppointmentSetEvent(AppointmentSetEvent $event)
     {
         ClaimRevRteService::createEligibilityFromAppointment($event->eid);
+    }
+
+    public function registerCalendarIndicators()
+    {
+        if ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_CALENDAR_INDICATORS)) {
+            $staleAge = (int) ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY) ?: 30);
+            $indicator = new CalendarEligibilityIndicator($staleAge);
+            $this->eventDispatcher->addListener(
+                CalendarUserGetEventsFilter::EVENT_NAME,
+                $indicator->filterCalendarEvents(...)
+            );
+            $this->eventDispatcher->addListener(
+                StyleFilterEvent::EVENT_NAME,
+                $indicator->addCalendarStylesheet(...)
+            );
+        }
     }
     public function renderEligibilitySection(pRenderEvent $event)
     {

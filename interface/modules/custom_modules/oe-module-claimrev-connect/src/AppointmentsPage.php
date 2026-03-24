@@ -12,13 +12,14 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityObjectCreator;
 use OpenEMR\Modules\ClaimRevConnector\ValueMapping;
 
 class AppointmentsPage
 {
-    public static function getUpcomingAppointments($startDate, $endDate, $facilityId = null, $providerId = null)
+    public static function getUpcomingAppointments($startDate, $endDate, $facilityId = null, $providerId = null, $eligibilityFilter = 'all')
     {
         $sql = "SELECT
                     e.pc_eid,
@@ -64,6 +65,30 @@ class AppointmentsPage
         if ($providerId != null && $providerId != "") {
             $sql .= " AND e.pc_aid = ?";
             array_push($sqlarr, $providerId);
+        }
+
+        // Apply eligibility status filter
+        $staleAge = (int) (OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY) ?? 30);
+        if ($staleAge < 1) {
+            $staleAge = 30;
+        }
+
+        switch ($eligibilityFilter) {
+            case 'needs_attention':
+                $sql .= " AND (elig.id IS NULL OR elig.status IN ('error', 'senderror') OR DATEDIFF(NOW(), COALESCE(elig.last_checked, elig.create_date)) >= ?)";
+                array_push($sqlarr, $staleAge);
+                break;
+            case 'not_checked':
+                $sql .= " AND elig.id IS NULL";
+                break;
+            case 'stale':
+                $sql .= " AND elig.id IS NOT NULL AND elig.status NOT IN ('waiting', 'creating') AND DATEDIFF(NOW(), COALESCE(elig.last_checked, elig.create_date)) >= ?";
+                array_push($sqlarr, $staleAge);
+                break;
+            case 'active_coverage':
+                $sql .= " AND elig.status = 'SUCCESS'";
+                break;
+            // 'all' — no additional filter
         }
 
         $sql .= " ORDER BY e.pc_eventDate ASC, e.pc_startTime ASC";

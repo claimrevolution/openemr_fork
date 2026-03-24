@@ -48,8 +48,9 @@ $startDate = isset($_POST['startDate']) && $_POST['startDate'] != '' ? $_POST['s
 $endDate = isset($_POST['endDate']) && $_POST['endDate'] != '' ? $_POST['endDate'] : $defaultEnd;
 $facilityId = isset($_POST['facilityId']) ? $_POST['facilityId'] : '';
 $providerId = isset($_POST['providerId']) ? $_POST['providerId'] : '';
+$eligFilter = isset($_POST['eligFilter']) ? $_POST['eligFilter'] : 'all';
 
-$appointments = AppointmentsPage::getUpcomingAppointments($startDate, $endDate, $facilityId, $providerId);
+$appointments = AppointmentsPage::getUpcomingAppointments($startDate, $endDate, $facilityId, $providerId, $eligFilter);
 $facilities = AppointmentsPage::getFacilities();
 $providers = AppointmentsPage::getProviders();
 
@@ -120,6 +121,18 @@ $path = str_replace("public", "templates", __DIR__);
                                     </select>
                                 </div>
                             </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="eligFilter"><?php echo xlt("Eligibility Status"); ?></label>
+                                    <select class="form-control" id="eligFilter" name="eligFilter">
+                                        <option value="all" <?php echo ($eligFilter == 'all') ? 'selected' : ''; ?>><?php echo xlt("All"); ?></option>
+                                        <option value="needs_attention" <?php echo ($eligFilter == 'needs_attention') ? 'selected' : ''; ?>><?php echo xlt("Needs Attention"); ?></option>
+                                        <option value="active_coverage" <?php echo ($eligFilter == 'active_coverage') ? 'selected' : ''; ?>><?php echo xlt("Active Coverage"); ?></option>
+                                        <option value="not_checked" <?php echo ($eligFilter == 'not_checked') ? 'selected' : ''; ?>><?php echo xlt("Not Checked"); ?></option>
+                                        <option value="stale" <?php echo ($eligFilter == 'stale') ? 'selected' : ''; ?>><?php echo xlt("Stale"); ?></option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col">
@@ -145,6 +158,7 @@ $path = str_replace("public", "templates", __DIR__);
                 <input type="hidden" name="endDate" value="<?php echo attr($endDate); ?>"/>
                 <input type="hidden" name="facilityId" value="<?php echo attr($facilityId); ?>"/>
                 <input type="hidden" name="providerId" value="<?php echo attr($providerId); ?>"/>
+                <input type="hidden" name="eligFilter" value="<?php echo attr($eligFilter); ?>"/>
 
                 <div class="row mt-2 mb-2">
                     <div class="col">

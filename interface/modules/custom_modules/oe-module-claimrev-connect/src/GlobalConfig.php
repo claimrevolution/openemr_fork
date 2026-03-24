@@ -47,6 +47,10 @@ class GlobalConfig
     public const CONFIG_OPTION_DEV_SCOPE = 'oe_claimrev_config_dev_scope';
     public const CONFIG_OPTION_DEV_AUTHORITY = 'oe_claimrev_config_dev_authority';
     public const CONFIG_ENABLE_TEST_MODE = 'oe_claimrev_enable_test_mode';
+    public const CONFIG_ENABLE_SWEEP = 'oe_claimrev_enable_sweep';
+    public const CONFIG_SWEEP_DAYS = 'oe_claimrev_sweep_days';
+    public const CONFIG_SWEEP_LOOKAHEAD = 'oe_claimrev_sweep_lookahead';
+    public const CONFIG_ENABLE_CALENDAR_INDICATORS = 'oe_claimrev_enable_calendar_indicators';
 
     /** @var \OpenEMR\Common\Crypto\CryptoGen */
     private readonly object $cryptoGen;
@@ -285,6 +289,31 @@ class GlobalConfig
             self::CONFIG_ENABLE_TEST_MODE => [
                 'title' => 'Enable Test Mode',
                 'description' => 'Shows a Test Mode option on the Payment Advice screen that generates simulated ERA data from OpenEMR billing records. For demonstration and training only.',
+                'type' => GlobalSetting::DATA_TYPE_BOOL,
+                'default' => '',
+            ],
+            // --- Eligibility Sweep settings ---
+            self::CONFIG_ENABLE_SWEEP => [
+                'title' => 'Enable Eligibility Sweep',
+                'description' => 'Automatically queue eligibility checks for upcoming appointments on scheduled days',
+                'type' => GlobalSetting::DATA_TYPE_BOOL,
+                'default' => '',
+            ],
+            self::CONFIG_SWEEP_DAYS => [
+                'title' => 'Sweep Days',
+                'description' => 'Comma-separated day numbers (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat). E.g. 1,4 for Monday and Thursday.',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => '1,4',
+            ],
+            self::CONFIG_SWEEP_LOOKAHEAD => [
+                'title' => 'Sweep Lookahead Days',
+                'description' => 'Number of days ahead to check appointments for eligibility',
+                'type' => GlobalSetting::DATA_TYPE_TEXT,
+                'default' => '7',
+            ],
+            self::CONFIG_ENABLE_CALENDAR_INDICATORS => [
+                'title' => 'Enable Calendar Eligibility Indicators',
+                'description' => 'Show color indicators on the main OpenEMR calendar based on eligibility status. May impact calendar performance.',
                 'type' => GlobalSetting::DATA_TYPE_BOOL,
                 'default' => '',
             ],

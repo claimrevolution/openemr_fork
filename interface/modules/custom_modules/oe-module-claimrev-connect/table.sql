@@ -68,6 +68,11 @@ INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_r
 ('ClaimRev_Watchdog', 'ClaimRev Stuck Service Watchdog', 1, 0, '2017-05-09 17:39:10', 20, 'start_claimrev_watchdog', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Watchdog_Service.php', 50);
 #Endif
 
+#IfNotRow background_services name ClaimRev_Elig_Sweep
+INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
+('ClaimRev_Elig_Sweep', 'ClaimRev Eligibility Sweep', 1, 0, '2017-05-09 17:39:10', 1440, 'start_eligibility_sweep', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_Sweep_Service.php', 100);
+#Endif
+
 -- Claim status tracking tables
 #IfNotTable mod_claimrev_claims
 CREATE TABLE `mod_claimrev_claims` (
