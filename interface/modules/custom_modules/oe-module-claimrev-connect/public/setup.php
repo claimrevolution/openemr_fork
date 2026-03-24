@@ -15,9 +15,9 @@
     use OpenEMR\Common\Acl\AccessDeniedHelper;
     use OpenEMR\Common\Acl\AclMain;
     use OpenEMR\Common\Csrf\CsrfUtils;
-    use OpenEMR\Common\Session\SessionWrapperFactory;
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
+    use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 
     $tab = "setup";
 
@@ -26,10 +26,9 @@ if (!AclMain::aclCheckCore('admin', 'manage_modules')) {
     AccessDeniedHelper::denyWithTemplate("ACL check failed for admin/manage_modules: ClaimRev Connect - Setup", xl("ClaimRev Connect - Setup"));
 }
 
-$session = SessionWrapperFactory::getInstance()->getActiveSession();
 $actionMessage = '';
 if (!empty($_POST)) {
-    if (!CsrfUtils::verifyCsrfToken($_POST["csrf_token_form"], $session, "ClaimRevModule")) {
+    if (!CsrfHelper::verifyCsrfToken($_POST["csrf_token_form"], "ClaimRevModule")) {
         CsrfUtils::csrfNotVerified();
     }
     if (isset($_POST['deactivateSftp'])) {
@@ -118,11 +117,11 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                             <p><?php echo xlt("There are required background services that are needed to send claims, pick up reports, and check eligibility. They are listed below in a table, but if there is something strange going on use the button to re-create the records."); ?></p>
                             <form method="post" action="setup.php" class="d-inline">
                                 <button type="submit" name="backgroundService" class="btn btn-primary"><?php echo xlt("Set Defaults"); ?></button>
-                                <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfUtils::collectCsrfToken($session, 'ClaimRevModule')); ?>" />
+                                <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfHelper::collectCsrfToken('ClaimRevModule')); ?>" />
                             </form>
                             <form method="post" action="setup.php" class="d-inline ml-2">
                                 <button type="submit" name="runMigrations" class="btn btn-secondary"><?php echo xlt("Run Upgrade"); ?></button>
-                                <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfUtils::collectCsrfToken($session, 'ClaimRevModule')); ?>" />
+                                <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfHelper::collectCsrfToken('ClaimRevModule')); ?>" />
                             </form>
                         </div>
                     </div>
@@ -138,7 +137,7 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                                 ?>
                                 <form method="post" action="setup.php">
                                     <button type="submit" name="deactivateSftp" class="btn btn-warning"><?php echo xlt("Deactivate"); ?></button>
-                                    <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfUtils::collectCsrfToken($session, 'ClaimRevModule')); ?>" />
+                                    <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfHelper::collectCsrfToken('ClaimRevModule')); ?>" />
                                 </form>
                                 <?php
                             } else {
@@ -146,7 +145,7 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                                 ?>
                                 <form method="post" action="setup.php">
                                     <button type="submit" name="reactivateSftp" class="btn btn-outline-secondary"><?php echo xlt("Reactivate"); ?></button>
-                                    <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfUtils::collectCsrfToken($session, 'ClaimRevModule')); ?>" />
+                                    <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfHelper::collectCsrfToken('ClaimRevModule')); ?>" />
                                 </form>
                                 <?php
                             }
@@ -224,7 +223,7 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                             </div>
                             <div class="modal-footer">
                                 <input type="hidden" name="createPartner" value="1" />
-                                <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfUtils::collectCsrfToken($session, 'ClaimRevModule')); ?>" />
+                                <input type="hidden" name="csrf_token_form" value="<?php echo attr(CsrfHelper::collectCsrfToken('ClaimRevModule')); ?>" />
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal"><?php echo xlt("Cancel"); ?></button>
                                 <button type="submit" class="btn btn-success"><?php echo xlt("Create"); ?></button>
                             </div>

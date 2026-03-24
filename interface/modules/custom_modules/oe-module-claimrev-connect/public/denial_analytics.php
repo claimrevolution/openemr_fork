@@ -14,8 +14,8 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\DenialAnalyticsService;
 
 $tab = "denial_analytics";
@@ -28,7 +28,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 }
 
 // CSV export
-if (isset($_POST['export_csv']) && CsrfUtils::verifyCsrfToken($_POST['csrf_token'] ?? '', 'denials')) {
+if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'denials')) {
     $data = DenialAnalyticsService::getAnalytics($_POST);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="denial_analytics_' . date('Y-m-d') . '.csv"');
@@ -36,7 +36,7 @@ if (isset($_POST['export_csv']) && CsrfUtils::verifyCsrfToken($_POST['csrf_token
     exit;
 }
 
-$csrfToken = CsrfUtils::collectCsrfToken('denials');
+$csrfToken = CsrfHelper::collectCsrfToken('denials');
 $data = null;
 $searched = false;
 

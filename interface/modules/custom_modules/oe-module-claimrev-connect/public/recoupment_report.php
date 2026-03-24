@@ -19,6 +19,7 @@ use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\RecoupmentReportService;
 
 $tab = "recoupment_report";
@@ -31,7 +32,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 }
 
 // CSV export
-if (isset($_POST['export_csv']) && CsrfUtils::verifyCsrfToken($_POST['csrf_token'] ?? '', 'recoupment')) {
+if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'recoupment')) {
     $data = RecoupmentReportService::getRecoupmentReport($_POST);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="recoupment_report_' . date('Y-m-d') . '.csv"');
@@ -39,7 +40,7 @@ if (isset($_POST['export_csv']) && CsrfUtils::verifyCsrfToken($_POST['csrf_token
     exit;
 }
 
-$csrfToken = CsrfUtils::collectCsrfToken('recoupment');
+$csrfToken = CsrfHelper::collectCsrfToken('recoupment');
 $data = null;
 $searched = false;
 

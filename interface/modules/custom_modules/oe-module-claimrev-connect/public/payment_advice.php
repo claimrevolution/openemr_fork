@@ -15,8 +15,8 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdviceMockService;
@@ -36,7 +36,7 @@ $bootstrap = new Bootstrap($GLOBALS['kernel']->getEventDispatcher());
 $globalConfig = $bootstrap->getGlobalConfig();
 $portalUrl = $globalConfig->getPortalUrl();
 $testModeAllowed = $globalConfig->isTestModeEnabled();
-$csrfToken = CsrfUtils::collectCsrfToken('payment_advice');
+$csrfToken = CsrfHelper::collectCsrfToken('payment_advice');
 
 $datas = [];
 $totalRecords = 0;

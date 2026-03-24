@@ -14,10 +14,11 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Common\Csrf\CsrfUtils;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 
 header('Content-Type: application/json');
 
-if (!CsrfUtils::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
     echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
     exit;
 }

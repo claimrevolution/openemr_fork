@@ -14,8 +14,8 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimTrackingService;
 
@@ -30,7 +30,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 
 $bootstrap = new Bootstrap($GLOBALS['kernel']->getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
-$csrfToken = CsrfUtils::collectCsrfToken('claim_status');
+$csrfToken = CsrfHelper::collectCsrfToken('claim_status');
 $webRoot = $GLOBALS['webroot'];
 
 $claims = [];

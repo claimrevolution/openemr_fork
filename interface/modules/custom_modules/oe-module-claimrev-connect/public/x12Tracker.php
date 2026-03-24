@@ -15,6 +15,7 @@
     use OpenEMR\Common\Acl\AccessDeniedHelper;
     use OpenEMR\Common\Acl\AclMain;
     use OpenEMR\Common\Csrf\CsrfUtils;
+    use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
     use OpenEMR\Modules\ClaimRevConnector\X12TrackerPage;
     use OpenEMR\Core\Header;
 
@@ -134,7 +135,7 @@ if (isset($_POST['SubmitButton'])) {
                         type: 'POST',
                         data: {
                             id: id,
-                            csrf_token: <?php echo js_escape(CsrfUtils::collectCsrfToken()); ?>
+                            csrf_token: <?php echo js_escape(CsrfHelper::collectCsrfToken()); ?>
                         },
                         dataType: 'json',
                         success: function(response) {

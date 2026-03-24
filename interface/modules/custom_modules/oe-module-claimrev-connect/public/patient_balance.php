@@ -18,8 +18,8 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\PatientBalanceService;
 
 $tab = "patient_balance";
@@ -31,7 +31,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
-$csrfToken = CsrfUtils::collectCsrfToken('patient_balance');
+$csrfToken = CsrfHelper::collectCsrfToken('patient_balance');
 $webRoot = $GLOBALS['webroot'];
 
 $encounters = [];
