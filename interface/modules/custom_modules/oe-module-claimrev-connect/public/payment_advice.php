@@ -17,6 +17,7 @@ use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdviceMockService;
@@ -32,7 +33,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
-$bootstrap = new Bootstrap($GLOBALS['kernel']->getEventDispatcher());
+$bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
 $globalConfig = $bootstrap->getGlobalConfig();
 $portalUrl = $globalConfig->getPortalUrl();
 $testModeAllowed = $globalConfig->isTestModeEnabled();

@@ -16,6 +16,7 @@ use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
@@ -30,7 +31,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 
 $claimStatuses = ClaimsPage::getClaimStatuses();
 
-$bootstrap = new Bootstrap($GLOBALS['kernel']->getEventDispatcher());
+$bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claims');
 $webRoot = $GLOBALS['webroot'];
