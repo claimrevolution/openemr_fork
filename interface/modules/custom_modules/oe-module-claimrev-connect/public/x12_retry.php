@@ -13,7 +13,6 @@
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Common\Csrf\CsrfUtils;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 
 header('Content-Type: application/json');
