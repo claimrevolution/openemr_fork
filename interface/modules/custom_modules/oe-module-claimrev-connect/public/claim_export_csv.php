@@ -29,7 +29,8 @@ try {
     $fileName = $result['fileName'] ?? 'claims_export.csv';
 
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $fileName . '"');
+    header('Content-Disposition: attachment; filename="' . attr($fileName) . '"');
+    // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
     echo $fileText;
 } catch (ClaimRevException) {
     http_response_code(500);

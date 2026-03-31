@@ -50,8 +50,16 @@ class ClaimsPage
 
         $model->pagingSearch->pageIndex = $pageIndex;
         $model->pagingSearch->pageSize = 50;
-        $model->pagingSearch->sortField = $postData['sortField'] ?? '';
-        $model->pagingSearch->sortDirection = $postData['sortDirection'] ?? '';
+
+        $sortField = $postData['sortField'] ?? '';
+        $sortDir = $postData['sortDirection'] ?? '';
+        if ($sortField !== '') {
+            $model->sorting = [[
+                'fieldName' => $sortField,
+                'sortDirection' => $sortDir === 'desc' ? -1 : 1,
+                'priority' => 1,
+            ]];
+        }
 
         $data = ClaimSearch::search($model);
         return $data;
@@ -87,8 +95,15 @@ class ClaimsPage
             $model->statusIds = [(int)$statusId];
         }
 
-        $model->pagingSearch->sortField = $postData['sortField'] ?? '';
-        $model->pagingSearch->sortDirection = $postData['sortDirection'] ?? '';
+        $sortField = $postData['sortField'] ?? '';
+        $sortDir = $postData['sortDirection'] ?? '';
+        if ($sortField !== '') {
+            $model->sorting = [[
+                'fieldName' => $sortField,
+                'sortDirection' => $sortDir === 'desc' ? -1 : 1,
+                'priority' => 1,
+            ]];
+        }
 
         $api = ClaimRevApi::makeFromGlobals();
         return $api->searchClaimsCsv($model);

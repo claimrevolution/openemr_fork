@@ -155,16 +155,20 @@ class ClaimRevModuleSetup
             }
 
             if (preg_match('/^#IfNotRow\s+(\S+)\s+(\S+)\s+(.+)/', $line, $matches)) {
-                $row = sqlQuery("SELECT * FROM `" . $matches[1] . "` WHERE `" . $matches[2] . "` = ?", [trim($matches[3])]);
+                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
+                $safeCol = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[2]);
+                $row = sqlQuery("SELECT * FROM `" . $safeTbl . "` WHERE `" . $safeCol . "` = ?", [trim($matches[3])]);
                 $skipping = !empty($row);
                 continue;
             } elseif (preg_match('/^#IfNotTable\s+(\S+)/', $line, $matches)) {
                 $tableName = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
-                $row = sqlQuery("SHOW TABLES LIKE '" . add_escape_custom($tableName) . "'");
+                // nosemgrep: openemr-sql-injection-sqlquery -- $tableName sanitized by preg_replace above; SHOW TABLES LIKE does not support parameterized queries
+                $row = sqlQuery("SHOW TABLES LIKE '" . $tableName . "'");
                 $skipping = !empty($row);
                 continue;
             } elseif (preg_match('/^#IfNotColumnType\s+(\S+)\s+(\S+)\s+(\S+)/', $line, $matches)) {
-                $row = sqlQuery("SHOW COLUMNS FROM `" . $matches[1] . "` WHERE Field = ?", [$matches[2]]);
+                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
+                $row = sqlQuery("SHOW COLUMNS FROM `" . $safeTbl . "` WHERE Field = ?", [$matches[2]]);
                 $skipping = ($row && stripos($row['Type'], $matches[3]) !== false);
                 continue;
             } elseif (preg_match('/^#(EndIf|Endif)/i', $line)) {
