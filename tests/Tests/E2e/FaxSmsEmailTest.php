@@ -8,7 +8,7 @@
  * @package   OpenEMR
  * @link      https://www.open-emr.org
  * @author    Michael A. Smith <michael@opencoreemr.com>
- * @copyright Copyright (c) 2025 OpenCoreEMR Inc.
+ * @copyright Copyright (c) 2025 OpenCoreEMR Inc <https://opencoreemr.com/>
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
@@ -138,7 +138,7 @@ class FaxSmsEmailTest extends TestCase
         $globals = OEGlobalsBag::getInstance();
 
         // Save original SMTP_HOST setting
-        $originalSmtpHost = $globals->get('SMTP_HOST');
+        $originalSmtpHost = $globals->getString('SMTP_HOST');
 
         // Temporarily disable SMTP by clearing SMTP_HOST
         // Note: SMTP is considered configured when SMTP_HOST is set,

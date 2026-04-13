@@ -85,7 +85,7 @@ if (!empty($_POST['access_group']) && is_array($_POST['access_group'])) {
                 $row = sqlFetchArray($res);
                 $uname = $row['username'];
                 $mail = new MyMailer();
-                $mail->From = OEGlobalsBag::getInstance()->get("practice_return_email_path");
+                $mail->From = OEGlobalsBag::getInstance()->getString("practice_return_email_path");
                 $mail->FromName = "Administrator OpenEMR";
                 $text_body = "Hello Security Admin,\n\n The Emergency Login user " . $uname .
                     " was activated at " . date('l jS \of F Y h:i:s A') . " \n\nThanks,\nAdmin OpenEMR.";
@@ -552,10 +552,11 @@ if (isset($_GET["mode"])) {
         }
     }
 }
-// added for form submits from usergroup_admin_add and user_admin.php
-// sjp 12/29/17
+// AJAX form submits from usergroup_admin_add and user_admin.php
+// return the alert message (empty on success) and stop rendering the page
 if (isset($_REQUEST["mode"])) {
-    exit(text(trim($alertmsg)));
+    echo text(trim($alertmsg));
+    return;
 }
 
 $form_inactive = !empty($_POST['form_inactive']);

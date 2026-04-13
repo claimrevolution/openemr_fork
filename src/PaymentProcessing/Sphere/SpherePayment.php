@@ -48,8 +48,8 @@ class SpherePayment
         $cryptoGen = ServiceContainer::getCrypto();
         if ($this->front == 'patient') {
             $frontSpecific = 'patient';
-            $trxcustid = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->get('sphere_patientfront_trxcustid'));
-            $trxcustidLicensekey = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->get('sphere_patientfront_trxcustid_licensekey'));
+            $trxcustid = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->getString('sphere_patientfront_trxcustid'));
+            $trxcustidLicensekey = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->getString('sphere_patientfront_trxcustid_licensekey'));
             if ($testing) {
                 $url = Sphere::PATIENTFRONT_TESTING_URL;
             } else {
@@ -58,10 +58,10 @@ class SpherePayment
         } else { //$this->front == 'clinic'
             $frontSpecific = 'clinic-phone';
             $frontSpecificRetail = 'clinic-retail';
-            $trxcustid = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->get('sphere_clinicfront_trxcustid'));
-            $trxcustidLicensekey = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->get('sphere_clinicfront_trxcustid_licensekey'));
-            $trxcustidRetail = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->get('sphere_clinicfront_retail_trxcustid'));
-            $trxcustidRetailLicensekey = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->get('sphere_clinicfront_retail_trxcustid_licensekey'));
+            $trxcustid = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->getString('sphere_clinicfront_trxcustid'));
+            $trxcustidLicensekey = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->getString('sphere_clinicfront_trxcustid_licensekey'));
+            $trxcustidRetail = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->getString('sphere_clinicfront_retail_trxcustid'));
+            $trxcustidRetailLicensekey = $cryptoGen->decryptStandard(OEGlobalsBag::getInstance()->getString('sphere_clinicfront_retail_trxcustid_licensekey'));
             if ($testing) {
                 $url = Sphere::CLINICFRONT_TESTING_URL;
             } else {
@@ -70,7 +70,7 @@ class SpherePayment
         }
 
         // Calculate the OpenEMR server
-        $this->serverSite = OEGlobalsBag::getInstance()->get('site_addr_oath') . OEGlobalsBag::getInstance()->get('web_root');
+        $this->serverSite = OEGlobalsBag::getInstance()->get('site_addr_oath') . OEGlobalsBag::getInstance()->getKernel()->getWebRoot();
 
         $session = SessionWrapperFactory::getInstance()->getActiveSession();
         // Calculate the $mainUrl
