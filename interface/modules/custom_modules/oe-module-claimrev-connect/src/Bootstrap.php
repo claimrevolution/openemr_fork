@@ -73,11 +73,7 @@ class Bootstrap
         ?Kernel $kernel = null,
         ?LoggerInterface $logger = null,
     ) {
-        global $GLOBALS;
-
-        if (empty($kernel)) {
-            $kernel = new Kernel();
-        }
+        $kernel ??= OEGlobalsBag::getInstance()->getKernel();
 
         // NOTE: eventually you will be able to pull the twig container directly from the kernel instead of instantiating
         // it here.
@@ -139,8 +135,6 @@ class Bootstrap
 
     public function addGlobalSettingsSection(GlobalsInitializedEvent $event)
     {
-        global $GLOBALS;
-
         $service = $event->getGlobalsService();
         $section = xlt("ClaimRev Connect");
         $service->createSection($section, 'Portal');
