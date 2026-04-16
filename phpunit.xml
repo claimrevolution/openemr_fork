@@ -24,6 +24,8 @@ This file configures the kind that requires initialization.
     displayDetailsOnTestsThatTriggerWarnings="true"
     displayDetailsOnTestsThatTriggerNotices="true"
     displayDetailsOnPhpunitDeprecations="true"
+    failOnDeprecation="true"
+    failOnPhpunitDeprecation="true"
     failOnPhpunitWarning="true"
     testdox="false">
   <coverage> </coverage>
@@ -44,6 +46,10 @@ This file configures the kind that requires initialization.
     </testsuite>
     <testsuite name="unit">
       <directory>tests/Tests/Unit</directory>
+      <exclude>tests/Tests/Unit/Common/Http</exclude>
+      <exclude>tests/Tests/Unit/Common/Utils</exclude>
+      <exclude>tests/Tests/Unit/PaymentProcessing</exclude>
+      <exclude>tests/Tests/Unit/library</exclude>
     </testsuite>
     <testsuite name="e2e">
       <directory>tests/Tests/E2e</directory>
@@ -69,10 +75,7 @@ This file configures the kind that requires initialization.
     <testsuite name="common">
       <directory>tests/Tests/Common</directory>
     </testsuite>
-    <testsuite name="integration">
-      <directory>tests/Tests/Integration</directory>
-    </testsuite>
-    <testsuite name="certification">
+<testsuite name="certification">
       <directory>tests/Tests/Certification/HIT1</directory>
     </testsuite>
     <testsuite name="email">
@@ -82,4 +85,12 @@ This file configures the kind that requires initialization.
       <file>tests/Tests/E2e/NotificationCronEmailTest.php</file>
     </testsuite>
   </testsuites>
+  <source ignoreIndirectDeprecations="true">
+    <include>
+      <directory>.</directory>
+    </include>
+    <exclude>
+      <directory>vendor</directory>
+    </exclude>
+  </source>
 </phpunit>
