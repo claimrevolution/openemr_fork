@@ -6,13 +6,17 @@
  * @link    https://www.open-emr.org
  *
  * @author    Brad Sharp <brad.sharp@claimrev.com>
+ * @author    Michael A. Smith <michael@opencoreemr.com>
  * @copyright Copyright (c) 2022 Brad Sharp <brad.sharp@claimrev.com>
+ * @copyright Copyright (c) 2026 OpenCoreEMR Inc <https://opencoreemr.com/>
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Core\OEGlobalsBag;
+use OpenEMR\Services\Background\BackgroundServiceDefinition;
+use OpenEMR\Services\Background\BackgroundServiceRegistry;
 
 class ClaimRevModuleSetup
 {
@@ -155,16 +159,20 @@ class ClaimRevModuleSetup
             }
 
             if (preg_match('/^#IfNotRow\s+(\S+)\s+(\S+)\s+(.+)/', $line, $matches)) {
-                $row = sqlQuery("SELECT * FROM `" . $matches[1] . "` WHERE `" . $matches[2] . "` = ?", [trim($matches[3])]);
+                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
+                $safeCol = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[2]);
+                $row = sqlQuery("SELECT * FROM `" . $safeTbl . "` WHERE `" . $safeCol . "` = ?", [trim($matches[3])]);
                 $skipping = !empty($row);
                 continue;
             } elseif (preg_match('/^#IfNotTable\s+(\S+)/', $line, $matches)) {
                 $tableName = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
-                $row = sqlQuery("SHOW TABLES LIKE '" . add_escape_custom($tableName) . "'");
+                // nosemgrep: openemr-sql-injection-sqlquery -- $tableName sanitized by preg_replace above; SHOW TABLES LIKE does not support parameterized queries
+                $row = sqlQuery("SHOW TABLES LIKE '" . $tableName . "'");
                 $skipping = !empty($row);
                 continue;
             } elseif (preg_match('/^#IfNotColumnType\s+(\S+)\s+(\S+)\s+(\S+)/', $line, $matches)) {
-                $row = sqlQuery("SHOW COLUMNS FROM `" . $matches[1] . "` WHERE Field = ?", [$matches[2]]);
+                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
+                $row = sqlQuery("SHOW COLUMNS FROM `" . $safeTbl . "` WHERE Field = ?", [$matches[2]]);
                 $skipping = ($row && stripos($row['Type'], $matches[3]) !== false);
                 continue;
             } elseif (preg_match('/^#(EndIf|Endif)/i', $line)) {
@@ -197,29 +205,67 @@ class ClaimRevModuleSetup
         $result = sqlStatement($sql);
         return $result;
     }
-    public static function createBackGroundServices()
+    public static function createBackGroundServices(): void
     {
-        $sql = "DELETE FROM background_services WHERE name like '%ClaimRev%'";
-        sqlStatement($sql);
+        // Use BackgroundServiceRegistry so module upgrades don't silently
+        // reset an admin's enable/disable toggle. The Registry's "first
+        // install wins" policy preserves the active flag on upsert;
+        // reinstalling this module no longer wipes admin preferences the
+        // way the previous DELETE-then-INSERT pattern did.
+        $registry = new BackgroundServiceRegistry();
+        $billingPath = '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Billing_Claimrev_Service.php';
+        $eligibilityPath = '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_ClaimRev_Service.php';
+        $notificationPath = '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php';
+        $watchdogPath = '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Watchdog_Service.php';
 
-        $sql = "INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
-            ('ClaimRev_Send', 'Send Claims To ClaimRev', 1, 0, '2017-05-09 17:39:10', 1, 'start_X12_Claimrev_send_files', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Billing_Claimrev_Service.php', 100);";
-        sqlStatement($sql);
+        $registry->register(new BackgroundServiceDefinition(
+            name: 'ClaimRev_Send',
+            title: 'Send Claims To ClaimRev',
+            function: 'start_X12_Claimrev_send_files',
+            requireOnce: $billingPath,
+            executeInterval: 1,
+            sortOrder: 100,
+            active: true,
+        ));
 
-        $sql = "INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
-            ('ClaimRev_Receive', 'Get Reports from ClaimRev', 1, 0, '2017-05-09 17:39:10', 240, 'start_X12_Claimrev_get_reports', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Billing_Claimrev_Service.php', 100);";
-        sqlStatement($sql);
+        $registry->register(new BackgroundServiceDefinition(
+            name: 'ClaimRev_Receive',
+            title: 'Get Reports from ClaimRev',
+            function: 'start_X12_Claimrev_get_reports',
+            requireOnce: $billingPath,
+            executeInterval: 240,
+            sortOrder: 100,
+            active: true,
+        ));
 
-        $sql = "INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
-            ('ClaimRev_Elig_Send_Receive', 'Send and Receive Eligibility from ClaimRev', 1, 0, '2017-05-09 17:39:10', 1, 'start_send_eligibility', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_ClaimRev_Service.php', 100);";
-        sqlStatement($sql);
+        $registry->register(new BackgroundServiceDefinition(
+            name: 'ClaimRev_Elig_Send_Receive',
+            title: 'Send and Receive Eligibility from ClaimRev',
+            function: 'start_send_eligibility',
+            requireOnce: $eligibilityPath,
+            executeInterval: 1,
+            sortOrder: 100,
+            active: true,
+        ));
 
-        $sql = "INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
-            ('ClaimRev_Notifications', 'ClaimRev Notification Check', 1, 0, '2017-05-09 17:39:10', 60, 'start_claimrev_notifications', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php', 100);";
-        sqlStatement($sql);
+        $registry->register(new BackgroundServiceDefinition(
+            name: 'ClaimRev_Notifications',
+            title: 'ClaimRev Notification Check',
+            function: 'start_claimrev_notifications',
+            requireOnce: $notificationPath,
+            executeInterval: 60,
+            sortOrder: 100,
+            active: true,
+        ));
 
-        $sql = "INSERT INTO `background_services` (`name`, `title`, `active`, `running`, `next_run`, `execute_interval`, `function`, `require_once`, `sort_order`) VALUES
-            ('ClaimRev_Watchdog', 'ClaimRev Stuck Service Watchdog', 1, 0, '2017-05-09 17:39:10', 20, 'start_claimrev_watchdog', '/interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Watchdog_Service.php', 50);";
-        sqlStatement($sql);
+        $registry->register(new BackgroundServiceDefinition(
+            name: 'ClaimRev_Watchdog',
+            title: 'ClaimRev Stuck Service Watchdog',
+            function: 'start_claimrev_watchdog',
+            requireOnce: $watchdogPath,
+            executeInterval: 20,
+            sortOrder: 50,
+            active: true,
+        ));
     }
 }

@@ -147,7 +147,7 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/eRxPage.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method eRxPage\\:\\:getXMLBuilder\\(\\) should return object but returns mixed\\.$#',
+    'message' => '#^Method eRxPage\\:\\:getXMLBuilder\\(\\) should return eRxXMLBuilder but returns eRxXMLBuilder\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxPage.php',
 ];
@@ -155,11 +155,6 @@ $ignoreErrors[] = [
     'message' => '#^Method eRxPage\\:\\:getXML\\(\\) should return string but returns string\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxPage.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method eRxSOAP\\:\\:getAccountId\\(\\) should return string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Method eRxSOAP\\:\\:getAccountStatus\\(\\) should return object but returns mixed\\.$#',
@@ -177,7 +172,7 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method eRxSOAP\\:\\:getGlobals\\(\\) should return object but returns mixed\\.$#',
+    'message' => '#^Method eRxSOAP\\:\\:getGlobals\\(\\) should return eRxGlobals but returns eRxGlobals\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
@@ -217,12 +212,7 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method eRxSOAP\\:\\:getStore\\(\\) should return object but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxSOAP.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method eRxSOAP\\:\\:getTTL\\(\\) should return bool\\|float\\|int but returns mixed\\.$#',
+    'message' => '#^Method eRxSOAP\\:\\:getStore\\(\\) should return eRxStore but returns eRxStore\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
@@ -233,16 +223,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Method eRxSOAP\\:\\:initializeSoapClient\\(\\) should return SoapClient but returns eRxSOAP\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxSOAP.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method eRxSOAP\\:\\:insertMissingListOptions\\(\\) should return string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxSOAP.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method eRxSOAP\\:\\:setGlobals\\(\\) should return eRxPage but returns \\$this\\(eRxSOAP\\)\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
@@ -322,22 +302,12 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/eRxStore.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method eRxXMLBuilder\\:\\:getGlobals\\(\\) should return object but returns mixed\\.$#',
+    'message' => '#^Method eRxXMLBuilder\\:\\:getGlobals\\(\\) should return eRxGlobals but returns eRxGlobals\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method eRxXMLBuilder\\:\\:getStore\\(\\) should return object but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method eRxXMLBuilder\\:\\:setGlobals\\(\\) should return eRxPage but returns \\$this\\(eRxXMLBuilder\\)\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method eRxXMLBuilder\\:\\:setStore\\(\\) should return eRxPage but returns \\$this\\(eRxXMLBuilder\\)\\.$#',
+    'message' => '#^Method eRxXMLBuilder\\:\\:getStore\\(\\) should return eRxStore but returns eRxStore\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
 ];
@@ -422,17 +392,17 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/calendar/includes/pnAPI.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method pnHTML\\:\\:EndPage\\(\\) should return string but returns string\\|false\\.$#',
+    'message' => '#^Method pnHTML\\:\\:generateEndPage\\(\\) should return string but returns string\\|false\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/main/calendar/includes/pnHTML.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method pnHTML\\:\\:StartPage\\(\\) should return string but returns string\\|false\\.$#',
+    'message' => '#^Method pnHTML\\:\\:generateStartPage\\(\\) should return string but returns string\\|false\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/main/calendar/includes/pnHTML.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method pnHTML\\:\\:Text\\(\\) should return string but returns list\\<string\\|null\\>\\|string\\|null\\.$#',
+    'message' => '#^Method pnHTML\\:\\:generateText\\(\\) should return string but returns list\\<string\\|null\\>\\|string\\|null\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/main/calendar/includes/pnHTML.php',
 ];
@@ -567,11 +537,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Services\\\\TeleHealthRemoteRegistrationService\\:\\:getHttpClient\\(\\) should return GuzzleHttp\\\\Client but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Method Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Services\\\\TeleHealthRemoteRegistrationService\\:\\:updateUserFromRequest\\(\\) should return int\\|false but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
@@ -690,11 +655,6 @@ $ignoreErrors[] = [
     'message' => '#^Method ModuleManagerListener\\:\\:moduleManagerAction\\(\\) should return string but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-faxsms/ModuleManagerListener.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Function rc_sms_notification_cron_update_entry\\(\\) should return int but returns ADORecordSet\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-faxsms/library/rc_sms_notification.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Method OpenEMR\\\\Modules\\\\FaxSMS\\\\BootstrapService\\:\\:fetchPersistedSetupSettings\\(\\) should return array but returns mixed\\.$#',
@@ -1067,19 +1027,9 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Application/src/Application/Model/SendtoTable.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method Carecoordination\\\\Controller\\\\CarecoordinationController\\:\\:getCarecoordinationTable\\(\\) should return Carecoordination\\\\Model\\\\CarecoordinationTable but returns Carecoordination\\\\Controller\\\\Carecoordination\\\\Model\\\\CarecoordinationTable\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Controller/CarecoordinationController.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Method Carecoordination\\\\Controller\\\\CarecoordinationController\\:\\:indexAction\\(\\) should return Laminas\\\\View\\\\Model\\\\ViewModel but returns Laminas\\\\Http\\\\Response\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Controller/CarecoordinationController.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method Carecoordination\\\\Controller\\\\CcdController\\:\\:getCarecoordinationTable\\(\\) should return object but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Controller/CcdController.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Method Carecoordination\\\\Controller\\\\EncounterccdadispatchController\\:\\:getEncounterccdadispatchTable\\(\\) should return Carecoordination\\\\Model\\\\EncounterccdadispatchTable but returns mixed\\.$#',
@@ -1727,11 +1677,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../library/edihistory/edih_csv_inc.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Function csv_check_x12_obj\\(\\) should return object but returns false\\.$#',
-    'count' => 4,
-    'path' => __DIR__ . '/../../library/edihistory/edih_csv_inc.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Function csv_dirfile_list\\(\\) should return array but returns false\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../library/edihistory/edih_csv_inc.php',
@@ -1835,21 +1780,6 @@ $ignoreErrors[] = [
     'message' => '#^Function edih_upload_files\\(\\) should return array but returns false\\.$#',
     'count' => 4,
     'path' => __DIR__ . '/../../library/edihistory/edih_uploads.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method edih_x12_file\\:\\:edih_gs_type\\(\\) should return bool\\|string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method edih_x12_file\\:\\:edih_x12_type\\(\\) should return string but returns false\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method edih_x12_file\\:\\:edih_x12_type\\(\\) should return string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Function oeFormatSDFT\\(\\) should return string but returns mixed\\.$#',
@@ -2262,32 +2192,12 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../library/xmltoarray_parser_htmlfix.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method sms_clickatell\\:\\:getbalance\\(\\) should return int but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../modules/sms_email_reminder/sms_clickatell.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method sms_tmb4\\:\\:_send\\(\\) should return string but returns string\\|false\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../modules/sms_email_reminder/sms_tmb4.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method sms_tmb4\\:\\:_send_curl\\(\\) should return string but returns bool\\|string\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../modules/sms_email_reminder/sms_tmb4.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Function getPidHolder\\(\\) should return int but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../portal/account/account.lib.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Method GlobalConfig\\:\\:GetContext\\(\\) should return Context but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../portal/patient/_global_config.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method GlobalConfig\\:\\:GetDefaultAction\\(\\) should return string but returns default\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../portal/patient/_global_config.php',
 ];
@@ -2717,11 +2627,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetColumnName\\(\\) should return string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Method Phreezer\\:\\:GetCustomCountQuery\\(\\) should return array but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
@@ -2732,22 +2637,12 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetFieldMap\\(\\) should return array but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetFieldMaps\\(\\) should return array but returns mixed\\.$#',
+    'message' => '#^Method Phreezer\\:\\:GetFieldMaps\\(\\) should return array\\<string, FieldMap\\> but returns mixed\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetKeyMap\\(\\) should return array but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetKeyMaps\\(\\) should return array but returns mixed\\.$#',
+    'message' => '#^Method Phreezer\\:\\:GetKeyMaps\\(\\) should return array\\<string, KeyMap\\> but returns mixed\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
 ];
@@ -2757,12 +2652,7 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetPrimaryKeyMap\\(\\) should return KeyMap\\|null but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method Phreezer\\:\\:GetTableName\\(\\) should return string but returns mixed\\.$#',
+    'message' => '#^Method Phreezer\\:\\:GetPrimaryKeyMap\\(\\) should return KeyMap\\|null but returns FieldMap\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../portal/patient/fwk/libs/verysimple/Phreeze/Phreezer.php',
 ];
@@ -3007,17 +2897,32 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../src/Billing/Claim.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:edih_gs_type\\(\\) should return bool\\|string but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:edih_x12_type\\(\\) should return string but returns false\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:edih_x12_type\\(\\) should return string but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Method OpenEMR\\\\Billing\\\\MiscBillingOptions\\:\\:qual_id_to_description\\(\\) should return string\\|null but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../src/Billing/MiscBillingOptions.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method OpenEMR\\\\Billing\\\\PaymentGateway\\:\\:submitPaymentCard\\(\\) should return bool\\|string but returns mixed\\.$#',
+    'message' => '#^Method OpenEMR\\\\Billing\\\\PaymentGateway\\:\\:submitPaymentCard\\(\\) should return Omnipay\\\\Common\\\\Message\\\\ResponseInterface\\|string but returns mixed\\.$#',
     'count' => 3,
     'path' => __DIR__ . '/../../src/Billing/PaymentGateway.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Method OpenEMR\\\\Billing\\\\PaymentGateway\\:\\:submitPaymentToken\\(\\) should return bool\\|string but returns mixed\\.$#',
+    'message' => '#^Method OpenEMR\\\\Billing\\\\PaymentGateway\\:\\:submitPaymentToken\\(\\) should return Omnipay\\\\Common\\\\Message\\\\ResponseInterface\\|string but returns mixed\\.$#',
     'count' => 3,
     'path' => __DIR__ . '/../../src/Billing/PaymentGateway.php',
 ];
@@ -3030,16 +2935,6 @@ $ignoreErrors[] = [
     'message' => '#^Method OpenEMR\\\\ClinicalDecisionRules\\\\Interface\\\\BaseController\\:\\:getRuleManager\\(\\) should return OpenEMR\\\\ClinicalDecisionRules\\\\Interface\\\\RuleLibrary\\\\RuleManager but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../src/ClinicalDecisionRules/Interface/BaseController.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method OpenEMR\\\\ClinicalDecisionRules\\\\Interface\\\\Common\\:\\:get\\(\\) should return string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/ClinicalDecisionRules/Interface/Common.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method OpenEMR\\\\ClinicalDecisionRules\\\\Interface\\\\Common\\:\\:post\\(\\) should return array\\<string\\>\\|string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/ClinicalDecisionRules/Interface/Common.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Method OpenEMR\\\\ClinicalDecisionRules\\\\Interface\\\\ControllerRouter\\:\\:route\\(\\) should return Symfony\\\\Component\\\\HttpFoundation\\\\Response but returns mixed\\.$#',
@@ -10867,6 +10762,11 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../tests/Tests/Isolated/Core/Traits/SingletonTraitTest.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Tests\\\\Isolated\\\\Rx\\\\RxListTest\\:\\:invokeParseToTokens\\(\\) should return array but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../tests/Tests/Isolated/Rx/RxListTest.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Method OpenEMR\\\\Tests\\\\Isolated\\\\Telemetry\\\\BackgroundTaskManagerStub\\:\\:getLastBinds\\(\\) should return array but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../tests/Tests/Isolated/Telemetry/BackgroundTaskManagerTest.php',
@@ -10910,16 +10810,6 @@ $ignoreErrors[] = [
     'message' => '#^Method OpenEMR\\\\Tests\\\\Services\\\\FHIR\\\\QuestionnaireResponse\\\\FhirQuestionnaireResponseFormServiceIntegrationTest\\:\\:createTestQuestionnaireResponse\\(\\) should return string but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../tests/Tests/Services/FHIR/QuestionnaireResponse/FhirQuestionnaireResponseFormServiceIntegrationTest.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method OpenEMR\\\\Tests\\\\Services\\\\Modules\\\\CareCoordination\\\\Model\\\\CcdaServiceDocumentRequestorTest\\:\\:getDocumentGenerationTime\\(\\) should return string but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../tests/Tests/Services/Modules/Carecoordination/Model/CcdaServiceDocumentRequestorTest.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Method OpenEMR\\\\Tests\\\\Unit\\\\Rx\\\\RxListTest\\:\\:invokeParseToTokens\\(\\) should return array but returns mixed\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../tests/Tests/Unit/Rx/RxListTest.php',
 ];
 
 return ['parameters' => ['ignoreErrors' => $ignoreErrors]];

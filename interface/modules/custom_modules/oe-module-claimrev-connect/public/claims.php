@@ -229,6 +229,7 @@ $webRoot = $GLOBALS['webroot'];
             }
         } else {
             $totalPages = ceil($totalRecords / $pageSize);
+            // nosemgrep: echoed-request -- values used only in comparisons, never echoed into HTML
             $currentSort = $_POST['sortField'] ?? '';
             $currentDir = $_POST['sortDirection'] ?? '';
             // Helper to render sort indicator
@@ -255,14 +256,14 @@ $webRoot = $GLOBALS['webroot'];
                 <table class="table table-sm table-bordered" id="claimsTable">
                 <thead class="thead-light">
                     <tr>
-                        <th scope="col" class="sortable-header" data-sort="statusName"><?php echo xlt("Status"); ?><?php echo sortIcon('statusName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="pLastName"><?php echo xlt("Patient"); ?><?php echo sortIcon('pLastName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="payerName"><?php echo xlt("Payer"); ?><?php echo sortIcon('payerName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="providerLastName"><?php echo xlt("Provider"); ?><?php echo sortIcon('providerLastName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="serviceDate"><?php echo xlt("Service Date"); ?><?php echo sortIcon('serviceDate', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="receivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('receivedDate', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header text-right" data-sort="billedAmount"><?php echo xlt("Billed"); ?><?php echo sortIcon('billedAmount', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header text-right" data-sort="payerPaidAmount"><?php echo xlt("Paid"); ?><?php echo sortIcon('payerPaidAmount', $currentSort, $currentDir); ?></th>
+                        <th scope="col"><?php echo xlt("Status"); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo sortIcon('MainProperties.PatientLastName', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo sortIcon('PayerName', $currentSort, $currentDir); ?></th>
+                        <th scope="col"><?php echo xlt("Provider"); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo sortIcon('MainProperties.StartServiceDate', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('ReceivedDate', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="text-right"><?php echo xlt("Billed"); ?></th>
+                        <th scope="col" class="text-right"><?php echo xlt("Paid"); ?></th>
                         <th scope="col"><?php echo xlt("OE Status"); ?></th>
                         <th scope="col" class="text-center"><?php echo xlt("Actions"); ?></th>
                     </tr>

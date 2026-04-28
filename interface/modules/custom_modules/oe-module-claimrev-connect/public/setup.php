@@ -18,6 +18,7 @@
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
     use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+
     $tab = "setup";
 
     //ensure user has proper access

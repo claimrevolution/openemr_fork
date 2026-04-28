@@ -32,7 +32,7 @@ class BackgroundServiceRegistryTest extends TestCase
     private BackgroundServiceRegistry $registry;
 
     /** @var list<string> names of services created during the test — read in tearDown() */
-    private array $createdServices = []; // @phpstan-ignore property.onlyWritten (read by tearDown)
+    private array $createdServices = [];
 
     protected function setUp(): void
     {
@@ -98,6 +98,43 @@ class BackgroundServiceRegistryTest extends TestCase
         $this->assertSame(200, $fetched->sortOrder);
         // active should remain true (admin decision preserved)
         $this->assertTrue($fetched->active);
+    }
+
+    public function testRegisterRespectsActiveOnFirstInsertWhenTrue(): void
+    {
+        // First install wins: a definition shipping active=true is honored
+        // on the initial INSERT, so a module can enable its service by default.
+        $def = $this->makeDefinition('first_insert_true', active: true);
+        $this->registry->register($def);
+
+        $fetched = $this->registry->get($def->name);
+        $this->assertNotNull($fetched);
+        $this->assertTrue($fetched->active);
+    }
+
+    public function testRegisterUpsertPreservesActiveFalseWhenReRegisteredTrue(): void
+    {
+        // Inverse of testRegisterUpsertUpdatesFieldsButPreservesActive:
+        // a service that an admin has disabled stays disabled even if the
+        // module later re-registers with active=true. Runtime state always
+        // wins over package defaults.
+        $original = $this->makeDefinition('upsert_false_preserved', active: false);
+        $this->registry->register($original);
+
+        $reRegistered = new BackgroundServiceDefinition(
+            name: $original->name,
+            title: $original->title,
+            function: $original->function,
+            requireOnce: $original->requireOnce,
+            executeInterval: $original->executeInterval,
+            sortOrder: $original->sortOrder,
+            active: true,
+        );
+        $this->registry->register($reRegistered);
+
+        $fetched = $this->registry->get($original->name);
+        $this->assertNotNull($fetched);
+        $this->assertFalse($fetched->active);
     }
 
     public function testUnregisterRemovesService(): void

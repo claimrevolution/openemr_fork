@@ -17,6 +17,11 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../gacl/admin/assign_group.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with ADORecordSet will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../gacl/admin/object_search.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Call to function is_array\\(\\) with non\\-empty\\-array will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/forms/newpatient/C_EncounterVisitForm.class.php',
@@ -107,7 +112,7 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../library/edihistory/edih_835_html.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Call to function is_array\\(\\) with list\\<mixed\\> will always evaluate to true\\.$#',
+    'message' => '#^Call to function is_array\\(\\) with list\\<array\\> will always evaluate to true\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../library/edihistory/edih_835_html.php',
 ];
@@ -182,26 +187,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../library/edihistory/edih_uploads.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Call to function is_string\\(\\) with non\\-falsy\\-string will always evaluate to true\\.$#',
-    'count' => 2,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/test_edih_sftp_files.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Call to function is_string\\(\\) with non\\-falsy\\-string will always evaluate to true\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/test_edih_sftp_files.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Call to function is_countable\\(\\) with array\\<int\\<0, max\\>, non\\-empty\\-array\\> will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../library/patient.inc.php',
@@ -250,6 +235,16 @@ $ignoreErrors[] = [
     'message' => '#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../portal/portal_payment.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_string\\(\\) with non\\-falsy\\-string will always evaluate to true\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Call to function is_object\\(\\) with ADORecordSet will always evaluate to true\\.$#',

@@ -307,22 +307,12 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/eRxPage.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Property eRxPage\\:\\:\\$xmlBuilder has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxPage.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Property eRxSOAP\\:\\:\\$authUserDetails has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property eRxSOAP\\:\\:\\$authUserId has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxSOAP.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property eRxSOAP\\:\\:\\$globals has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
@@ -347,11 +337,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/eRxSOAP.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Property eRxSOAP\\:\\:\\$store has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxSOAP.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Property eRxXMLBuilder\\:\\:\\$demographicsCheckMessages has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
@@ -363,11 +348,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Property eRxXMLBuilder\\:\\:\\$fieldEmptyMessages has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property eRxXMLBuilder\\:\\:\\$globals has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
 ];
@@ -388,11 +368,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Property eRxXMLBuilder\\:\\:\\$sentPrescriptionIds has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property eRxXMLBuilder\\:\\:\\$store has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/eRxXMLBuilder.php',
 ];
@@ -1712,26 +1687,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Repository/CalendarEventCategoryRepository.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Property Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Services\\\\TeleHealthRemoteRegistrationService\\:\\:\\$apiCMSID has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Services\\\\TeleHealthRemoteRegistrationService\\:\\:\\$apiId has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Services\\\\TeleHealthRemoteRegistrationService\\:\\:\\$apiPassword has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Services\\\\TeleHealthRemoteRegistrationService\\:\\:\\$httpClient has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Services/TeleHealthRemoteRegistrationService.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Modules\\\\DashboardContext\\\\Bootstrap\\:\\:\\$logger has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-dashboard-context/src/Bootstrap.php',
@@ -2565,21 +2520,6 @@ $ignoreErrors[] = [
     'message' => '#^Property Application\\\\Plugin\\\\CommonPlugin\\:\\:\\$listenerObject has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Application/src/Application/Plugin/CommonPlugin.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property Carecoordination\\\\Controller\\\\CcdController\\:\\:\\$carecoordinationTable has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Controller/CcdController.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property Carecoordination\\\\Controller\\\\CcdController\\:\\:\\$documentsTable has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Controller/CcdController.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property Carecoordination\\\\Controller\\\\CcdController\\:\\:\\$listenerObject has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Controller/CcdController.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property Carecoordination\\\\Controller\\\\EncounterccdadispatchController\\:\\:\\$components has no type specified\\.$#',
@@ -5010,86 +4950,6 @@ $ignoreErrors[] = [
     'message' => '#^Property edih_835_codes\\:\\:\\$code835 has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../library/edihistory/codes/edih_835_code_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$constructing has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$delimiters has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$envelopes has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$filename has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$filepath has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$gstype_ar has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$hasGS has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$hasST has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$isx12 has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$length has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$message has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$segments has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$text has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$type has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$valid has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property edih_x12_file\\:\\:\\$version has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/edih_x12file_class.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property RestResponse\\:\\:\\$ErrorMessage has no type specified\\.$#',
@@ -23537,11 +23397,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../src/Billing/BillingProcessor/BillingClaimBatch.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Billing\\\\BillingProcessor\\\\BillingLogger\\:\\:\\$cryptoGen has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Billing/BillingProcessor/BillingLogger.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Billing\\\\BillingProcessor\\\\BillingProcessor\\:\\:\\$logger has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../src/Billing/BillingProcessor/BillingProcessor.php',
@@ -23790,6 +23645,86 @@ $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Billing\\\\Claim\\:\\:\\$x12_partner has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../src/Billing/Claim.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$constructing has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$delimiters has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$envelopes has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$filename has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$filepath has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$gstype_ar has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$hasGS has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$hasST has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$isx12 has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$length has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$message has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$segments has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$text has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$type has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$valid has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Billing\\\\EdiHistory\\\\X12File\\:\\:\\$version has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../src/Billing/EdiHistory/X12File.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Billing\\\\Hcfa1500\\:\\:\\$hcfa_curr_col has no type specified\\.$#',
@@ -24790,36 +24725,6 @@ $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Common\\\\ORDataObject\\\\Person\\:\\:\\$updated_date has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../src/Common/ORDataObject/Person.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Common\\\\Session\\\\Predis\\\\SentinelUtil\\:\\:\\$masterCa has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Common/Session/Predis/SentinelUtil.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Common\\\\Session\\\\Predis\\\\SentinelUtil\\:\\:\\$masterCert has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Common/Session/Predis/SentinelUtil.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Common\\\\Session\\\\Predis\\\\SentinelUtil\\:\\:\\$masterKey has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Common/Session/Predis/SentinelUtil.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Common\\\\Session\\\\Predis\\\\SentinelUtil\\:\\:\\$sentinelCa has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Common/Session/Predis/SentinelUtil.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Common\\\\Session\\\\Predis\\\\SentinelUtil\\:\\:\\$sentinelCert has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Common/Session/Predis/SentinelUtil.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Common\\\\Session\\\\Predis\\\\SentinelUtil\\:\\:\\$sentinelKey has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../src/Common/Session/Predis/SentinelUtil.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Common\\\\Uuid\\\\UuidRegistry\\:\\:\\$couchdb has no type specified\\.$#',
@@ -30737,11 +30642,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../tests/Tests/Api/PatientApiTest.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Tests\\\\Common\\\\Uuid\\\\UuidRegistryTest\\:\\:\\$uuidFactory has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../tests/Tests/Common/Uuid/UuidRegistryTest.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Tests\\\\E2e\\\\AaLoginTest\\:\\:\\$crawler has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../tests/Tests/E2e/AaLoginTest.php',
@@ -30870,6 +30770,26 @@ $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Tests\\\\Fixtures\\\\MedicationDispenseFixtureManager\\:\\:\\$createdRecords has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../tests/Tests/Fixtures/MedicationDispenseFixtureManager.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Tests\\\\Isolated\\\\Common\\\\Uuid\\\\UuidRegistryTest\\:\\:\\$uuidFactory has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../tests/Tests/Isolated/Common/Uuid/UuidRegistryTest.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Tests\\\\Isolated\\\\Portal\\\\PatientControllerSecurityTest\\:\\:\\$originalSessionPid has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../tests/Tests/Isolated/Portal/PatientControllerSecurityTest.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Tests\\\\Isolated\\\\Portal\\\\PatientControllerSecurityTest\\:\\:\\$testPatientId1 has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../tests/Tests/Isolated/Portal/PatientControllerSecurityTest.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Tests\\\\Isolated\\\\Portal\\\\PatientControllerSecurityTest\\:\\:\\$testPatientId2 has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../tests/Tests/Isolated/Portal/PatientControllerSecurityTest.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Tests\\\\Isolated\\\\Telemetry\\\\BackgroundTaskManagerStub\\:\\:\\$lastBinds has no type specified\\.$#',
@@ -31030,21 +30950,6 @@ $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Tests\\\\Unit\\\\ClinicalDecisionRules\\\\ControllerEditTest\\:\\:\\$controller has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../tests/Tests/Unit/ClinicalDecisionRules/ControllerEditTest.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Tests\\\\Unit\\\\Portal\\\\PatientControllerSecurityTest\\:\\:\\$originalSessionPid has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../tests/Tests/Unit/Portal/PatientControllerSecurityTest.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Tests\\\\Unit\\\\Portal\\\\PatientControllerSecurityTest\\:\\:\\$testPatientId1 has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../tests/Tests/Unit/Portal/PatientControllerSecurityTest.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Property OpenEMR\\\\Tests\\\\Unit\\\\Portal\\\\PatientControllerSecurityTest\\:\\:\\$testPatientId2 has no type specified\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../tests/Tests/Unit/Portal/PatientControllerSecurityTest.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Tests\\\\Unit\\\\ZendModules\\\\FHIR\\\\Listener\\\\UuidMappingEventsSubscriberTest\\:\\:\\$uuidRecordsToDelete has no type specified\\.$#',
