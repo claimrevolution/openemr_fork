@@ -35,7 +35,8 @@ if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_toke
     $data = RecoupmentReportService::getRecoupmentReport($_POST);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="recoupment_report_' . date('Y-m-d') . '.csv"');
-    echo RecoupmentReportService::toCsv($data['recoupments']); // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
+    // CSV download response, not rendered as HTML
+    echo RecoupmentReportService::toCsv($data['recoupments']); // nosemgrep: echoed-request
     exit;
 }
 
