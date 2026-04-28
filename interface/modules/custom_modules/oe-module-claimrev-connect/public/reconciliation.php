@@ -18,9 +18,9 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
-use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ReconciliationService;
 
 $tab = "reconciliation";
