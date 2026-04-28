@@ -17,7 +17,7 @@
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
 use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
 
-function start_claimrev_watchdog()
+function start_claimrev_watchdog(): void
 {
     $enabled = $GLOBALS[GlobalConfig::CONFIG_ENABLE_WATCHDOG] ?? '1';
     if ($enabled) {

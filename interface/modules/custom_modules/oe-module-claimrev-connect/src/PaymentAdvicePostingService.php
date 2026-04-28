@@ -605,7 +605,7 @@ class PaymentAdvicePostingService
     }
 
     /**
-     * Batch post multiple payment advices.
+     * Batch post multiple payment advice records.
      *
      * Only posts claims with status 1, 2, or 3 (processed). Skips denials,
      * reversals, pended, and already-posted items.

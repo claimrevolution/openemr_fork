@@ -58,7 +58,7 @@ function htmlToPlainText(string $html): string
     return trim($text);
 }
 
-function start_claimrev_notifications()
+function start_claimrev_notifications(): void
 {
     $enabled = $GLOBALS[GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS] ?? '1';
     if (!$enabled) {

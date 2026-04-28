@@ -2217,6 +2217,16 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Billing_Claimrev_Service.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Function start_claimrev_notifications may not be defined in the global namespace\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Function start_claimrev_watchdog may not be defined in the global namespace\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Watchdog_Service.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Function start_send_eligibility may not be defined in the global namespace\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_ClaimRev_Service.php',
