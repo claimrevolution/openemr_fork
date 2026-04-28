@@ -14,9 +14,9 @@
 
     use OpenEMR\Common\Acl\AccessDeniedHelper;
     use OpenEMR\Common\Acl\AclMain;
+    use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
     use OpenEMR\Modules\ClaimRevConnector\X12TrackerPage;
-    use OpenEMR\Core\Header;
 
     $tab = "x12";
 

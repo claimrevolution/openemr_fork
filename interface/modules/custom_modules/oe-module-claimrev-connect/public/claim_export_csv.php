@@ -13,8 +13,8 @@
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
+use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 
 if (!AclMain::aclCheckCore('acct', 'bill')) {
     http_response_code(403);
@@ -30,8 +30,7 @@ try {
 
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . attr($fileName) . '"');
-    // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
-    echo $fileText;
+    echo $fileText; // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
 } catch (ClaimRevException) {
     http_response_code(500);
     header('Content-Type: application/json');

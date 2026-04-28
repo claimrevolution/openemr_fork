@@ -10,8 +10,6 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
-use OpenEMR\Modules\ClaimRevConnector\PrintProperty;
-
 $benefitPatResponse = ["B","C","G","J","Y"];
 
 // Coverage level code mapping (matches portal)

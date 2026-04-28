@@ -12,7 +12,6 @@
 
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityObjectCreator;
-use OpenEMR\Modules\ClaimRevConnector\ValueMapping;
 
 if ($pid == null) {
     echo xlt("Error retrieving patient.");

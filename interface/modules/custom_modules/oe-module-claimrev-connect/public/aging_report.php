@@ -15,8 +15,8 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
-use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\AgingReportService;
+use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 
 $tab = "aging_report";
 
@@ -32,8 +32,7 @@ if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_toke
     $report = AgingReportService::getAgingReport($_POST);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="aging_report_' . date('Y-m-d') . '.csv"');
-    // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
-    echo AgingReportService::toCsv($report['encounters']);
+    echo AgingReportService::toCsv($report['encounters']); // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
     exit;
 }
 

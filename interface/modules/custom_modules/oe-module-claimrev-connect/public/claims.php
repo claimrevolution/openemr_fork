@@ -15,11 +15,10 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
+use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
+use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
-use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
-use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
-use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 
 $tab = "claims";
@@ -229,9 +228,17 @@ $webRoot = $GLOBALS['webroot'];
             }
         } else {
             $totalPages = ceil($totalRecords / $pageSize);
-            // nosemgrep: echoed-request -- values used only in comparisons, never echoed into HTML
-            $currentSort = $_POST['sortField'] ?? '';
-            $currentDir = $_POST['sortDirection'] ?? '';
+            // Validate sort inputs against allowlists so the values used below
+            // come from static literals, not directly from $_POST.
+            $validSortFields = [
+                'MainProperties.PatientLastName',
+                'PayerName',
+                'MainProperties.StartServiceDate',
+                'ReceivedDate',
+            ];
+            $sortFieldIndex = array_search($_POST['sortField'] ?? '', $validSortFields, true);
+            $currentSort = $sortFieldIndex === false ? '' : $validSortFields[$sortFieldIndex];
+            $currentDir = ($_POST['sortDirection'] ?? '') === 'desc' ? 'desc' : 'asc';
             // Helper to render sort indicator
             function sortIcon($field, $currentSort, $currentDir)
             {

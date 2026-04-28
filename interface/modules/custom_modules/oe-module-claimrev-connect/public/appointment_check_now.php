@@ -19,7 +19,6 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityTransfer;
-use OpenEMR\Modules\ClaimRevConnector\ValueMapping;
 
 header('Content-Type: application/json');
 
