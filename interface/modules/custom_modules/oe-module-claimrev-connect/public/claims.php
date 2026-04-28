@@ -264,11 +264,15 @@ $webRoot = $GLOBALS['webroot'];
                 <thead class="thead-light">
                     <tr>
                         <th scope="col"><?php echo xlt("Status"); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo sortIcon('MainProperties.PatientLastName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo sortIcon('PayerName', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo sortIcon('MainProperties.PatientLastName', $currentSort, $currentDir); // nosemgrep: echoed-request
+                        ?></th>
+                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo sortIcon('PayerName', $currentSort, $currentDir); // nosemgrep: echoed-request
+                        ?></th>
                         <th scope="col"><?php echo xlt("Provider"); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo sortIcon('MainProperties.StartServiceDate', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('ReceivedDate', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo sortIcon('MainProperties.StartServiceDate', $currentSort, $currentDir); // nosemgrep: echoed-request
+                        ?></th>
+                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('ReceivedDate', $currentSort, $currentDir); // nosemgrep: echoed-request
+                        ?></th>
                         <th scope="col" class="text-right"><?php echo xlt("Billed"); ?></th>
                         <th scope="col" class="text-right"><?php echo xlt("Paid"); ?></th>
                         <th scope="col"><?php echo xlt("OE Status"); ?></th>

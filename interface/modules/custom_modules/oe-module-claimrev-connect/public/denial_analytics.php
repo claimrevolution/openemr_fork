@@ -32,7 +32,8 @@ if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_toke
     $data = DenialAnalyticsService::getAnalytics($_POST);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="denial_analytics_' . date('Y-m-d') . '.csv"');
-    echo DenialAnalyticsService::toCsv($data['byReason']); // nosemgrep: echoed-request -- CSV download response, not rendered as HTML
+    // CSV download response, not rendered as HTML
+    echo DenialAnalyticsService::toCsv($data['byReason']); // nosemgrep: echoed-request
     exit;
 }
 
