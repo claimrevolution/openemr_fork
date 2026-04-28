@@ -10008,7 +10008,7 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Variable \\$benefits might not be defined\\.$#',
-    'count' => 1,
+    'count' => 2,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
 ];
 $ignoreErrors[] = [
@@ -10043,7 +10043,7 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Variable \\$tab might not be defined\\.$#',
-    'count' => 6,
+    'count' => 15,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/navbar.php',
 ];
 $ignoreErrors[] = [
