@@ -246,14 +246,14 @@ $webRoot = $GLOBALS['webroot'];
             }
             ?>
                 <div class="mt-3 mb-2 d-flex justify-content-between align-items-center">
-                    <span><?php echo text($totalRecords) . " " . xlt("total results"); ?></span>
+                    <span><?php echo text((string) $totalRecords) . " " . xlt("total results"); ?></span>
                     <div>
                         <span class="text-muted small mr-3"><?php echo xlt("Click a row to expand details"); ?></span>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="exportCsvBtn">
                             <i class="fa fa-download"></i> <?php echo xlt("Export CSV"); ?>
                         </button>
                     </div>
-                    <span><?php echo xlt("Page") . " " . text($pageIndex + 1) . " " . xlt("of") . " " . text($totalPages); ?></span>
+                    <span><?php echo xlt("Page") . " " . text((string) ($pageIndex + 1)) . " " . xlt("of") . " " . text((string) $totalPages); ?></span>
                 </div>
                 <table class="table table-sm table-bordered" id="claimsTable">
                 <thead class="thead-light">
@@ -403,7 +403,7 @@ $webRoot = $GLOBALS['webroot'];
                                         </span>
                                     <?php } ?>
                                     <?php if ($errorCount > 0) { ?>
-                                        <span class="status-icon text-rejected" title="<?php echo attr($errorCount); ?> <?php echo xla("errors"); ?>">
+                                        <span class="status-icon text-rejected" title="<?php echo attr((string) $errorCount); ?> <?php echo xla("errors"); ?>">
                                             <i class="fa fa-exclamation-triangle"></i>
                                         </span>
                                     <?php } ?>
@@ -429,7 +429,7 @@ $webRoot = $GLOBALS['webroot'];
                             <td>
                                 <?php echo text(substr($data->serviceDate ?? '', 0, 10)); ?>
                                 <?php if (!empty($data->serviceDateEnd)) { ?>
-                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($data->serviceDateEnd, 0, 10)); ?></small>
+                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($data->serviceDateEnd ?? '', 0, 10)); ?></small>
                                 <?php } ?>
                             </td>
                             <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>
@@ -485,7 +485,7 @@ $webRoot = $GLOBALS['webroot'];
                                         </a>
                                     <?php } ?>
                                     <button type="button" class="btn worked-toggle <?php echo $isWorked ? 'btn-success' : 'btn-outline-secondary'; ?>"
-                                        data-objectid="<?php echo attr($objectId); ?>"
+                                        data-objectid="<?php echo attr((string) $objectId); ?>"
                                         data-worked="<?php echo $isWorked ? '1' : '0'; ?>"
                                         title="<?php echo $isWorked ? xla("Worked - click to unmark") : xla("Not worked - click to mark"); ?>"
                                         onclick="toggleWorked(this);">
@@ -525,7 +525,7 @@ $webRoot = $GLOBALS['webroot'];
                                     </div>
                                     <div class="col-md-3">
                                         <div class="detail-label"><?php echo xlt("Worked"); ?></div>
-                                        <div class="detail-value worked-detail-<?php echo attr($objectId); ?>">
+                                        <div class="detail-value worked-detail-<?php echo attr((string) $objectId); ?>">
                                             <?php if ($isWorked) { ?>
                                                 <span class="text-success"><i class="fa fa-check-circle"></i> <?php echo xlt("Yes"); ?></span>
                                             <?php } else { ?>
@@ -565,8 +565,8 @@ $webRoot = $GLOBALS['webroot'];
                                     </div>
                                 </div>
                                 <?php if ($errorCount > 0) { ?>
-                                    <div class="mt-3 claim-errors-section" data-claimid="<?php echo attr($objectId); ?>" data-loaded="0">
-                                        <div class="detail-label"><?php echo xlt("Errors"); ?> (<?php echo text($errorCount); ?>)</div>
+                                    <div class="mt-3 claim-errors-section" data-claimid="<?php echo attr((string) $objectId); ?>" data-loaded="0">
+                                        <div class="detail-label"><?php echo xlt("Errors"); ?> (<?php echo text((string) $errorCount); ?>)</div>
                                         <div class="claim-errors-content">
                                             <span class="text-muted small"><i class="fa fa-spinner fa-spin"></i> <?php echo xlt("Loading errors..."); ?></span>
                                         </div>
@@ -590,7 +590,7 @@ $webRoot = $GLOBALS['webroot'];
                         $endPage = min($totalPages - 1, $pageIndex + 2);
                         for ($i = $startPage; $i <= $endPage; $i++) { ?>
                             <li class="page-item <?php echo ($i == $pageIndex) ? 'active' : ''; ?>">
-                                <button type="submit" name="pageIndex" value="<?php echo attr($i); ?>" form="claimSearchForm" class="page-link"><?php echo text($i + 1); ?></button>
+                                <button type="submit" name="pageIndex" value="<?php echo attr((string) $i); ?>" form="claimSearchForm" class="page-link"><?php echo text((string) ($i + 1)); ?></button>
                             </li>
                         <?php } ?>
                         <li class="page-item <?php echo ($pageIndex >= $totalPages - 1) ? 'disabled' : ''; ?>">

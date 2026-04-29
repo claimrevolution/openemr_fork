@@ -64,7 +64,7 @@ class ClaimsPage
         }
 
         $raw = ClaimSearch::search($model);
-        if ($raw === false || !is_array($raw)) {
+        if ($raw === false) {
             return ['results' => [], 'totalRecords' => 0];
         }
 
