@@ -242,7 +242,8 @@ $path = str_replace("public", "templates", __DIR__);
                                     <input type="checkbox" name="eids[]" value="<?php echo attr($appt['pc_eid']); ?>" class="appt-checkbox"/>
                                 </td>
                                 <td><?php echo text($appt['appointmentDate']); ?></td>
-                                <td><?php echo text(substr((string) $appt['pc_startTime'], 0, 5)); ?></td>
+                                <?php $startTime = is_string($appt['pc_startTime'] ?? null) ? $appt['pc_startTime'] : ''; ?>
+                                <td><?php echo text(substr($startTime, 0, 5)); ?></td>
                                 <td><?php echo text($appt['lname']); ?>, <?php echo text($appt['fname']); ?></td>
                                 <td><?php echo text($appt['dob']); ?></td>
                                 <td><?php echo text($appt['provider_name']); ?></td>
@@ -292,8 +293,8 @@ $path = str_replace("public", "templates", __DIR__);
                                                     continue;
                                                 }
 
-                                                $individualJson = $check["individual_json"];
-                                                $individual = json_decode((string) $individualJson);
+                                                $individualJson = is_string($check["individual_json"] ?? null) ? $check["individual_json"] : '';
+                                                $individual = json_decode($individualJson);
                                                 if ($individual == null || !property_exists($individual, 'eligibility')) {
                                                     continue;
                                                 }

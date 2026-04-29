@@ -66,8 +66,9 @@ $postedMap = [];
 foreach ($datas as $data) {
     $id = $data['paymentAdviceId'] ?? '';
     $paymentInfo = $data['paymentInfo'] ?? [];
-    $pcn = $paymentInfo['patientControlNumber'] ?? '';
-    $parts = preg_split('/[\s\-]/', (string) $pcn);
+    $pcnRaw = $paymentInfo['patientControlNumber'] ?? '';
+    $pcn = is_string($pcnRaw) ? $pcnRaw : '';
+    $parts = preg_split('/[\s\-]/', $pcn);
     $pid = (is_array($parts) && count($parts) >= 2) ? (int) $parts[0] : 0;
     $enc = (is_array($parts) && count($parts) >= 2) ? (int) $parts[1] : 0;
     if ($id !== '') {

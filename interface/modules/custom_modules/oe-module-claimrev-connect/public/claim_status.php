@@ -229,7 +229,8 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         $isRejected = in_array($crStatusId, [10, 16, 17]) || $payerAccId === 3;
                         $isDenied = stripos($eraCls, 'denied') !== false || $claim['oeStatus'] === 7;
                         $isPaid = stripos($eraCls, 'paid') !== false;
-                        $isStale = $claim['oeStatus'] === 2 && $eraCls === '' && $claim['billTime'] !== '' && strtotime((string) $claim['billTime']) < strtotime('-' . 45 . ' days');
+                        $billTime = is_string($claim['billTime'] ?? null) ? $claim['billTime'] : '';
+                        $isStale = $claim['oeStatus'] === 2 && $eraCls === '' && $billTime !== '' && strtotime($billTime) < strtotime('-' . 45 . ' days');
 
                         if ($isRejected) {
                             $rowClass .= ' row-rejected';
@@ -313,8 +314,9 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                             <?php } ?>
                         </td>
                         <td>
-                            <?php if ($claim['lastStatusCheck'] !== '') { ?>
-                                <small><?php echo text(substr((string) $claim['lastStatusCheck'], 0, 10)); ?></small>
+                            <?php $lastStatusCheck = is_string($claim['lastStatusCheck'] ?? null) ? $claim['lastStatusCheck'] : ''; ?>
+                            <?php if ($lastStatusCheck !== '') { ?>
+                                <small><?php echo text(substr($lastStatusCheck, 0, 10)); ?></small>
                             <?php } else { ?>
                                 <small class="text-muted"><?php echo xlt("Never"); ?></small>
                             <?php } ?>

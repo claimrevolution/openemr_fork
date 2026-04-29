@@ -253,7 +253,8 @@ class ReconciliationService
         $crFound = $enc['crFound'];
         $crStatusId = $enc['crStatusId'];
         $crPayerAcceptanceStatusId = $enc['crPayerAcceptanceStatusId'];
-        $crEra = $enc['crEraClassification'];
+        $crEraRaw = $enc['crEraClassification'];
+        $crEra = is_string($crEraRaw) ? $crEraRaw : '';
 
         // Billed in OE but not found in ClaimRev
         if ($oeStatus === 2 && !$crFound) {
@@ -279,7 +280,7 @@ class ReconciliationService
         }
 
         // Has ERA/payment but not posted to OE
-        if (!empty($crEra) && stripos((string) $crEra, 'paid') !== false) {
+        if (!empty($crEra) && stripos($crEra, 'paid') !== false) {
             // Check if payment has been posted
             $pid = $enc['pid'];
             $encounter = $enc['encounter'];
@@ -295,7 +296,7 @@ class ReconciliationService
         }
 
         // ERA denied but OE not marked denied
-        if (!empty($crEra) && stripos((string) $crEra, 'denied') !== false && $oeStatus !== 7) {
+        if (!empty($crEra) && stripos($crEra, 'denied') !== false && $oeStatus !== 7) {
             $enc['discrepancyLevel'] = 'warning';
             return 'ERA shows denied but OpenEMR not marked as denied';
         }
