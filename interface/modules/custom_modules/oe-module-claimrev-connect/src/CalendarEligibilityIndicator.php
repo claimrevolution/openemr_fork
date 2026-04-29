@@ -132,8 +132,9 @@ class CalendarEligibilityIndicator
         }
 
         // Check for staleness
-        if (!empty($eligRecord['last_date'])) {
-            $daysSinceCheck = (int) ((time() - strtotime((string) $eligRecord['last_date'])) / 86400);
+        $lastDate = is_string($eligRecord['last_date'] ?? null) ? $eligRecord['last_date'] : '';
+        if ($lastDate !== '') {
+            $daysSinceCheck = (int) ((time() - strtotime($lastDate)) / 86400);
             if ($daysSinceCheck >= $this->staleAgeDays) {
                 return 'event_elig_stale';
             }

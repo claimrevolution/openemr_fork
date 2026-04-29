@@ -141,11 +141,11 @@ class AppointmentsPage
 
     public static function getEligibilitySummary($eligJson)
     {
-        if ($eligJson == null) {
+        if (!is_string($eligJson) || $eligJson === '') {
             return null;
         }
 
-        $individual = json_decode((string) $eligJson);
+        $individual = json_decode($eligJson);
         if ($individual == null || !property_exists($individual, 'eligibility')) {
             return null;
         }
