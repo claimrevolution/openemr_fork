@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * DTO for a single claim row returned by the ClaimRev claim-search API.
  *
@@ -15,6 +13,8 @@ declare(strict_types=1);
  * @copyright Copyright (c) 2026 Brad Sharp <brad.sharp@claimrev.com>
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
+
+declare(strict_types=1);
 
 namespace OpenEMR\Modules\ClaimRevConnector\Dto;
 
