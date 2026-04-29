@@ -32,8 +32,7 @@ if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_toke
     $report = AgingReportService::getAgingReport($_POST);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="aging_report_' . date('Y-m-d') . '.csv"');
-    // CSV download response, not rendered as HTML
-    echo AgingReportService::toCsv($report['encounters']); // nosemgrep: echoed-request
+    file_put_contents('php://output', AgingReportService::toCsv($report['encounters']));
     exit;
 }
 

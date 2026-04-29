@@ -14,6 +14,7 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
+use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Services\Background\BackgroundServiceDefinition;
 use OpenEMR\Services\Background\BackgroundServiceRegistry;
@@ -161,21 +162,24 @@ class ClaimRevModuleSetup
             if (preg_match('/^#IfNotRow\s+(\S+)\s+(\S+)\s+(.+)/', $line, $matches)) {
                 $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
                 $safeCol = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[2]);
-                // Identifiers sanitized by preg_replace allowlist; SQL identifiers cannot be parameterized
-                $row = sqlQuery("SELECT * FROM `" . $safeTbl . "` WHERE `" . $safeCol . "` = ?", [trim($matches[3])]); // nosemgrep: openemr-sql-injection-sqlquery
-                $skipping = !empty($row);
+                $row = QueryUtils::fetchSingleValue(
+                    "SELECT 1 AS x FROM `$safeTbl` WHERE `$safeCol` = ?",
+                    'x',
+                    [trim($matches[3])]
+                );
+                $skipping = $row !== null;
                 continue;
             } elseif (preg_match('/^#IfNotTable\s+(\S+)/', $line, $matches)) {
-                $tableName = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
-                // $tableName sanitized by preg_replace above; SHOW TABLES LIKE does not support parameterized queries
-                $row = sqlQuery("SHOW TABLES LIKE '" . $tableName . "'"); // nosemgrep: openemr-sql-injection-sqlquery
-                $skipping = !empty($row);
+                $skipping = QueryUtils::existsTable($matches[1]);
                 continue;
             } elseif (preg_match('/^#IfNotColumnType\s+(\S+)\s+(\S+)\s+(\S+)/', $line, $matches)) {
-                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
-                // $safeTbl sanitized by preg_replace allowlist; SQL identifiers cannot be parameterized
-                $row = sqlQuery("SHOW COLUMNS FROM `" . $safeTbl . "` WHERE Field = ?", [$matches[2]]); // nosemgrep: openemr-sql-injection-sqlquery
-                $skipping = ($row && stripos($row['Type'], $matches[3]) !== false);
+                $columnType = QueryUtils::fetchSingleValue(
+                    "SELECT COLUMN_TYPE FROM information_schema.columns "
+                    . "WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?",
+                    'COLUMN_TYPE',
+                    [$matches[1], $matches[2]]
+                );
+                $skipping = $columnType !== null && stripos((string) $columnType, $matches[3]) !== false;
                 continue;
             } elseif (preg_match('/^#(EndIf|Endif)/i', $line)) {
                 $skipping = false;
