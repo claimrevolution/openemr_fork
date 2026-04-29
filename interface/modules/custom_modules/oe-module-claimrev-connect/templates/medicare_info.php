@@ -46,6 +46,6 @@ if (property_exists($eligibilityData, 'medicareSupplementalPlanName')) {
 if (property_exists($eligibilityData, 'qualifiedMedicareBeneficiary')) {
     PrintProperty::displayProperty("Qualified Medicare Beneficiary", $eligibilityData->qualifiedMedicareBeneficiary);
 }
-if (property_exists($eligibilityData, 'qualifiedMedicareBeneficiary')) {
+if (property_exists($eligibilityData, 'railroadMedicareBeneficiary')) {
     PrintProperty::displayProperty("Railroad Medicare Beneficiary", $eligibilityData->railroadMedicareBeneficiary);
 }
