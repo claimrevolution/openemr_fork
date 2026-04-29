@@ -15,7 +15,14 @@
  *   php /var/www/localhost/htdocs/openemr/interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_nuclear.php
  */
 
-$openemrRoot = '/var/www/localhost/htdocs/openemr';
+// Built at runtime so PHPStan doesn't try to resolve the literal path on
+// developer machines (this script only runs inside the OpenEMR container).
+$openemrRoot = getenv('OPENEMR_ROOT') ?: '/var/www/localhost/htdocs/openemr';
+if (!is_dir($openemrRoot)) {
+    fwrite(STDERR, "This integration test must be run inside the OpenEMR Docker container.\n");
+    fwrite(STDERR, "Expected: $openemrRoot\n");
+    exit(1);
+}
 
 $filesToHide = [
     $openemrRoot . '/src/Core/OEGlobalsBag.php',

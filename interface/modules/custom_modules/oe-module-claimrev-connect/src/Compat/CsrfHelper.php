@@ -38,8 +38,11 @@ class CsrfHelper
             $firstParam = $params[0] ?? null;
             if ($firstParam !== null) {
                 $type = $firstParam->getType();
-                // OpenEMR 8.x: first param is SessionInterface (not a string)
-                self::$usesSessionFirst = $type !== null
+                // OpenEMR 8.x: first param is SessionInterface (not a string).
+                // Only ReflectionNamedType has isBuiltin(); union/intersection
+                // types don't, but a SessionInterface param will always be a
+                // single named type.
+                self::$usesSessionFirst = $type instanceof \ReflectionNamedType
                     && !$type->isBuiltin()
                     && $firstParam->getName() === 'session';
             } else {
