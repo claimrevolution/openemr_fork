@@ -2207,11 +2207,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/onotes/office_comments_full.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Function sortIcon may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Function start_X12_Claimrev_get_reports may not be defined in the global namespace\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Billing_Claimrev_Service.php',
@@ -2222,44 +2217,14 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Billing_Claimrev_Service.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Function htmlToPlainText may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Function start_claimrev_notifications may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Function start_claimrev_watchdog may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Watchdog_Service.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Function start_send_eligibility may not be defined in the global namespace\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_ClaimRev_Service.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Function start_eligibility_sweep may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Eligibility_Sweep_Service.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Function start_X12_SFTP may not be defined in the global namespace\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/SFTP_Mock_Service.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Function test may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_nuclear.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Function test may not be defined in the global namespace\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Function doOnetimeDocumentRequest may not be defined in the global namespace\\.$#',

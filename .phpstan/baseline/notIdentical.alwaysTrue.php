@@ -43,11 +43,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Strict comparison using \\!\\=\\= between ADORecordSet and false will always evaluate to true\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/x12_retry.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Strict comparison using \\!\\=\\= between ADORecordSet and false will always evaluate to true\\.$#',
     'count' => 10,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-dashboard-context/src/Services/DashboardContextAdminService.php',
 ];

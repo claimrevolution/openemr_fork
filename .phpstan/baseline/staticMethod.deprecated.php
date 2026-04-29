@@ -40,18 +40,6 @@ Use \\\\OpenEMR\\\\PaymentProcessing\\\\Recorder\\:\\:recordActivity directly$#'
     'path' => __DIR__ . '/../../interface/billing/sl_eob_process.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Call to deprecated method arPostAdjustment\\(\\) of class OpenEMR\\\\Billing\\\\SLEOB\\:
-Use \\\\OpenEMR\\\\PaymentProcessing\\\\Recorder\\:\\:recordActivity directly$#',
-    'count' => 2,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Call to deprecated method arPostPayment\\(\\) of class OpenEMR\\\\Billing\\\\SLEOB\\:
-Use \\\\OpenEMR\\\\PaymentProcessing\\\\Recorder\\:\\:recordActivity directly$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Call to deprecated method toE164\\(\\) of class OpenEMR\\\\Services\\\\PhoneNumberService\\:
 Use PhoneNumber\\:\\:tryParse\\(\\)\\-\\>toE164\\(\\) instead$#',
     'count' => 1,
