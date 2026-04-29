@@ -208,16 +208,8 @@ $webRoot = $GLOBALS['webroot'];
         if (isset($_POST['SubmitButton']) || isset($_POST['pageIndex'])) {
             try {
                 $pagedResult = ClaimsPage::searchClaims($_POST);
-                if ($pagedResult !== false && $pagedResult !== null) {
-                    if (isset($pagedResult['results'])) {
-                        // Convert array results to objects for template compatibility
-                        $datas = json_decode(json_encode($pagedResult['results']));
-                        $totalRecords = $pagedResult['totalRecords'] ?? 0;
-                    } elseif (is_array($pagedResult)) {
-                        $datas = json_decode(json_encode($pagedResult));
-                        $totalRecords = count($datas);
-                    }
-                }
+                $datas = $pagedResult['results'];
+                $totalRecords = $pagedResult['totalRecords'];
             } catch (\Throwable $t) {
                 echo "<div class='alert alert-danger mt-3'>" . text($t->getMessage()) . "</div>";
             }

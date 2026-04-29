@@ -14,13 +14,15 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Modules\ClaimRevConnector\ClaimSearch;
 use OpenEMR\Modules\ClaimRevConnector\ClaimSearchModel;
+use OpenEMR\Modules\ClaimRevConnector\Dto\ClaimSearchResult;
 
 class ClaimsPage
 {
     /**
      * @param array<string, mixed> $postData
+     * @return array{results: list<ClaimSearchResult>, totalRecords: int}
      */
-    public static function searchClaims(array $postData)
+    public static function searchClaims(array $postData): array
     {
         $pageIndex = isset($postData['pageIndex']) ? (int)$postData['pageIndex'] : 0;
 
@@ -61,8 +63,25 @@ class ClaimsPage
             ]];
         }
 
-        $data = ClaimSearch::search($model);
-        return $data;
+        $raw = ClaimSearch::search($model);
+        if ($raw === false || !is_array($raw)) {
+            return ['results' => [], 'totalRecords' => 0];
+        }
+
+        $rawResults = $raw['results'] ?? $raw;
+        if (!is_array($rawResults)) {
+            $rawResults = [];
+        }
+
+        $results = [];
+        foreach ($rawResults as $item) {
+            $results[] = ClaimSearchResult::fromApi($item);
+        }
+
+        $totalRaw = $raw['totalRecords'] ?? null;
+        $totalRecords = is_int($totalRaw) ? $totalRaw : count($results);
+
+        return ['results' => $results, 'totalRecords' => $totalRecords];
     }
 
     /**
