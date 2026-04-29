@@ -282,9 +282,6 @@ $webRoot = $GLOBALS['webroot'];
                     <?php
                     $rowIndex = 0;
                     foreach ($datas as $data) {
-                        if (!is_object($data)) {
-                            continue;
-                        }
                         $statusName = $data->statusName ?? '';
                         $statusId = (int)($data->statusId ?? 0);
                         $payerFileStatusId = (int)($data->payerFileStatusId ?? 0);
@@ -439,9 +436,8 @@ $webRoot = $GLOBALS['webroot'];
                             </td>
                             <td>
                                 <?php echo text(substr($data->serviceDate ?? '', 0, 10)); ?>
-                                <?php $serviceDateEnd = is_string($data->serviceDateEnd ?? null) ? $data->serviceDateEnd : ''; ?>
-                                <?php if ($serviceDateEnd !== '') { ?>
-                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($serviceDateEnd, 0, 10)); ?></small>
+                                <?php if (!empty($data->serviceDateEnd)) { ?>
+                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr((string) $data->serviceDateEnd, 0, 10)); ?></small>
                                 <?php } ?>
                             </td>
                             <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>

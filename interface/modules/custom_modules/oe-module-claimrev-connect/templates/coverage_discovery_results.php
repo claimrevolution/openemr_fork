@@ -86,11 +86,10 @@ if ($coverageResults === null || (is_array($coverageResults) && count($coverageR
                     </div>
                 <?php } ?>
                 <?php if (!empty($coverage->policyDate)) { ?>
-                    <?php $startDate = is_string($coverage->policyDate->startDate ?? null) ? $coverage->policyDate->startDate : ''; ?>
-                    <?php if ($startDate !== '') { ?>
+                    <?php if (!empty($coverage->policyDate->startDate)) { ?>
                         <div class="row mb-1">
                             <div class="col-3 font-weight-bold"><?php echo xlt("Policy Start"); ?>:</div>
-                            <div class="col"><?php echo text(substr($startDate, 0, 10)); ?></div>
+                            <div class="col"><?php echo text(substr((string) $coverage->policyDate->startDate, 0, 10)); ?></div>
                         </div>
                     <?php } ?>
                     <?php if (!empty($coverage->policyDate->endDate)) { ?>
