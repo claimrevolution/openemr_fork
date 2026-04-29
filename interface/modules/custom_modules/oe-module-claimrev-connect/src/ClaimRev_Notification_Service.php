@@ -81,12 +81,10 @@ function start_claimrev_notifications(): void
         return;
     }
 
-    $recipientSetting = $GLOBALS[GlobalConfig::CONFIG_NOTIFICATION_RECIPIENT] ?? 'admin';
-    if ($recipientSetting == '') {
-        $recipientSetting = 'admin';
-    }
-    $recipients = array_map(trim(...), explode(';', (string) $recipientSetting));
-    $recipients = array_filter($recipients, fn($v) => $v !== '');
+    $recipientSettingRaw = $GLOBALS[GlobalConfig::CONFIG_NOTIFICATION_RECIPIENT] ?? 'admin';
+    $recipientSetting = is_string($recipientSettingRaw) && $recipientSettingRaw !== '' ? $recipientSettingRaw : 'admin';
+    $recipients = array_map(trim(...), explode(';', $recipientSetting));
+    $recipients = array_filter($recipients);
     if (empty($recipients)) {
         $recipients = ['admin'];
     }

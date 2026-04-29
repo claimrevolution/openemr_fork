@@ -35,8 +35,9 @@ $collections = $kpis['collections'];
 $patientAr = $kpis['patientAr'];
 
 $contactInfo = ClaimRevApi::getSupportInfo();
-$phone = $contactInfo['phone'] ?? '918-842-9564';
-$supportEmail = $contactInfo['supportEmail'] ?? 'support@claimrev.com';
+$contactArr = is_array($contactInfo) ? $contactInfo : [];
+$phone = is_string($contactArr['phone'] ?? null) ? $contactArr['phone'] : '918-842-9564';
+$supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['supportEmail'] : 'support@claimrev.com';
 ?>
 <html>
     <head>
@@ -232,7 +233,7 @@ $supportEmail = $contactInfo['supportEmail'] ?? 'support@claimrev.com';
                 <div class="col-md-4">
                     <div class="section-title"><?php echo xlt("Support"); ?></div>
                     <small>
-                        <i class="fa fa-phone"></i> <a href="tel:<?php echo attr(preg_replace('/[^0-9]/', '', (string) $phone)); ?>"><?php echo text($phone); ?></a>
+                        <i class="fa fa-phone"></i> <a href="tel:<?php echo attr(preg_replace('/[^0-9]/', '', $phone) ?? ''); ?>"><?php echo text($phone); ?></a>
                         &nbsp;|&nbsp;
                         <i class="fa fa-envelope"></i> <a href="mailto:<?php echo attr($supportEmail); ?>"><?php echo text($supportEmail); ?></a>
                     </small>

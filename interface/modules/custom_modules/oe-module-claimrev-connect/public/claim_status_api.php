@@ -65,8 +65,9 @@ switch ($action) {
         break;
 
     case 'batch_sync':
-        $pcnsJson = $_POST['pcns'] ?? '';
-        $pcns = json_decode((string) $pcnsJson, true);
+        $pcnsJsonRaw = $_POST['pcns'] ?? '';
+        $pcnsJson = is_string($pcnsJsonRaw) ? $pcnsJsonRaw : '';
+        $pcns = json_decode($pcnsJson, true);
 
         if (!is_array($pcns) || empty($pcns)) {
             echo json_encode(['error' => 'Invalid PCN list']);
