@@ -16,12 +16,12 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 require_once __DIR__ . '/src/Compat/compat.php';
 
 /**
- * @global OpenEMR\Core\ModulesClassLoader $classLoader
+ * @var \OpenEMR\Core\ModulesClassLoader $classLoader
  */
 
 $classLoader->registerNamespaceIfNotExists('OpenEMR\\Modules\\ClaimRevConnector\\', __DIR__ . DIRECTORY_SEPARATOR . 'src');
 /**
- * @global EventDispatcherInterface $eventDispatcher Injected by the OpenEMR module loader;
+ * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher Injected by the OpenEMR module loader;
  */
 
 $bootstrap = new Bootstrap($eventDispatcher);

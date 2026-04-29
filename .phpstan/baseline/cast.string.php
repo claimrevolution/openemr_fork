@@ -1662,8 +1662,8 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/reports/cqm.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Cannot cast mixed to string\\.$#',
-    'count' => 3,
+    'message' => '#^Cannot cast array\\<int, string\\> to string\\.$#',
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/reports/criteria.tab.php',
 ];
 $ignoreErrors[] = [
@@ -1708,7 +1708,7 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot cast mixed to string\\.$#',
-    'count' => 2,
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/reports/non_reported.php',
 ];
 $ignoreErrors[] = [
@@ -2300,11 +2300,6 @@ $ignoreErrors[] = [
     'message' => '#^Cannot cast mixed to string\\.$#',
     'count' => 9,
     'path' => __DIR__ . '/../../library/edihistory/edih_uploads.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Cannot cast mixed to string\\.$#',
-    'count' => 22,
-    'path' => __DIR__ . '/../../library/edihistory/test_edih_835_accounting.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot cast mixed to string\\.$#',
