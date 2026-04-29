@@ -38,7 +38,7 @@ $skipMarkWorked = !empty($_POST['testMode']);
 
 if ($mode === 'batch') {
     $paymentDataListJson = $_POST['paymentDataList'] ?? '';
-    $paymentDataList = json_decode($paymentDataListJson, true);
+    $paymentDataList = json_decode((string) $paymentDataListJson, true);
 
     if (!is_array($paymentDataList)) {
         http_response_code(400);
@@ -50,7 +50,7 @@ if ($mode === 'batch') {
     echo json_encode($result);
 } else {
     $paymentDataJson = $_POST['paymentData'] ?? '';
-    $paymentData = json_decode($paymentDataJson, true);
+    $paymentData = json_decode((string) $paymentDataJson, true);
 
     if (!is_array($paymentData)) {
         http_response_code(400);

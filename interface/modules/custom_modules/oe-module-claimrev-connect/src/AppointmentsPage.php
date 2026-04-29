@@ -55,7 +55,7 @@ class AppointmentsPage
                 WHERE e.pc_eventDate >= ?
                 AND e.pc_eventDate <= ?";
 
-        $sqlarr = array($startDate, $endDate);
+        $sqlarr = [$startDate, $endDate];
 
         if ($facilityId != null && $facilityId != "") {
             $sql .= " AND e.pc_facility = ?";
@@ -145,7 +145,7 @@ class AppointmentsPage
             return null;
         }
 
-        $individual = json_decode($eligJson);
+        $individual = json_decode((string) $eligJson);
         if ($individual == null || !property_exists($individual, 'eligibility')) {
             return null;
         }

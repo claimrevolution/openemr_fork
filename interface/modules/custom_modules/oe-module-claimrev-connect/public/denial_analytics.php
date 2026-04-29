@@ -162,7 +162,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                             $maxCount = !empty($data['byReason']) ? max(array_column($data['byReason'], 'count')) : 1;
                             foreach ($data['byReason'] as $r) {
                                 $pct = ($r['count'] / max($maxCount, 1)) * 100;
-                            ?>
+                                ?>
                             <tr>
                                 <td>
                                     <?php echo text($r['reason']); ?>
@@ -224,7 +224,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                             <tbody>
                                 <?php foreach ($data['byMonth'] as $m) {
                                     $pct = ($m['count'] / max($maxMonthCount, 1)) * 100;
-                                ?>
+                                    ?>
                                 <tr>
                                     <td><?php echo text($m['month']); ?></td>
                                     <td class="text-right"><?php echo text($m['count']); ?></td>

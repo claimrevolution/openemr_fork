@@ -46,9 +46,9 @@ $defaultStart = date('Y-m-d');
 $defaultEnd = date('Y-m-d', strtotime('+7 days'));
 $startDate = isset($_POST['startDate']) && $_POST['startDate'] != '' ? $_POST['startDate'] : $defaultStart;
 $endDate = isset($_POST['endDate']) && $_POST['endDate'] != '' ? $_POST['endDate'] : $defaultEnd;
-$facilityId = isset($_POST['facilityId']) ? $_POST['facilityId'] : '';
-$providerId = isset($_POST['providerId']) ? $_POST['providerId'] : '';
-$eligFilter = isset($_POST['eligFilter']) ? $_POST['eligFilter'] : 'all';
+$facilityId = $_POST['facilityId'] ?? '';
+$providerId = $_POST['providerId'] ?? '';
+$eligFilter = $_POST['eligFilter'] ?? 'all';
 
 $appointments = AppointmentsPage::getUpcomingAppointments($startDate, $endDate, $facilityId, $providerId, $eligFilter);
 $facilities = AppointmentsPage::getFacilities();
@@ -152,7 +152,7 @@ $path = str_replace("public", "templates", __DIR__);
         if (empty($appointmentRows)) {
             echo "<div class='mt-3'>" . xlt("No appointments found for the selected date range.") . "</div>";
         } else {
-        ?>
+            ?>
             <form method="post" action="appointments.php" id="bulkForm">
                 <input type="hidden" name="startDate" value="<?php echo attr($startDate); ?>"/>
                 <input type="hidden" name="endDate" value="<?php echo attr($endDate); ?>"/>
@@ -242,7 +242,7 @@ $path = str_replace("public", "templates", __DIR__);
                                     <input type="checkbox" name="eids[]" value="<?php echo attr($appt['pc_eid']); ?>" class="appt-checkbox"/>
                                 </td>
                                 <td><?php echo text($appt['appointmentDate']); ?></td>
-                                <td><?php echo text(substr($appt['pc_startTime'], 0, 5)); ?></td>
+                                <td><?php echo text(substr((string) $appt['pc_startTime'], 0, 5)); ?></td>
                                 <td><?php echo text($appt['lname']); ?>, <?php echo text($appt['fname']); ?></td>
                                 <td><?php echo text($appt['dob']); ?></td>
                                 <td><?php echo text($appt['provider_name']); ?></td>
@@ -293,7 +293,7 @@ $path = str_replace("public", "templates", __DIR__);
                                                 }
 
                                                 $individualJson = $check["individual_json"];
-                                                $individual = json_decode($individualJson);
+                                                $individual = json_decode((string) $individualJson);
                                                 if ($individual == null || !property_exists($individual, 'eligibility')) {
                                                     continue;
                                                 }

@@ -426,7 +426,7 @@ class EligibilityTransfer extends BaseService
         // reliably identify the patient.  Insert it right after the first
         // DMG segment (subscriber demographics), which is where REF*EJ
         // would normally appear in a standard 271.
-        if (strpos($raw271, 'REF*EJ*') === false) {
+        if (!str_contains($raw271, 'REF*EJ*')) {
             // Insert after the first DMG segment's tilde terminator
             $dmgPos = strpos($raw271, 'DMG*');
             if ($dmgPos !== false) {

@@ -201,7 +201,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         } elseif ($enc['stmtCount'] === 0) {
                             $rowClass .= ' row-never-sent';
                         }
-                    ?>
+                        ?>
                     <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr($idx); ?>, <?php echo attr($enc['pid']); ?>, <?php echo attr($enc['encounter']); ?>)">
                         <td>
                             <?php echo text($enc['patientName']); ?>

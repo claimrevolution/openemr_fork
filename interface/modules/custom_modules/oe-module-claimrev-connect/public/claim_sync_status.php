@@ -31,7 +31,7 @@ if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'claims')) {
 }
 
 $claimDataJson = $_POST['claimData'] ?? '';
-$claimData = json_decode($claimDataJson, true);
+$claimData = json_decode((string) $claimDataJson, true);
 
 if (!is_array($claimData)) {
     http_response_code(400);

@@ -19,11 +19,11 @@ $classLoader->registerNamespaceIfNotExists('OpenEMR\\Modules\\ClaimRevConnector\
 echo "=== Integration Test ===\n\n";
 
 // On 8.x, real classes should be loaded — compat.php should be a no-op
-$rc = new ReflectionClass('OpenEMR\Core\OEGlobalsBag');
+$rc = new ReflectionClass(\OpenEMR\Core\OEGlobalsBag::class);
 $isShim = str_contains($rc->getFileName(), 'Compat');
 echo "OEGlobalsBag: " . ($isShim ? "SHIM (7.x mode)" : "NATIVE (8.x)") . " — " . $rc->getFileName() . "\n";
 
-$rc2 = new ReflectionClass('OpenEMR\BC\ServiceContainer');
+$rc2 = new ReflectionClass(\OpenEMR\BC\ServiceContainer::class);
 $isShim2 = str_contains($rc2->getFileName(), 'Compat');
 echo "ServiceContainer: " . ($isShim2 ? "SHIM (7.x mode)" : "NATIVE (8.x)") . " — " . $rc2->getFileName() . "\n";
 
@@ -33,7 +33,7 @@ echo "GlobalConfig: " . ($gc->isConfigured() ? "configured" : "not configured") 
 
 // Test CryptoGen
 $crypto = \OpenEMR\BC\ServiceContainer::getCrypto();
-echo "CryptoGen: " . get_class($crypto) . "\n";
+echo "CryptoGen: " . $crypto::class . "\n";
 echo "  decryptStandard() exists: " . (method_exists($crypto, 'decryptStandard') ? 'yes' : 'no') . "\n";
 
 // Test Bootstrap

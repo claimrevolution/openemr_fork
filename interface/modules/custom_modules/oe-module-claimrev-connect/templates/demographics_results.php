@@ -50,7 +50,7 @@ if ($demographicInfo === null) {
             <?php if (!empty($person->dob)) { ?>
                 <div class="row mb-1">
                     <div class="col-3 font-weight-bold"><?php echo xlt("DOB"); ?>:</div>
-                    <div class="col"><?php echo text(substr($person->dob, 0, 10)); ?></div>
+                    <div class="col"><?php echo text(substr((string) $person->dob, 0, 10)); ?></div>
                 </div>
             <?php } ?>
             <?php if (!empty($person->ssn)) { ?>
@@ -96,7 +96,7 @@ if ($demographicInfo === null) {
                         } ?>
                         , <?php echo text($addr->city ?? ''); ?>, <?php echo text($addr->state ?? ''); ?> <?php echo text($addr->zip ?? ''); ?>
                         <?php if (!empty($addr->addressDateReported)) { ?>
-                            <small class="text-muted">(<?php echo text(substr($addr->addressDateReported, 0, 10)); ?>)</small>
+                            <small class="text-muted">(<?php echo text(substr((string) $addr->addressDateReported, 0, 10)); ?>)</small>
                         <?php } ?>
                     </div>
                 </div>

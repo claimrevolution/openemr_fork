@@ -176,7 +176,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                     <?php foreach ($payers as $p) {
                         $pctOver90 = $p['total'] > 0 ? (($p['days90'] + $p['days120'] + $p['days120plus']) / $p['total']) * 100 : 0;
                         $barColor = $pctOver90 > 50 ? '#dc3545' : ($pctOver90 > 25 ? '#ffc107' : '#28a745');
-                    ?>
+                        ?>
                     <tr class="payer-row">
                         <td><?php echo text($p['payerName']); ?></td>
                         <td class="text-right"><?php echo $p['current'] > 0 ? text(number_format($p['current'], 2)) : '<span class="text-muted">—</span>'; ?></td>

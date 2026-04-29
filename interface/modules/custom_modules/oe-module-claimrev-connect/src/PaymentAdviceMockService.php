@@ -48,7 +48,7 @@ class PaymentAdviceMockService
             $params[] = '%' . $filters['patientLastName'] . '%';
         }
         if (!empty($filters['patientControlNumber'])) {
-            $parts = preg_split('/[\s\-]/', $filters['patientControlNumber']);
+            $parts = preg_split('/[\s\-]/', (string) $filters['patientControlNumber']);
             if (is_array($parts) && count($parts) >= 2) {
                 $where[] = "e.pid = ?";
                 $where[] = "e.encounter = ?";

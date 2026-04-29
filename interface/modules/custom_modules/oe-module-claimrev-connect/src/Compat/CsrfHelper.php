@@ -56,7 +56,7 @@ class CsrfHelper
      */
     private static function getSession()
     {
-        if (class_exists('OpenEMR\Common\Session\SessionWrapperFactory')) {
+        if (class_exists(\OpenEMR\Common\Session\SessionWrapperFactory::class)) {
             return \OpenEMR\Common\Session\SessionWrapperFactory::getInstance()->getActiveSession();
         }
         return null;

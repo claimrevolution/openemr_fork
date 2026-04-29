@@ -30,21 +30,21 @@ function htmlToPlainText(string $html): string
 {
     // Remove head/style/script blocks entirely
     $text = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $html);
-    $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $text);
-    $text = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $text);
+    $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', (string) $text);
+    $text = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', (string) $text);
 
     // Block-level breaks: </p>, </div>, </tr>, </h1-6>, <br>
-    $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
-    $text = preg_replace('/<\/(?:p|div|tr|h[1-6])>/i', "\n\n", $text);
+    $text = preg_replace('/<br\s*\/?>/i', "\n", (string) $text);
+    $text = preg_replace('/<\/(?:p|div|tr|h[1-6])>/i', "\n\n", (string) $text);
 
     // List items
-    $text = preg_replace('/<li\b[^>]*>/i', "\n- ", $text);
+    $text = preg_replace('/<li\b[^>]*>/i', "\n- ", (string) $text);
 
     // Table cells: add spacing between <td> content
-    $text = preg_replace('/<\/td>\s*<td/i', "</td>  <td", $text);
+    $text = preg_replace('/<\/td>\s*<td/i', "</td>  <td", (string) $text);
 
     // Strip remaining tags
-    $text = strip_tags($text);
+    $text = strip_tags((string) $text);
 
     // Decode HTML entities
     $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -53,9 +53,9 @@ function htmlToPlainText(string $html): string
     $text = preg_replace('/[^\S\n]+/', ' ', $text);
 
     // Collapse 3+ consecutive newlines into 2
-    $text = preg_replace('/\n{3,}/', "\n\n", $text);
+    $text = preg_replace('/\n{3,}/', "\n\n", (string) $text);
 
-    return trim($text);
+    return trim((string) $text);
 }
 
 function start_claimrev_notifications(): void
@@ -85,10 +85,8 @@ function start_claimrev_notifications(): void
     if ($recipientSetting == '') {
         $recipientSetting = 'admin';
     }
-    $recipients = array_map('trim', explode(';', $recipientSetting));
-    $recipients = array_filter($recipients, function ($v) {
-        return $v !== '';
-    });
+    $recipients = array_map(trim(...), explode(';', (string) $recipientSetting));
+    $recipients = array_filter($recipients, fn($v) => $v !== '');
     if (empty($recipients)) {
         $recipients = ['admin'];
     }
@@ -102,7 +100,7 @@ function start_claimrev_notifications(): void
         // Check if we already processed this notification
         $existing = sqlQuery(
             "SELECT id FROM mod_claimrev_notifications WHERE portal_notification_id = ?",
-            array($portalId)
+            [$portalId]
         );
         if ($existing) {
             continue;
@@ -140,13 +138,13 @@ function start_claimrev_notifications(): void
         // Track it so we don't create duplicates
         sqlInsert(
             "INSERT INTO mod_claimrev_notifications (portal_notification_id, message_title, message_body, pnote_id, created_date, processed_date) VALUES (?, ?, ?, ?, ?, NOW())",
-            array(
+            [
                 $portalId,
                 $title,
                 $body,
                 $firstPnoteId,
                 $notification['createdDate'] ?? date('Y-m-d H:i:s')
-            )
+            ]
         );
 
         // Mark as read on ClaimRev so it doesn't come back next poll

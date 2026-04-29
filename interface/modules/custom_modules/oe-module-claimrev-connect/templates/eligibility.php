@@ -160,19 +160,19 @@ foreach ($insurance as $row) {
                     $productResultIds = $responseData['_productResultIds'] ?? [];
                     // Fallback: use the top-level claimRevResultId if no per-product map
                     $claimRevResultId = $responseData['claimRevResultId'] ?? '';
-                    if (empty($productResultIds) && !empty($claimRevResultId)) {
-                        $productResultIds = [1 => $claimRevResultId]; // assume eligibility
-                    }
+            if (empty($productResultIds) && !empty($claimRevResultId)) {
+                $productResultIds = [1 => $claimRevResultId]; // assume eligibility
+            }
                     $hasAnyChatId = !empty($productResultIds);
                     // Extract payer code from first eligibility or coverage discovery result
                     $chatPayerCode = '';
-                    if (is_array($responseData)) {
-                        $mappedIndividuals = $responseData['mappedData']['individuals'] ?? [];
-                        $firstInd = !empty($mappedIndividuals) ? $mappedIndividuals[array_key_first($mappedIndividuals)] : [];
-                        $eligArr = $firstInd['eligibility'] ?? [];
-                        $firstElig = !empty($eligArr) ? $eligArr[array_key_first($eligArr)] : [];
-                        $chatPayerCode = $firstElig['payerInfo']['payerCode'] ?? '';
-                    }
+            if (is_array($responseData)) {
+                $mappedIndividuals = $responseData['mappedData']['individuals'] ?? [];
+                $firstInd = !empty($mappedIndividuals) ? $mappedIndividuals[array_key_first($mappedIndividuals)] : [];
+                $eligArr = $firstInd['eligibility'] ?? [];
+                $firstElig = !empty($eligArr) ? $eligArr[array_key_first($eligArr)] : [];
+                $chatPayerCode = $firstElig['payerInfo']['payerCode'] ?? '';
+            }
 
                     $hasEligibility = property_exists($individual, 'eligibility') && !empty($individual->eligibility);
                     $hasDemographics = property_exists($individual, 'demographicInfo') && $individual->demographicInfo !== null;
@@ -181,32 +181,32 @@ foreach ($insurance as $row) {
                     $hasCoverageDiscovery = $hasCoverageDiscoveryResults || !empty($insuranceFinderStatus);
                     $hasMbi = property_exists($individual, 'mbiFinderResults') && $individual->mbiFinderResults !== null;
 
-                    if (!$hasEligibility && !$hasDemographics && !$hasCoverageDiscovery && !$hasMbi) {
-                        echo xlt("No results returned for selected products");
-                    } else {
-                    ?>
+            if (!$hasEligibility && !$hasDemographics && !$hasCoverageDiscovery && !$hasMbi) {
+                echo xlt("No results returned for selected products");
+            } else {
+                ?>
                         <ul class="nav nav-tabs mb-2" id="product-tabs-<?php echo $prKey; ?>">
-                            <?php if ($hasEligibility) { ?>
+                    <?php if ($hasEligibility) { ?>
                                 <li class="nav-item">
                                     <a class="nav-link active" data-toggle="tab" href="#product-elig-<?php echo $prKey; ?>"><?php echo xlt("Eligibility"); ?></a>
                                 </li>
                             <?php } ?>
-                            <?php if ($hasCoverageDiscovery) { ?>
+                    <?php if ($hasCoverageDiscovery) { ?>
                                 <li class="nav-item">
                                     <a class="nav-link <?php echo !$hasEligibility ? 'active' : ''; ?>" data-toggle="tab" href="#product-coverage-<?php echo $prKey; ?>"><?php echo xlt("Coverage Discovery"); ?></a>
                                 </li>
                             <?php } ?>
-                            <?php if ($hasDemographics) { ?>
+                    <?php if ($hasDemographics) { ?>
                                 <li class="nav-item">
                                     <a class="nav-link <?php echo !$hasEligibility && !$hasCoverageDiscovery ? 'active' : ''; ?>" data-toggle="tab" href="#product-demo-<?php echo $prKey; ?>"><?php echo xlt("Demographics"); ?></a>
                                 </li>
                             <?php } ?>
-                            <?php if ($hasMbi) { ?>
+                    <?php if ($hasMbi) { ?>
                                 <li class="nav-item">
                                     <a class="nav-link <?php echo !$hasEligibility && !$hasCoverageDiscovery && !$hasDemographics ? 'active' : ''; ?>" data-toggle="tab" href="#product-mbi-<?php echo $prKey; ?>"><?php echo xlt("MBI Finder"); ?></a>
                                 </li>
                             <?php } ?>
-                            <?php if ($hasAnyChatId) { ?>
+                    <?php if ($hasAnyChatId) { ?>
                                 <li class="nav-item">
                                     <a class="nav-link" data-toggle="tab" href="#product-chat-<?php echo $prKey; ?>">
                                         <i class="fa fa-robot"></i> <?php echo xlt("Conversation"); ?>
@@ -217,43 +217,43 @@ foreach ($insurance as $row) {
                         </ul>
                         <div class="tab-content">
 
-                        <?php
-                        // === Eligibility Tab (Product 1) ===
-                        if ($hasEligibility) {
-                            $results = $individual->eligibility;
-                            $index = 0;
-                        ?>
+                <?php
+                // === Eligibility Tab (Product 1) ===
+                if ($hasEligibility) {
+                    $results = $individual->eligibility;
+                    $index = 0;
+                    ?>
                             <div id="product-elig-<?php echo $prKey; ?>" class="tab-pane active">
-                            <?php foreach ($results as $result) {
+                    <?php foreach ($results as $result) {
                                 $index++;
                                 $eligibilityData = $result;
                                 $benefits = null;
                                 $subscriberPatient = null;
                                 $data = null;
-                                if (property_exists($eligibilityData, 'mapped271')) {
-                                    $data = $eligibilityData->mapped271;
-                                }
+                        if (property_exists($eligibilityData, 'mapped271')) {
+                            $data = $eligibilityData->mapped271;
+                        }
 
-                                if ($data !== null && property_exists($data, 'dependent')) {
-                                    $dependent = $data->dependent;
-                                    if ($dependent != null) {
-                                        if (property_exists($dependent, 'benefits')) {
-                                            $benefits = $dependent->benefits;
-                                            $subscriberPatient = $dependent;
-                                        }
-                                    }
+                        if ($data !== null && property_exists($data, 'dependent')) {
+                            $dependent = $data->dependent;
+                            if ($dependent != null) {
+                                if (property_exists($dependent, 'benefits')) {
+                                    $benefits = $dependent->benefits;
+                                    $subscriberPatient = $dependent;
                                 }
+                            }
+                        }
 
-                                if ($data !== null && property_exists($data, 'subscriber')) {
-                                    $subscriber = $data->subscriber;
-                                    if ($subscriber != null) {
-                                        if (property_exists($subscriber, 'benefits')) {
-                                            $benefits = $subscriber->benefits;
-                                            $subscriberPatient = $subscriber;
-                                        }
-                                    }
+                        if ($data !== null && property_exists($data, 'subscriber')) {
+                            $subscriber = $data->subscriber;
+                            if ($subscriber != null) {
+                                if (property_exists($subscriber, 'benefits')) {
+                                    $benefits = $subscriber->benefits;
+                                    $subscriberPatient = $subscriber;
                                 }
-                                ?>
+                            }
+                        }
+                        ?>
                                 <ul class="nav nav-tabs nav-tabs-sm mb-2 mt-2">
                                     <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#elig-quick-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Quick Info"); ?></a></li>
                                     <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-deductibles-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Deductibles"); ?></a></li>
@@ -296,7 +296,7 @@ foreach ($insurance as $row) {
                         <?php
                         // === Coverage Discovery Tab (Product 3) ===
                         if ($hasCoverageDiscovery) {
-                        ?>
+                            ?>
                             <div id="product-coverage-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility ? 'active' : ''; ?>">
                                 <?php if ($hasCoverageDiscoveryResults) {
                                     $coverageResults = $individual->coverageDiscovery;
@@ -321,7 +321,7 @@ foreach ($insurance as $row) {
                         // === Demographics Tab (Product 2) ===
                         if ($hasDemographics) {
                             $demographicInfo = $individual->demographicInfo;
-                        ?>
+                            ?>
                             <div id="product-demo-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility && !$hasCoverageDiscovery ? 'active' : ''; ?>">
                                 <?php include $path . '/demographics_results.php'; ?>
                             </div>
@@ -331,7 +331,7 @@ foreach ($insurance as $row) {
                         // === MBI Finder Tab (Product 5) ===
                         if ($hasMbi) {
                             $mbiResults = $individual->mbiFinderResults;
-                        ?>
+                            ?>
                             <div id="product-mbi-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility && !$hasCoverageDiscovery && !$hasDemographics ? 'active' : ''; ?>">
                                 <?php include $path . '/mbi_results.php'; ?>
                             </div>
@@ -340,7 +340,7 @@ foreach ($insurance as $row) {
                         <?php
                         // === Conversation Tab (AI Chat) ===
                         if ($hasAnyChatId) {
-                        ?>
+                            ?>
                             <div id="product-chat-<?php echo $prKey; ?>" class="tab-pane">
                                 <?php
                                 $chatPrKey = $prKey;
@@ -352,7 +352,7 @@ foreach ($insurance as $row) {
 
                         </div><!-- end tab-content -->
                     <?php
-                    } //end else has results
+            } //end else has results
         }//else individual_json not null
     }//end main foreach
     ?>

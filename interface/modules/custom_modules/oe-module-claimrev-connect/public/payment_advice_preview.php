@@ -34,7 +34,7 @@ if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'payment_advice')) 
 }
 
 $paymentDataJson = $_POST['paymentData'] ?? '';
-$paymentData = json_decode($paymentDataJson, true);
+$paymentData = json_decode((string) $paymentDataJson, true);
 
 if (!is_array($paymentData)) {
     http_response_code(400);

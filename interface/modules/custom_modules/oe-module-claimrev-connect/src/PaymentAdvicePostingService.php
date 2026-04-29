@@ -214,7 +214,7 @@ class PaymentAdvicePostingService
 
         // Parse patient control number
         $pcn = $paymentInfo['patientControlNumber'] ?? '';
-        $parts = preg_split('/[\s\-]/', $pcn);
+        $parts = preg_split('/[\s\-]/', (string) $pcn);
         if (!is_array($parts) || count($parts) < 2) {
             $result['errors'][] = 'Cannot parse patient control number: ' . $pcn;
             return $result;
@@ -333,7 +333,7 @@ class PaymentAdvicePostingService
             if (!$matched && $code !== '' && !$modifier) {
                 // Try matching without modifier
                 foreach (array_keys($existingCodes) as $existingKey) {
-                    if (str_starts_with($existingKey, $code . ':') || $existingKey === $code) {
+                    if (str_starts_with((string) $existingKey, $code . ':') || $existingKey === $code) {
                         $matched = true;
                         $codekey = $existingKey;
                         break;

@@ -43,7 +43,7 @@ class ServiceContainerShim
     public static function getClock()
     {
         // Lcobucci\Clock may not exist on 7.x — return a simple wrapper
-        if (class_exists('Lcobucci\Clock\SystemClock')) {
+        if (class_exists(\Lcobucci\Clock\SystemClock::class)) {
             return \Lcobucci\Clock\SystemClock::fromSystemTimezone();
         }
         return new class () {
