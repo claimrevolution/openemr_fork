@@ -30,8 +30,7 @@ try {
 
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . attr($fileName) . '"');
-    // CSV download response, not rendered as HTML
-    echo $fileText; // nosemgrep: echoed-request
+    file_put_contents('php://output', $fileText);
 } catch (ClaimRevException) {
     http_response_code(500);
     header('Content-Type: application/json');
