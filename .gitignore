@@ -15,14 +15,6 @@ node_modules
 # ccda service build
 ccdaservice/node_modules
 
-# crash dumps and archives
-*.stackdump
-interface/modules/custom_modules/*.zip
-
-# Claude Code config
-CLAUDE.md
-.claude/
-
 # dev editor configs
 /.idea/*
 /.vscode/*
