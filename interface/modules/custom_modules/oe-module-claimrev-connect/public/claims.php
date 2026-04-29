@@ -282,6 +282,9 @@ $webRoot = $GLOBALS['webroot'];
                     <?php
                     $rowIndex = 0;
                     foreach ($datas as $data) {
+                        if (!is_object($data)) {
+                            continue;
+                        }
                         $statusName = $data->statusName ?? '';
                         $statusId = (int)($data->statusId ?? 0);
                         $payerFileStatusId = (int)($data->payerFileStatusId ?? 0);

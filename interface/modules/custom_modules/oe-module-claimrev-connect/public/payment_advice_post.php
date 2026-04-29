@@ -37,8 +37,9 @@ $mode = $_POST['mode'] ?? 'single';
 $skipMarkWorked = !empty($_POST['testMode']);
 
 if ($mode === 'batch') {
-    $paymentDataListJson = $_POST['paymentDataList'] ?? '';
-    $paymentDataList = json_decode((string) $paymentDataListJson, true);
+    $paymentDataListJsonRaw = $_POST['paymentDataList'] ?? '';
+    $paymentDataListJson = is_string($paymentDataListJsonRaw) ? $paymentDataListJsonRaw : '';
+    $paymentDataList = json_decode($paymentDataListJson, true);
 
     if (!is_array($paymentDataList)) {
         http_response_code(400);
@@ -49,8 +50,9 @@ if ($mode === 'batch') {
     $result = PaymentAdvicePostingService::batchPost($paymentDataList, $skipMarkWorked);
     echo json_encode($result);
 } else {
-    $paymentDataJson = $_POST['paymentData'] ?? '';
-    $paymentData = json_decode((string) $paymentDataJson, true);
+    $paymentDataJsonRaw = $_POST['paymentData'] ?? '';
+    $paymentDataJson = is_string($paymentDataJsonRaw) ? $paymentDataJsonRaw : '';
+    $paymentData = json_decode($paymentDataJson, true);
 
     if (!is_array($paymentData)) {
         http_response_code(400);
