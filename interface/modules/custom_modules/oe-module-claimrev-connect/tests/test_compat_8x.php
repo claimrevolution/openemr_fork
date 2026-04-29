@@ -9,7 +9,16 @@
 
 $_GET['site'] = 'default';
 $ignoreAuth = 1;
-require_once '/var/www/localhost/htdocs/openemr/interface/globals.php';
+// Built at runtime so PHPStan doesn't try to resolve the literal path on
+// developer machines (this script only runs inside the OpenEMR container).
+$openemrRoot = getenv('OPENEMR_ROOT') ?: '/var/www/localhost/htdocs/openemr';
+$globalsPath = $openemrRoot . '/interface/globals.php';
+if (!file_exists($globalsPath)) {
+    fwrite(STDERR, "This integration test must be run inside the OpenEMR Docker container.\n");
+    fwrite(STDERR, "Expected: $globalsPath\n");
+    exit(1);
+}
+require_once $globalsPath;
 require_once dirname(__DIR__) . '/src/Compat/compat.php';
 
 // Register module autoloader (on 8.x this is done by the bootstrap, on 7.x test we do it manually)
