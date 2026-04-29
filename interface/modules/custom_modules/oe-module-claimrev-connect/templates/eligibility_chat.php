@@ -27,7 +27,7 @@ $productLabels = [
 
 // Default to first available product
 $defaultObjectId = '';
-foreach ($chatProductResultIds as $pid => $rid) {
+foreach ($chatProductResultIds as $rid) {
     if (!empty($rid)) {
         $defaultObjectId = $rid;
         break;

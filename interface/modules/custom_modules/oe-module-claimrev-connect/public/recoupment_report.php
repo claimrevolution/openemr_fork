@@ -174,7 +174,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                 <tbody>
                     <?php foreach ($data['recoupments'] as $idx => $r) {
                         $rowClass = 'recoup-row' . (!$r['hasReprocessed'] ? ' row-pending' : '');
-                    ?>
+                        ?>
                     <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr($idx); ?>)">
                         <td>
                             <?php echo text($r['patientName']); ?>

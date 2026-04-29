@@ -46,7 +46,7 @@ require_once $shimDir . '/OEGlobalsBagShim.php';
 
 $shim = \OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim::getInstance();
 
-test('getInstance() returns object', is_object($shim), get_class($shim));
+test('getInstance() returns object', is_object($shim), $shim::class);
 test('getInstance() is singleton', $shim === \OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim::getInstance());
 
 // Set up some test globals
@@ -91,17 +91,17 @@ echo "\n";
 echo "--- ServiceContainerShim ---\n";
 
 // ServiceContainerShim needs CryptoGen — check if it exists (it will in the container)
-$hasCryptoGen = class_exists('OpenEMR\Common\Crypto\CryptoGen', true);
+$hasCryptoGen = class_exists(\OpenEMR\Common\Crypto\CryptoGen::class, true);
 if (!$hasCryptoGen) {
     echo "  SKIP: CryptoGen not available (not running inside OpenEMR)\n";
     echo "  Testing ServiceContainerShim class structure only...\n";
     require_once $shimDir . '/ServiceContainerShim.php';
-    test('ServiceContainerShim class exists', class_exists('OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim'));
-    test('getCrypto() method exists', method_exists('OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim', 'getCrypto'));
+    test('ServiceContainerShim class exists', class_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class));
+    test('getCrypto() method exists', method_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class, 'getCrypto'));
 } else {
     require_once $shimDir . '/ServiceContainerShim.php';
     $crypto = \OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::getCrypto();
-    test('getCrypto() returns object', is_object($crypto), get_class($crypto));
+    test('getCrypto() returns object', is_object($crypto), $crypto::class);
     test('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen);
     test('CryptoGen has decryptStandard()', method_exists($crypto, 'decryptStandard'));
     test('CryptoGen has encryptStandard()', method_exists($crypto, 'encryptStandard'));
@@ -113,13 +113,13 @@ echo "\n";
 echo "--- class_alias registration (compat.php) ---\n";
 
 // Only test if the real classes DON'T exist yet
-if (class_exists('OpenEMR\Core\OEGlobalsBag', false)) {
+if (class_exists(\OpenEMR\Core\OEGlobalsBag::class, false)) {
     echo "  SKIP: Real OEGlobalsBag already loaded (running on 8.x) — aliases would be no-ops\n";
     echo "  The shim unit tests above confirm the shim API is correct.\n";
 } else {
     require_once $shimDir . '/compat.php';
-    test('OEGlobalsBag alias registered', class_exists('OpenEMR\Core\OEGlobalsBag'));
-    test('ServiceContainer alias registered', class_exists('OpenEMR\BC\ServiceContainer'));
+    test('OEGlobalsBag alias registered', class_exists(\OpenEMR\Core\OEGlobalsBag::class));
+    test('ServiceContainer alias registered', class_exists(\OpenEMR\BC\ServiceContainer::class));
 
     $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
     test('Aliased OEGlobalsBag::getInstance() works', is_object($bag));

@@ -67,7 +67,7 @@ foreach ($datas as $data) {
     $id = $data['paymentAdviceId'] ?? '';
     $paymentInfo = $data['paymentInfo'] ?? [];
     $pcn = $paymentInfo['patientControlNumber'] ?? '';
-    $parts = preg_split('/[\s\-]/', $pcn);
+    $parts = preg_split('/[\s\-]/', (string) $pcn);
     $pid = (is_array($parts) && count($parts) >= 2) ? (int) $parts[0] : 0;
     $enc = (is_array($parts) && count($parts) >= 2) ? (int) $parts[1] : 0;
     if ($id !== '') {
@@ -315,12 +315,12 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         $isDenied = ($claimStatusCode === '4' || $eraClassification === 'Denied');
 
                         $rowClass = 'payment-row';
-                        if ($isPosted) {
-                            $rowClass .= ' row-posted';
-                        } elseif ($isDenied) {
-                            $rowClass .= ' row-denied';
-                        }
-                    ?>
+    if ($isPosted) {
+        $rowClass .= ' row-posted';
+    } elseif ($isDenied) {
+        $rowClass .= ' row-denied';
+    }
+    ?>
                     <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail('<?php echo attr($paymentAdviceId); ?>')" id="row-<?php echo attr($paymentAdviceId); ?>">
                         <td onclick="event.stopPropagation();">
                             <?php if ($isPostable) { ?>
@@ -360,7 +360,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                                 } elseif ($oeStatus['status'] === -1) {
                                     $oeClass = 'badge-light text-muted';
                                 }
-                            ?>
+                                ?>
                                 <span class="badge <?php echo attr($oeClass); ?> badge-claim-status"><?php echo text($oeStatus['status_label']); ?></span>
                             <?php } ?>
                         </td>

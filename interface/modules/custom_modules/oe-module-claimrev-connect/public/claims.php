@@ -385,17 +385,11 @@ $webRoot = $GLOBALS['webroot'];
                         $claimTypeId = $data->claimTypeId ?? 1;
                         $editorRoute = '';
                         if (!empty($objectId)) {
-                            switch ($claimTypeId) {
-                                case 2:
-                                    $editorRoute = '/claimeditor/institutionaleditor/';
-                                    break;
-                                case 3:
-                                    $editorRoute = '/claimeditor/dentaleditor/';
-                                    break;
-                                default:
-                                    $editorRoute = '/claimeditor/professionaleditor/';
-                                    break;
-                            }
+                            $editorRoute = match ($claimTypeId) {
+                                2 => '/claimeditor/institutionaleditor/',
+                                3 => '/claimeditor/dentaleditor/',
+                                default => '/claimeditor/professionaleditor/',
+                            };
                         }
                         $errorCount = $data->errorCount ?? 0;
                         ?>
@@ -443,7 +437,7 @@ $webRoot = $GLOBALS['webroot'];
                             <td>
                                 <?php echo text(substr($data->serviceDate ?? '', 0, 10)); ?>
                                 <?php if (!empty($data->serviceDateEnd)) { ?>
-                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($data->serviceDateEnd, 0, 10)); ?></small>
+                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr((string) $data->serviceDateEnd, 0, 10)); ?></small>
                                 <?php } ?>
                             </td>
                             <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>
@@ -460,7 +454,7 @@ $webRoot = $GLOBALS['webroot'];
                                         -1 => 'badge-light text-muted',
                                         default => 'badge-secondary',
                                     };
-                                ?>
+    ?>
                                     <span class="badge <?php echo attr($oeBadgeClass); ?> badge-oe-status"><?php echo text($oeStatus['status_label']); ?></span>
                                 <?php } else { ?>
                                     <span class="text-muted small">—</span>
@@ -558,7 +552,7 @@ $webRoot = $GLOBALS['webroot'];
                                                         7 => 'badge-danger',
                                                         default => 'badge-secondary',
                                                     };
-                                                ?>
+    ?>
                                                 <span class="badge <?php echo attr($oeBadgeClass); ?>"><?php echo text($oeStatus['status_label']); ?></span>
                                                 <small class="text-muted ml-1">(<?php echo text($oeStatus['pid'] . '-' . $oeStatus['encounter']); ?>)</small>
                                             </div>

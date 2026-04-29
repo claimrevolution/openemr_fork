@@ -30,10 +30,10 @@ $checks = [];
 // 1. OEGlobalsBag
 $check = ['name' => 'OEGlobalsBag class exists', 'pass' => false, 'detail' => ''];
 try {
-    $exists = class_exists('OpenEMR\Core\OEGlobalsBag');
+    $exists = class_exists(\OpenEMR\Core\OEGlobalsBag::class);
     $check['pass'] = $exists;
     if ($exists) {
-        $rc = new ReflectionClass('OpenEMR\Core\OEGlobalsBag');
+        $rc = new ReflectionClass(\OpenEMR\Core\OEGlobalsBag::class);
         $isShim = str_contains($rc->getFileName(), 'Compat');
         $check['detail'] = $isShim ? 'Using ClaimRev shim (7.x mode)' : 'Using native OpenEMR class (8.x)';
     }
@@ -47,7 +47,7 @@ $check = ['name' => 'OEGlobalsBag::getInstance()', 'pass' => false, 'detail' => 
 try {
     $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
     $check['pass'] = is_object($bag);
-    $check['detail'] = get_class($bag);
+    $check['detail'] = $bag::class;
 } catch (Throwable $e) {
     $check['detail'] = $e->getMessage();
 }
@@ -71,7 +71,7 @@ try {
     $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
     $kernel = $bag->getKernel();
     $check['pass'] = $kernel instanceof \OpenEMR\Core\Kernel;
-    $check['detail'] = get_class($kernel);
+    $check['detail'] = $kernel::class;
 } catch (Throwable $e) {
     $check['detail'] = $e->getMessage();
 }
@@ -80,10 +80,10 @@ $checks[] = $check;
 // 5. ServiceContainer
 $check = ['name' => 'ServiceContainer class exists', 'pass' => false, 'detail' => ''];
 try {
-    $exists = class_exists('OpenEMR\BC\ServiceContainer');
+    $exists = class_exists(\OpenEMR\BC\ServiceContainer::class);
     $check['pass'] = $exists;
     if ($exists) {
-        $rc = new ReflectionClass('OpenEMR\BC\ServiceContainer');
+        $rc = new ReflectionClass(\OpenEMR\BC\ServiceContainer::class);
         $isShim = str_contains($rc->getFileName(), 'Compat');
         $check['detail'] = $isShim ? 'Using ClaimRev shim (7.x mode)' : 'Using native OpenEMR class (8.x)';
     }
@@ -97,7 +97,7 @@ $check = ['name' => 'ServiceContainer::getCrypto()', 'pass' => false, 'detail' =
 try {
     $crypto = \OpenEMR\BC\ServiceContainer::getCrypto();
     $check['pass'] = is_object($crypto) && method_exists($crypto, 'decryptStandard');
-    $check['detail'] = get_class($crypto);
+    $check['detail'] = $crypto::class;
 } catch (Throwable $e) {
     $check['detail'] = $e->getMessage();
 }

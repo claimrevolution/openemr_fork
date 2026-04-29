@@ -33,7 +33,7 @@ function start_eligibility_sweep(): void
 
     // Check if today is a configured sweep day
     $sweepDaysConfig = $globals->get(GlobalConfig::CONFIG_SWEEP_DAYS) ?? '1,4';
-    $sweepDays = array_map('intval', array_filter(explode(',', $sweepDaysConfig), 'strlen'));
+    $sweepDays = array_map(intval(...), array_filter(explode(',', (string) $sweepDaysConfig), strlen(...)));
     $todayDow = (int) date('w'); // 0=Sun, 1=Mon, ..., 6=Sat
 
     if (!in_array($todayDow, $sweepDays, true)) {

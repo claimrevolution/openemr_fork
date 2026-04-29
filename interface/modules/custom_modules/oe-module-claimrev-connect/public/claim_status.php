@@ -229,7 +229,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         $isRejected = in_array($crStatusId, [10, 16, 17]) || $payerAccId === 3;
                         $isDenied = stripos($eraCls, 'denied') !== false || $claim['oeStatus'] === 7;
                         $isPaid = stripos($eraCls, 'paid') !== false;
-                        $isStale = $claim['oeStatus'] === 2 && $eraCls === '' && $claim['billTime'] !== '' && strtotime($claim['billTime']) < strtotime('-' . 45 . ' days');
+                        $isStale = $claim['oeStatus'] === 2 && $eraCls === '' && $claim['billTime'] !== '' && strtotime((string) $claim['billTime']) < strtotime('-' . 45 . ' days');
 
                         if ($isRejected) {
                             $rowClass .= ' row-rejected';
@@ -254,13 +254,13 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
 
                         // CR status badge
                         $crBadgeClass = 'badge-secondary';
-                        if ($isRejected) {
-                            $crBadgeClass = 'badge-danger';
-                        } elseif ($payerAccId === 4) {
-                            $crBadgeClass = 'badge-success';
-                        } elseif (in_array($crStatusId, [7, 8, 9, 18])) {
-                            $crBadgeClass = 'badge-primary';
-                        }
+    if ($isRejected) {
+        $crBadgeClass = 'badge-danger';
+    } elseif ($payerAccId === 4) {
+        $crBadgeClass = 'badge-success';
+    } elseif (in_array($crStatusId, [7, 8, 9, 18])) {
+        $crBadgeClass = 'badge-primary';
+    }
 
                         // ERA badge
                         $eraBadgeClass = match (true) {
@@ -270,7 +270,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                             stripos($eraCls, 'pending') !== false => 'badge-warning',
                             default => 'badge-secondary',
                         };
-                    ?>
+    ?>
                     <tr class="<?php echo attr($rowClass); ?>" onclick="toggleTimeline(<?php echo attr($idx); ?>)" id="row-<?php echo attr($idx); ?>">
                         <td>
                             <?php echo text($claim['patientName']); ?>
@@ -314,7 +314,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         </td>
                         <td>
                             <?php if ($claim['lastStatusCheck'] !== '') { ?>
-                                <small><?php echo text(substr($claim['lastStatusCheck'], 0, 10)); ?></small>
+                                <small><?php echo text(substr((string) $claim['lastStatusCheck'], 0, 10)); ?></small>
                             <?php } else { ?>
                                 <small class="text-muted"><?php echo xlt("Never"); ?></small>
                             <?php } ?>

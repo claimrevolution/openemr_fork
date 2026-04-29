@@ -44,7 +44,7 @@ foreach ($filesToHide as $file) {
 }
 
 // Register a shutdown function to ALWAYS restore files, even on fatal error
-register_shutdown_function(function () use (&$renamed) {
+register_shutdown_function(function () use (&$renamed): void {
     echo "\n--- Restoring 8.x classes ---\n";
     foreach ($renamed as $original => $backup) {
         if (file_exists($backup)) {
@@ -63,11 +63,11 @@ register_shutdown_function(function () use (&$renamed) {
 echo "\n--- Loading compat shims ---\n";
 require_once dirname(__DIR__) . '/src/Compat/compat.php';
 
-$rc = new ReflectionClass('OpenEMR\Core\OEGlobalsBag');
+$rc = new ReflectionClass(\OpenEMR\Core\OEGlobalsBag::class);
 $isShim = str_contains($rc->getFileName(), 'Compat');
 echo "  OEGlobalsBag: " . ($isShim ? "SHIM" : "NATIVE") . " — " . $rc->getFileName() . "\n";
 
-$rc2 = new ReflectionClass('OpenEMR\BC\ServiceContainer');
+$rc2 = new ReflectionClass(\OpenEMR\BC\ServiceContainer::class);
 $isShim2 = str_contains($rc2->getFileName(), 'Compat');
 echo "  ServiceContainer: " . ($isShim2 ? "SHIM" : "NATIVE") . " — " . $rc2->getFileName() . "\n";
 
@@ -115,7 +115,7 @@ test('getKernel() returns Kernel', $bag->getKernel() instanceof \OpenEMR\Core\Ke
 
 // ServiceContainer via shim
 $crypto = \OpenEMR\BC\ServiceContainer::getCrypto();
-test('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen, get_class($crypto));
+test('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen, $crypto::class);
 
 // GlobalConfig
 try {
@@ -134,10 +134,10 @@ try {
 }
 
 // Module class autoloading
-test('PatientBalanceService loadable', class_exists('OpenEMR\Modules\ClaimRevConnector\PatientBalanceService'));
-test('DashboardService loadable', class_exists('OpenEMR\Modules\ClaimRevConnector\DashboardService'));
-test('AgingReportService loadable', class_exists('OpenEMR\Modules\ClaimRevConnector\AgingReportService'));
-test('DenialAnalyticsService loadable', class_exists('OpenEMR\Modules\ClaimRevConnector\DenialAnalyticsService'));
-test('ClaimRevApi loadable', class_exists('OpenEMR\Modules\ClaimRevConnector\ClaimRevApi'));
+test('PatientBalanceService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\PatientBalanceService::class));
+test('DashboardService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\DashboardService::class));
+test('AgingReportService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\AgingReportService::class));
+test('DenialAnalyticsService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\DenialAnalyticsService::class));
+test('ClaimRevApi loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\ClaimRevApi::class));
 
 echo "\n=== Results: {$passed} passed, {$failed} failed ===\n";

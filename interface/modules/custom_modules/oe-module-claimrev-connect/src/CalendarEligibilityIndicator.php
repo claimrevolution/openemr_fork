@@ -24,11 +24,8 @@ use OpenEMR\Events\Core\StyleFilterEvent;
 
 class CalendarEligibilityIndicator
 {
-    private int $staleAgeDays;
-
-    public function __construct(int $staleAgeDays)
+    public function __construct(private readonly int $staleAgeDays)
     {
-        $this->staleAgeDays = $staleAgeDays;
     }
 
     public function filterCalendarEvents(CalendarUserGetEventsFilter $event): CalendarUserGetEventsFilter
@@ -136,7 +133,7 @@ class CalendarEligibilityIndicator
 
         // Check for staleness
         if (!empty($eligRecord['last_date'])) {
-            $daysSinceCheck = (int) ((time() - strtotime($eligRecord['last_date'])) / 86400);
+            $daysSinceCheck = (int) ((time() - strtotime((string) $eligRecord['last_date'])) / 86400);
             if ($daysSinceCheck >= $this->staleAgeDays) {
                 return 'event_elig_stale';
             }

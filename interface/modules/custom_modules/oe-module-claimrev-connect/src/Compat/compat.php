@@ -18,26 +18,26 @@
  */
 
 // OEGlobalsBag shim — wraps $GLOBALS with the same API the module uses
-if (!class_exists('OpenEMR\Core\OEGlobalsBag', false)) {
+if (!class_exists(\OpenEMR\Core\OEGlobalsBag::class, false)) {
     // Also check autoloader in case it just hasn't been loaded yet
-    if (!class_exists('OpenEMR\Core\OEGlobalsBag')) {
+    if (!class_exists(\OpenEMR\Core\OEGlobalsBag::class)) {
         require_once __DIR__ . '/OEGlobalsBagShim.php';
-        class_alias('OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim', 'OpenEMR\Core\OEGlobalsBag');
+        class_alias(\OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim::class, \OpenEMR\Core\OEGlobalsBag::class);
     }
 }
 
 // CryptoInterface shim — on 7.x CryptoGen doesn't implement an interface
-if (!interface_exists('OpenEMR\Common\Crypto\CryptoInterface', false)) {
-    if (!interface_exists('OpenEMR\Common\Crypto\CryptoInterface')) {
+if (!interface_exists(\OpenEMR\Common\Crypto\CryptoInterface::class, false)) {
+    if (!interface_exists(\OpenEMR\Common\Crypto\CryptoInterface::class)) {
         require_once __DIR__ . '/CryptoInterfaceShim.php';
-        class_alias('OpenEMR\Modules\ClaimRevConnector\Compat\CryptoInterfaceShim', 'OpenEMR\Common\Crypto\CryptoInterface');
+        class_alias(\OpenEMR\Modules\ClaimRevConnector\Compat\CryptoInterfaceShim::class, \OpenEMR\Common\Crypto\CryptoInterface::class);
     }
 }
 
 // ServiceContainer shim — returns CryptoGen, SystemLogger, Clock
-if (!class_exists('OpenEMR\BC\ServiceContainer', false)) {
-    if (!class_exists('OpenEMR\BC\ServiceContainer')) {
+if (!class_exists(\OpenEMR\BC\ServiceContainer::class, false)) {
+    if (!class_exists(\OpenEMR\BC\ServiceContainer::class)) {
         require_once __DIR__ . '/ServiceContainerShim.php';
-        class_alias('OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim', 'OpenEMR\BC\ServiceContainer');
+        class_alias(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class, \OpenEMR\BC\ServiceContainer::class);
     }
 }

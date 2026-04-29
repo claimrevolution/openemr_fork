@@ -44,7 +44,7 @@ try {
     $api = ClaimRevApi::makeFromGlobals();
     $answer = $api->askEligibilityQuestion($sharpRevenueObjectId, $question, $payerCode);
     echo json_encode(['success' => true, 'answer' => $answer]);
-} catch (ClaimRevException $e) {
+} catch (ClaimRevException) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Failed to get AI response']);
 }

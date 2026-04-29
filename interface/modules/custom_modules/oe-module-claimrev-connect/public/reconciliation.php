@@ -233,29 +233,29 @@ foreach ($encounters as $enc) {
                         $crBadgeClass = 'badge-secondary';
                         $crStatusId = $enc['crStatusId'];
                         $crPayerAcc = $enc['crPayerAcceptanceStatusId'];
-                        if (in_array($crStatusId, [10, 16, 17]) || $crPayerAcc === 3) {
-                            $crBadgeClass = 'badge-danger';
-                        } elseif ($crPayerAcc === 4) {
-                            $crBadgeClass = 'badge-success';
-                        } elseif (in_array($crStatusId, [7, 8, 9, 18])) {
-                            $crBadgeClass = 'badge-primary';
-                        }
+    if (in_array($crStatusId, [10, 16, 17]) || $crPayerAcc === 3) {
+        $crBadgeClass = 'badge-danger';
+    } elseif ($crPayerAcc === 4) {
+        $crBadgeClass = 'badge-success';
+    } elseif (in_array($crStatusId, [7, 8, 9, 18])) {
+        $crBadgeClass = 'badge-primary';
+    }
 
                         // ERA badge
                         $eraBadge = '';
                         $eraClass = $enc['crEraClassification'];
-                        if ($eraClass !== '') {
-                            $eraBadgeClass = match (true) {
-                                stripos($eraClass, 'denied') !== false => 'badge-danger',
-                                stripos($eraClass, 'partial') !== false => 'badge-info',
-                                stripos($eraClass, 'paid') !== false => 'badge-success',
-                                stripos($eraClass, 'pending') !== false => 'badge-warning',
-                                default => 'badge-secondary',
-                            };
-                        }
+    if ($eraClass !== '') {
+        $eraBadgeClass = match (true) {
+            stripos($eraClass, 'denied') !== false => 'badge-danger',
+            stripos($eraClass, 'partial') !== false => 'badge-info',
+            stripos($eraClass, 'paid') !== false => 'badge-success',
+            stripos($eraClass, 'pending') !== false => 'badge-warning',
+            default => 'badge-secondary',
+        };
+    }
 
                         $isRejectedInCr = in_array($crStatusId, [10, 16, 17]) || $crPayerAcc === 3;
-                    ?>
+    ?>
                     <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr($idx); ?>)">
                         <td>
                             <?php echo text($enc['patientName']); ?>
