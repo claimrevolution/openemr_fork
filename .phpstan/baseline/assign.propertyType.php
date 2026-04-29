@@ -107,6 +107,61 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/calendar/modules/PostCalendar/pnuser.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ConnectivityInfo\\:\\:\\$defaultAccount \\(string\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ConnectivityInfo.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\GlobalConfig\\:\\:\\$cryptoGen \\(OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen\\) does not accept OpenEMR\\\\Common\\\\Crypto\\\\CryptoInterface\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/GlobalConfig.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$checkNumber \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$patientControlNumber \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$patientFirstName \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$patientLastName \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$payerNumber \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$receivedDateEnd \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$receivedDateStart \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$serviceDateEnd \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdviceSearchModel\\:\\:\\$serviceDateStart \\(string\\|null\\) does not accept mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePage.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Property Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Events\\\\TelehealthNotificationSendEvent\\:\\:\\$pid \\(int\\) does not accept mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Events/TelehealthNotificationSendEvent.php',

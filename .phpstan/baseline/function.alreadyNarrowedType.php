@@ -42,6 +42,81 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/finder/document_select.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoInterface will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/compat_check.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Core\\\\OEGlobalsBag will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/compat_check.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function method_exists\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoInterface and \'decryptStandard\' will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/compat_check.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_array\\(\\) with list\\<array\\<string, mixed\\>\\> will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRev_Notification_Service.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function method_exists\\(\\) with OpenEMR\\\\Core\\\\OEGlobalsBag and \'getKernel\' will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Compat/KernelHelper.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_array\\(\\) with non\\-empty\\-array\\<string, mixed\\> will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/EligibilityTransfer.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function method_exists\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoInterface and \'decryptStandard\' will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_8x.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Core\\\\OEGlobalsBag will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_nuclear.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_nuclear.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Core\\\\OEGlobalsBag will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\Compat\\\\OEGlobalsBagShim will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function method_exists\\(\\) with \'OpenEMR\\\\\\\\Modules…\' and \'getCrypto\' will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function method_exists\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen and \'decryptStandard\' will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function method_exists\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen and \'encryptStandard\' will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Call to function is_object\\(\\) with OpenEMR\\\\Modules\\\\FaxSMS\\\\EtherFax\\\\FaxStatus will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-faxsms/src/Controller/EtherFaxActions.php',
@@ -80,6 +155,11 @@ $ignoreErrors[] = [
     'message' => '#^Call to function is_numeric\\(\\) with int will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/patient_file/encounter/forms.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/super/edit_globals.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Call to function is_array\\(\\) with array\\{array\\{callback_url\\: non\\-falsy\\-string, providers\\?\\: non\\-empty\\-list\\<non\\-empty\\-array\\>, facilities\\?\\: non\\-empty\\-list\\<non\\-empty\\-array\\>, categories\\?\\: non\\-empty\\-list\\<non\\-empty\\-array\\>, apptstats\\?\\: non\\-empty\\-list\\<non\\-empty\\-array\\>, checkedOut\\?\\: non\\-empty\\-list\\<non\\-empty\\-array\\>, clinical_reminders\\?\\: non\\-empty\\-list\\<non\\-empty\\-array\\>\\}\\} will always evaluate to true\\.$#',

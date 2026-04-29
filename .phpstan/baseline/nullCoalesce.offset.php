@@ -87,6 +87,31 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/messages/trusted-messages.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Offset \'patientControlNumber\' on array\\{patientControlNumber\\: string, statusId\\: int, statusName\\: string, payerAcceptanceStatusId\\: int, payerAcceptanceStatusName\\: string, errorMessage\\?\\: string\\} on left side of \\?\\? always exists and is not nullable\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimStatusSyncService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'payerAcceptanceStat…\' on array\\{patientControlNumber\\: string, statusId\\: int, statusName\\: string, payerAcceptanceStatusId\\: int, payerAcceptanceStatusName\\: string, errorMessage\\?\\: string\\} on left side of \\?\\? always exists and is not nullable\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimStatusSyncService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'statusId\' on array\\{patientControlNumber\\: string, statusId\\: int, statusName\\: string, payerAcceptanceStatusId\\: int, payerAcceptanceStatusName\\: string, errorMessage\\?\\: string\\} on left side of \\?\\? always exists and is not nullable\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimStatusSyncService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'statusName\' on array\\{patientControlNumber\\: string, statusId\\: int, statusName\\: string, payerAcceptanceStatusId\\: int, payerAcceptanceStatusName\\: string, errorMessage\\?\\: string\\} on left side of \\?\\? always exists and is not nullable\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimStatusSyncService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'approvalReason\' on array\\{canPost\\: bool, alreadyPosted\\: false, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\} on left side of \\?\\? does not exist\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Offset \'pubpid\' on non\\-empty\\-array\\<mixed\\> on left side of \\?\\? always exists and is not nullable\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-faxsms/library/utility.php',

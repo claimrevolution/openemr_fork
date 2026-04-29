@@ -138,6 +138,7 @@ return ['includes' => [
     __DIR__ . '/property.phpDocType.php',
     __DIR__ . '/property.unused.php',
     __DIR__ . '/property.unusedType.php',
+    __DIR__ . '/requireOnce.fileNotFound.php',
     __DIR__ . '/return.deprecatedClass.php',
     __DIR__ . '/return.empty.php',
     __DIR__ . '/return.phpDocType.php',

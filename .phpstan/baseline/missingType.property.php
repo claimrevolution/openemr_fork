@@ -1217,12 +1217,107 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/holidays/Holidays_Controller.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$accountNumbers has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$billingProviderNpi has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$claimTypeIds has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$eraClassifications has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$errorMessage has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$excludeStatusIds has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$excludeTagIds has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$pagingSearch has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$patientBirthDate has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$patientControlNumber has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$patientControlNumbers has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$patientFirstName has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$patientGender has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$patientLastName has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$payerControlNumber has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$payerControlNumbers has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$payerName has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$payerNumber has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$payerPaidAmtEnd has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$payerPaidAmtStart has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$paymentAdviceStatusIds has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
 ];
@@ -1243,6 +1338,31 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$serviceDateStart has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$sorting has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$statusIds has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$tagIds has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$traceNumber has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimSearchModel\\:\\:\\$traceNumbers has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimSearchModel.php',
 ];
@@ -1375,6 +1495,26 @@ $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\InformationReceiver\\:\\:\\$zip has no type specified\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/InformationReceiver.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PagingSearchModel\\:\\:\\$pageIndex has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PagingSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PagingSearchModel\\:\\:\\$pageSize has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PagingSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PagingSearchModel\\:\\:\\$sortDirection has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PagingSearchModel.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PagingSearchModel\\:\\:\\$sortField has no type specified\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PagingSearchModel.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Property OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\RevenueToolsPayer\\:\\:\\$payerName has no type specified\\.$#',
