@@ -152,24 +152,9 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/calendar/modules/PostCalendar/pnadmin.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Offset \'claimStatusCode\' does not exist on array\\{canPost\\: true, alreadyPosted\\: false, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\}\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Offset \'codekey\' does not exist on array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Offset \'encounter\' might not exist on array\\{crFound\\: true, crStatusName\\: mixed, crStatusId\\: int, crPayerAcceptance\\: mixed, crPayerAcceptanceStatusId\\: int, crEraClassification\\: mixed, crPayerPaidAmount\\: float, crObjectId\\: mixed, \\.\\.\\.\\}\\|array\\{pid\\: int, encounter\\: int, pcn\\: non\\-falsy\\-string, encounterDate\\: string, patientName\\: non\\-falsy\\-string, patientDob\\: string, payerName\\: mixed, payerNumber\\: mixed, \\.\\.\\.\\}\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Offset \'pid\' might not exist on array\\{crFound\\: true, crStatusName\\: mixed, crStatusId\\: int, crPayerAcceptance\\: mixed, crPayerAcceptanceStatusId\\: int, crEraClassification\\: mixed, crPayerPaidAmount\\: float, crObjectId\\: mixed, \\.\\.\\.\\}\\|array\\{pid\\: int, encounter\\: int, pcn\\: non\\-falsy\\-string, encounterDate\\: string, patientName\\: non\\-falsy\\-string, patientDob\\: string, payerName\\: mixed, payerNumber\\: mixed, \\.\\.\\.\\}\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
+    'message' => '#^Offset 1 might not exist on array\\{\\}\\|array\\{1\\: non\\-falsy\\-string\\}\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-dorn/src/DornGenHl7Order.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Offset \'facility\' does not exist on array\\{result_data_type\\: string, comments\\: "\\\\n", document_id\\?\\: mixed, date\\: mixed, result_code\\: mixed, result_text\\: mixed, units\\: mixed, range\\: mixed, \\.\\.\\.\\}\\|array\\{result_data_type\\: string, comments\\: non\\-falsy\\-string, result\\: mixed, result_code\\: mixed, result_text\\: mixed, date\\: mixed, units\\: mixed, range\\: mixed, \\.\\.\\.\\}\\.$#',
@@ -263,11 +248,6 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Offset \'procedure_result\' might not exist on array\\{\\}\\|array\\{procedure_result\\?\\: non\\-empty\\-array\\<int\\<1, max\\>, array\\{proc_text\\: mixed, proc_code\\: mixed, extension\\: mixed, date\\: mixed, status\\: mixed, results_text\\: mixed, results_code\\: mixed, results_range\\: mixed, \\.\\.\\.\\}\\>\\}\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Model/CarecoordinationTable.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Offset \'reaction_text\' does not exist on array\\{provider_name\\: mixed, provider_family\\: mixed, provider_address\\: mixed, provider_city\\: mixed, provider_state\\: mixed, provider_postalCode\\: mixed\\}\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Carecoordination/src/Carecoordination/Model/CarecoordinationTable.php',
 ];
@@ -580,11 +560,6 @@ $ignoreErrors[] = [
     'message' => '#^Offset \'Reject\' might not exist on array\\{Date\\: mixed, FileName\\: mixed, Control\\: string, Claim_ct\\?\\: int\\<0, max\\>, x12Partner\\?\\: mixed, Accept\\?\\: mixed, Reject\\?\\: mixed, AccAmt\\?\\: mixed, \\.\\.\\.\\}\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../library/edihistory/edih_csv_parse.php',
-];
-$ignoreErrors[] = [
-    'message' => '#^Offset 1 might not exist on \'\'\\|non\\-empty\\-list\\<string\\>\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../library/edihistory/test_edih_835_accounting.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Offset 1 might not exist on array\\{\\}\\|array\\{non\\-empty\\-string, non\\-empty\\-string, string\\}\\.$#',

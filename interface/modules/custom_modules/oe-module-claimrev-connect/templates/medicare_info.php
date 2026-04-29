@@ -12,7 +12,7 @@
 
     use OpenEMR\Modules\ClaimRevConnector\PrintProperty;
 
-    /** @var object $eligibilityData provided by the including page */
+/** @var \stdClass $eligibilityData */
 
 if (property_exists($eligibilityData, 'medicarePartADate')) {
     if (property_exists($eligibilityData->medicarePartADate, 'startDate')) {

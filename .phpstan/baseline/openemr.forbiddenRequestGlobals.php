@@ -2028,7 +2028,7 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Direct access to \\$_POST is forbidden\\. Use Symfony\'s Request object or filter_input\\(\\) instead\\.$#',
-    'count' => 10,
+    'count' => 8,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-ehi-exporter/public/index.php',
 ];
 $ignoreErrors[] = [
@@ -3338,7 +3338,7 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Direct access to \\$_POST is forbidden\\. Use Symfony\'s Request object or filter_input\\(\\) instead\\.$#',
-    'count' => 14,
+    'count' => 15,
     'path' => __DIR__ . '/../../interface/reports/ippf_statistics.php',
 ];
 $ignoreErrors[] = [
