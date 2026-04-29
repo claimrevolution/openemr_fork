@@ -8192,11 +8192,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/mbi_results.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Variable \\$eligibilityData might not be defined\\.$#',
-    'count' => 22,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/medicare_info.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Variable \\$benefit might not be defined\\.$#',
     'count' => 3,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/messages.php',
