@@ -97,6 +97,7 @@ if (!$hasCryptoGen) {
     echo "  Testing ServiceContainerShim class structure only...\n";
     require_once $shimDir . '/ServiceContainerShim.php';
     test('ServiceContainerShim class exists', class_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class));
+    // @phpstan-ignore-next-line function.alreadyNarrowedType -- runtime smoke test: confirm the shim still declares getCrypto() even when CryptoGen is absent.
     test('getCrypto() method exists', method_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class, 'getCrypto'));
 } else {
     require_once $shimDir . '/ServiceContainerShim.php';

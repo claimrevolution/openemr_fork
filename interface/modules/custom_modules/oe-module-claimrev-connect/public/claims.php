@@ -437,7 +437,7 @@ $webRoot = $GLOBALS['webroot'];
                             <td>
                                 <?php echo text(substr($data->serviceDate ?? '', 0, 10)); ?>
                                 <?php if (!empty($data->serviceDateEnd)) { ?>
-                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr((string) $data->serviceDateEnd, 0, 10)); ?></small>
+                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($data->serviceDateEnd, 0, 10)); ?></small>
                                 <?php } ?>
                             </td>
                             <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>
