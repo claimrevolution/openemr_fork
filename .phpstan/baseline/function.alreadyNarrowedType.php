@@ -102,7 +102,7 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Call to function method_exists\\(\\) with \'OpenEMR\\\\\\\\Modules…\' and \'getCrypto\' will always evaluate to true\\.$#',
+    'message' => '#^Call to function method_exists\\(\\) with \'OpenEMR\\\\\\\\Modules\\\\\\\\ClaimRevConnector\\\\\\\\Compat\\\\\\\\ServiceContainerShim\' and \'getCrypto\' will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
 ];
