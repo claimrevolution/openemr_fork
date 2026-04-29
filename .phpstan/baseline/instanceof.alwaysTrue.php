@@ -7,6 +7,21 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/forms/newpatient/C_EncounterVisitForm.class.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Instanceof between OpenEMR\\\\Core\\\\Kernel and OpenEMR\\\\Core\\\\Kernel will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/compat_check.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Instanceof between OpenEMR\\\\Core\\\\Kernel and OpenEMR\\\\Core\\\\Kernel will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_nuclear.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Instanceof between OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen and OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen will always evaluate to true\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Instanceof between AmcReportFactory\\|CqmReportFactory and RsReportFactoryAbstract will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../library/classes/rulesets/ReportManager.php',

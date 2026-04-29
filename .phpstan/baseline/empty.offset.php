@@ -17,6 +17,16 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/login/login.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Offset \'errors\' on array\\{canPost\\: false, alreadyPosted\\: false, requiresApproval\\: bool, approvalReason\\: \'\'\\|\'pended\'\\|\'reversal\'\\|\'secondary_before…\'\\|\'tertiary_before…\', pid\\: int, encounter\\: int, errors\\: array\\{\\}, warnings\\: list\\<non\\-falsy\\-string\\>, \\.\\.\\.\\} in empty\\(\\) always exists and is always falsy\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'requiresApproval\' on array\\{canPost\\: bool, alreadyPosted\\: false, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\} in empty\\(\\) does not exist\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Offset \'items\' on array\\{group_name\\: mixed, group_id\\: mixed, items\\: non\\-empty\\-list\\<array\\<string, mixed\\>\\>\\} in empty\\(\\) always exists and is not falsy\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/zend_modules/module/Acl/src/Acl/Controller/AclController.php',

@@ -497,6 +497,116 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/ModuleManagerListener.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\CalendarEligibilityIndicator\\:\\:loadEligibilityMap\\(\\) should return array\\<int, array\\{status\\: string\\|null, individual_json\\: string\\|null, last_date\\: string\\|null\\}\\> but returns array\\<int, non\\-empty\\-array\\>\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/CalendarEligibilityIndicator.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimRevApi\\:\\:getClaimErrors\\(\\) should return list\\<array\\<string, mixed\\>\\> but returns array\\<string, mixed\\>\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRevApi.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimRevApi\\:\\:getClaimStatuses\\(\\) should return list\\<array\\<string, mixed\\>\\> but returns array\\<string, mixed\\>\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRevApi.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimRevApi\\:\\:getPortalNotifications\\(\\) should return list\\<array\\<string, mixed\\>\\> but returns array\\<string, mixed\\>\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRevApi.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimTrackingService\\:\\:checkStatus276\\(\\) should return array\\{success\\: bool, message\\: string, statusData\\: array\\<string, mixed\\>\\} but returns array\\{success\\: true, message\\: non\\-falsy\\-string, statusData\\: mixed\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimTrackingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimTrackingService\\:\\:getClaimRecord\\(\\) should return array\\<string, mixed\\>\\|null but returns array\\|null\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimTrackingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ClaimTrackingService\\:\\:getClaimTimeline\\(\\) should return list\\<array\\<string, mixed\\>\\> but returns list\\<array\\<mixed\\>\\>\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimTrackingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\Compat\\\\KernelHelper\\:\\:getKernel\\(\\) should return OpenEMR\\\\Core\\\\Kernel but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Compat/KernelHelper.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\DashboardService\\:\\:getDenialMetrics\\(\\) should return array\\{denialRate\\: float, totalDenied\\: int, totalProcessed\\: int, topReasons\\: list\\<array\\{reason\\: string, count\\: int\\}\\>\\} but returns array\\{denialRate\\: 0\\|float, totalDenied\\: int, totalProcessed\\: int, topReasons\\: list\\<array\\{reason\\: mixed, count\\: int\\}\\>\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/DashboardService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\EligibilityData\\:\\:getExistingRecord\\(\\) should return array\\<string, mixed\\>\\|null but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/EligibilityData.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\EligibilityData\\:\\:getRaw271\\(\\) should return array\\{id\\: int\\|string, raw271\\: string\\}\\|null but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/EligibilityData.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\EligibilityTransfer\\:\\:pollForResults\\(\\) should return array\\<string, mixed\\> but returns mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/EligibilityTransfer.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PatientBalanceService\\:\\:getStatementHistory\\(\\) should return list\\<array\\<string, mixed\\>\\> but returns list\\<array\\<mixed\\>\\>\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PatientBalanceService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:batchPost\\(\\) should return array\\{totalProcessed\\: int, totalPosted\\: int, totalSkipped\\: int, totalErrors\\: int, results\\: list\\<array\\{paymentAdviceId\\: string, success\\: bool, message\\: string, skipped\\: bool\\}\\>\\} but returns array\\{totalProcessed\\: int\\<0, max\\>, totalPosted\\: int\\<0, max\\>, totalSkipped\\: int\\<0, max\\>, totalErrors\\: int\\<0, max\\>, totalDeferred\\: int\\<0, max\\>, results\\: list\\<array\\{paymentAdviceId\\: mixed, success\\: bool, message\\: string, skipped\\: bool\\}\\>, deferred\\: list\\<array\\{paymentAdviceId\\: mixed, reason\\: \'Pended\'\\|\'Reversal\', claimStatusCode\\: mixed, patientName\\: non\\-falsy\\-string, pcn\\: mixed, amount\\: float\\}\\>\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:getPostingDetails\\(\\) should return array\\{found\\: bool, session_id\\: int\\|null, check_date\\: string, pay_total\\: float, post_user\\: string, created_time\\: string, lines\\: list\\<array\\{code\\: string, modifier\\: string, pay_amount\\: float, adj_amount\\: float, memo\\: string, reason_code\\: string, post_date\\: string\\}\\>\\} but returns array\\{found\\: true, session_id\\: int, check_date\\: mixed, pay_total\\: float, post_user\\: mixed, created_time\\: mixed, lines\\: list\\<array\\{code\\: mixed, modifier\\: mixed, pay_amount\\: float, adj_amount\\: float, memo\\: mixed, reason_code\\: mixed, account_code\\: mixed, post_date\\: mixed\\}\\>\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:post\\(\\) should return array\\{success\\: bool, session_id\\: int\\|null, message\\: string, posted_lines\\: int\\} but returns array\\{success\\: true, session_id\\: mixed, message\\: non\\-falsy\\-string, posted_lines\\: int\\<0, max\\>\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:preview\\(\\) should return array\\{canPost\\: bool, alreadyPosted\\: bool, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\} but returns array\\{canPost\\: false, alreadyPosted\\: false, requiresApproval\\: false, approvalReason\\: \'\', pid\\: 0, encounter\\: 0, errors\\: array\\{non\\-falsy\\-string\\}, warnings\\: array\\{\\}, \\.\\.\\.\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:preview\\(\\) should return array\\{canPost\\: bool, alreadyPosted\\: bool, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\} but returns array\\{canPost\\: false, alreadyPosted\\: false, requiresApproval\\: false, approvalReason\\: \'\', pid\\: int, encounter\\: int, errors\\: array\\{non\\-falsy\\-string\\}, warnings\\: array\\{\\}, \\.\\.\\.\\}\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:preview\\(\\) should return array\\{canPost\\: bool, alreadyPosted\\: bool, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\} but returns array\\{canPost\\: false, alreadyPosted\\: true, requiresApproval\\: false, approvalReason\\: \'\', pid\\: int, encounter\\: int, errors\\: array\\{string\\}, warnings\\: array\\{\\}, \\.\\.\\.\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\PaymentAdvicePostingService\\:\\:preview\\(\\) should return array\\{canPost\\: bool, alreadyPosted\\: bool, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\} but returns array\\{canPost\\: true, alreadyPosted\\: false, requiresApproval\\: bool, approvalReason\\: \'\'\\|\'pended\'\\|\'reversal\'\\|\'secondary_before…\'\\|\'tertiary_before…\', pid\\: int, encounter\\: int, errors\\: array\\{\\}, warnings\\: list\\<non\\-falsy\\-string\\>, \\.\\.\\.\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ReconciliationService\\:\\:lookupClaimRev\\(\\) should return list\\<array\\<string, mixed\\>\\> but returns mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Method OpenEMR\\\\Modules\\\\ClaimRevConnector\\\\ReconciliationService\\:\\:reconcile\\(\\) should return array\\{encounters\\: list\\<array\\<string, mixed\\>\\>, totalRecords\\: int, claimRevLookupFailed\\: bool\\} but returns array\\{encounters\\: array\\<int\\<0, max\\>, array\\{crFound\\: true, crStatusName\\: mixed, crStatusId\\: int, crPayerAcceptance\\: mixed, crPayerAcceptanceStatusId\\: int, crEraClassification\\: mixed, crPayerPaidAmount\\: float, crObjectId\\: mixed, \\.\\.\\.\\}\\|array\\{pid\\: int, encounter\\: int, pcn\\: non\\-falsy\\-string, encounterDate\\: string, patientName\\: non\\-falsy\\-string, patientDob\\: string, payerName\\: mixed, payerNumber\\: mixed, \\.\\.\\.\\}\\>, totalRecords\\: int, claimRevLookupFailed\\: bool\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Method Comlink\\\\OpenEMR\\\\Modules\\\\TeleHealthModule\\\\Controller\\\\TeleHealthVideoRegistrationController\\:\\:shouldCreateRegistrationForProvider\\(\\) should return bool but returns mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-comlink-telehealth/src/Controller/TeleHealthVideoRegistrationController.php',

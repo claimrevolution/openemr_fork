@@ -407,6 +407,26 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/main/main_screen.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$eligibility on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/appointments.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$mapped271 on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/appointments.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/appointments.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$status on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/appointments.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Cannot access property \\$billedAmount on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
@@ -417,17 +437,37 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Cannot access property \\$errorMessage on mixed\\.$#',
+    'message' => '#^Cannot access property \\$claimType on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Cannot access property \\$errors on mixed\\.$#',
-    'count' => 2,
+    'message' => '#^Cannot access property \\$claimTypeId on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$eraClassification on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$errorCount on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$isWorked on mixed\\.$#',
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$memberNumber on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$objectId on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
@@ -442,7 +482,12 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Cannot access property \\$patientGender on mixed\\.$#',
+    'message' => '#^Cannot access property \\$patientControlNumber on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerAcceptanceStatusId on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
@@ -453,7 +498,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$payerControlNumber on mixed\\.$#',
-    'count' => 2,
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerFileStatusId on mixed\\.$#',
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
@@ -473,6 +523,11 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$payerPaidAmount on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$paymentAdviceStatusId on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
@@ -497,12 +552,22 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$receivedDate on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Cannot access property \\$serviceDate on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$serviceDateEnd on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$statusId on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/claims.php',
 ];
@@ -552,6 +617,36 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/public/era.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$eligibility on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/AppointmentsPage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$insuranceType on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/AppointmentsPage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerInfo on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/AppointmentsPage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/AppointmentsPage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$status on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/AppointmentsPage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$subscriberId on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/AppointmentsPage.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Cannot access property \\$children on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Bootstrap.php',
@@ -560,6 +655,31 @@ $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$menu_id on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/Bootstrap.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$status on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/CalendarEligibilityIndicator.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$pageIndex on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimTrackingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$pageSize on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimTrackingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$pageIndex on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimsPage.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$pageSize on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimsPage.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$originatingSystemId on mixed\\.$#',
@@ -612,6 +732,16 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PrintProperty.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$pageIndex on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$pageSize on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Cannot access property \\$benefitAdditionalInfos on mixed\\.$#',
     'count' => 3,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/additional_info.php',
@@ -638,12 +768,12 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$benefitAmount on mixed\\.$#',
-    'count' => 2,
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$benefitInformation on mixed\\.$#',
-    'count' => 2,
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
 ];
 $ignoreErrors[] = [
@@ -653,7 +783,7 @@ $ignoreErrors[] = [
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$benefitPercent on mixed\\.$#',
-    'count' => 2,
+    'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
 ];
 $ignoreErrors[] = [
@@ -687,8 +817,8 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Cannot access property \\$quantityQualifierDesc on mixed\\.$#',
-    'count' => 1,
+    'message' => '#^Cannot access property \\$serviceTypeCode on mixed\\.$#',
+    'count' => 2,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
 ];
 $ignoreErrors[] = [
@@ -705,6 +835,81 @@ $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$timePeriodQualifierDesc on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/benefit.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$confidenceScore on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$endDate on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$groupName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$groupNumber on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$insurancePlan on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$insuranceType on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$mbi on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerAddress1 on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerCode on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerInfo on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$payerName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$policyDate on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$startDate on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$status on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$subscriberId on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/coverage_discovery_results.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$dateDescription on mixed\\.$#',
@@ -832,7 +1037,122 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/deductibles.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$additionalAddresses on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$address1 on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$address2 on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$addressDateReported on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$city on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$confidenceScore on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$correctedPerson on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$deceased on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$dob on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$firstName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$gender on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$lastName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$middleName on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$phoneNumber on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$redFlags on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$ssn on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$state on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$status on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$suffix on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$warnings on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$zip on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/demographics_results.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Cannot access property \\$benefits on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$coverageDiscovery on mixed\\.$#',
+    'count' => 2,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$demographicInfo on mixed\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
 ];
@@ -852,8 +1172,18 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
 ];
 $ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$insuranceFinderStatus on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
+];
+$ignoreErrors[] = [
     'message' => '#^Cannot access property \\$mapped271 on mixed\\.$#',
     'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$mbiFinderResults on mixed\\.$#',
+    'count' => 2,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/eligibility.php',
 ];
 $ignoreErrors[] = [
@@ -885,6 +1215,21 @@ $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$referenceValue on mixed\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/identifier_info.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$foundMbi on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/mbi_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$mbiFinderErrorMessage on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/mbi_results.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Cannot access property \\$mbiFinderStatus on mixed\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/templates/mbi_results.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Cannot access property \\$endDate on mixed\\.$#',

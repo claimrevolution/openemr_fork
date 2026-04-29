@@ -132,11 +132,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/forms/vitals/growthchart/chart.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Offset \'sex\' might not exist on \'\'\\|array\\.$#',
-    'count' => 4,
-    'path' => __DIR__ . '/../../interface/forms/vitals/growthchart/chart.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Offset 1 might not exist on array\\{\\}\\|array\\{non\\-falsy\\-string, non\\-falsy\\-string&numeric\\-string, non\\-falsy\\-string&numeric\\-string, non\\-falsy\\-string&numeric\\-string\\}\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/main/calendar/find_appt_popup.php',
@@ -155,6 +150,26 @@ $ignoreErrors[] = [
     'message' => '#^Offset \'version\' does not exist on array\\{\\}\\.$#',
     'count' => 2,
     'path' => __DIR__ . '/../../interface/main/calendar/modules/PostCalendar/pnadmin.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'claimStatusCode\' does not exist on array\\{canPost\\: true, alreadyPosted\\: false, pid\\: int, encounter\\: int, errors\\: list\\<string\\>, warnings\\: list\\<string\\>, serviceLines\\: list\\<array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\>, checkNumber\\: string, \\.\\.\\.\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'codekey\' does not exist on array\\{code\\: string, modifier\\: string, charged\\: float, paid\\: float, adjustments\\: float, matched\\: bool\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/PaymentAdvicePostingService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'encounter\' might not exist on array\\{crFound\\: true, crStatusName\\: mixed, crStatusId\\: int, crPayerAcceptance\\: mixed, crPayerAcceptanceStatusId\\: int, crEraClassification\\: mixed, crPayerPaidAmount\\: float, crObjectId\\: mixed, \\.\\.\\.\\}\\|array\\{pid\\: int, encounter\\: int, pcn\\: non\\-falsy\\-string, encounterDate\\: string, patientName\\: non\\-falsy\\-string, patientDob\\: string, payerName\\: mixed, payerNumber\\: mixed, \\.\\.\\.\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
+];
+$ignoreErrors[] = [
+    'message' => '#^Offset \'pid\' might not exist on array\\{crFound\\: true, crStatusName\\: mixed, crStatusId\\: int, crPayerAcceptance\\: mixed, crPayerAcceptanceStatusId\\: int, crEraClassification\\: mixed, crPayerPaidAmount\\: float, crObjectId\\: mixed, \\.\\.\\.\\}\\|array\\{pid\\: int, encounter\\: int, pcn\\: non\\-falsy\\-string, encounterDate\\: string, patientName\\: non\\-falsy\\-string, patientDob\\: string, payerName\\: mixed, payerNumber\\: mixed, \\.\\.\\.\\}\\.$#',
+    'count' => 1,
+    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php',
 ];
 $ignoreErrors[] = [
     'message' => '#^Offset \'facility\' does not exist on array\\{result_data_type\\: string, comments\\: "\\\\n", document_id\\?\\: mixed, date\\: mixed, result_code\\: mixed, result_text\\: mixed, units\\: mixed, range\\: mixed, \\.\\.\\.\\}\\|array\\{result_data_type\\: string, comments\\: non\\-falsy\\-string, result\\: mixed, result_code\\: mixed, result_text\\: mixed, date\\: mixed, units\\: mixed, range\\: mixed, \\.\\.\\.\\}\\.$#',
