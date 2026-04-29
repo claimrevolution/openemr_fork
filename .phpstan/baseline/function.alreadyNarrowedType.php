@@ -102,11 +102,6 @@ $ignoreErrors[] = [
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
 ];
 $ignoreErrors[] = [
-    'message' => '#^Call to function method_exists\\(\\) with \'OpenEMR\\\\\\\\Modules…\' and \'getCrypto\' will always evaluate to true\\.$#',
-    'count' => 1,
-    'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
-];
-$ignoreErrors[] = [
     'message' => '#^Call to function method_exists\\(\\) with OpenEMR\\\\Common\\\\Crypto\\\\CryptoGen and \'decryptStandard\' will always evaluate to true\\.$#',
     'count' => 1,
     'path' => __DIR__ . '/../../interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_shims.php',
