@@ -10,11 +10,11 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
-/** @var stdClass $eligibilityData Passed from eligibility.php */
+/** @var \stdClass $eligibilityData Passed from eligibility.php */
 
 use OpenEMR\Modules\ClaimRevConnector\PrintProperty;
 
-if (property_exists($eligibilityData, 'payerInfo')) {
+if (property_exists($eligibilityData, 'payerInfo') && is_object($eligibilityData->payerInfo)) {
     if (property_exists($eligibilityData->payerInfo, 'payerName')) {
         PrintProperty::displayProperty("Payer Name:", $eligibilityData->payerInfo->payerName);
     }
@@ -64,19 +64,19 @@ if (property_exists($eligibilityData, 'planCode')) {
 if (property_exists($eligibilityData, 'insurancePlan')) {
     PrintProperty::displayProperty("Insurance Plan Name:", $eligibilityData->insurancePlan);
 }
-if (property_exists($eligibilityData, 'policyDate')) {
+if (property_exists($eligibilityData, 'policyDate') && is_object($eligibilityData->policyDate)) {
     if (property_exists($eligibilityData->policyDate, 'startDate')) {
         PrintProperty::displayDateProperty("Policy Start Date:", $eligibilityData->policyDate->startDate);
     }
     if (property_exists($eligibilityData->policyDate, 'endDate')) {
         PrintProperty::displayDateProperty("Policy End Date:", $eligibilityData->policyDate->endDate);
     }
-}
-if (property_exists($eligibilityData->policyDate, 'addedDate')) {
-    PrintProperty::displayDateProperty("Date Added:", $eligibilityData->addedDate);
+    if (property_exists($eligibilityData->policyDate, 'addedDate')) {
+        PrintProperty::displayDateProperty("Date Added:", $eligibilityData->policyDate->addedDate);
+    }
 }
 
-if (property_exists($eligibilityData, 'cobDate')) {
+if (property_exists($eligibilityData, 'cobDate') && is_object($eligibilityData->cobDate)) {
     if (property_exists($eligibilityData->cobDate, 'startDate')) {
         PrintProperty::displayDateProperty("COB Start Date:", $eligibilityData->cobDate->startDate);
     }
@@ -118,9 +118,9 @@ if (property_exists($eligibilityData, 'tpaSubscriberId')) {
 if (property_exists($eligibilityData, 'ipaIdentifier')) {
     PrintProperty::displayProperty("IPA Identifier:", $eligibilityData->ipaIdentifier);
 }
-if (property_exists($eligibilityData, 'ipaDescription:')) {
+if (property_exists($eligibilityData, 'ipaDescription')) {
     PrintProperty::displayProperty("IPA Description:", $eligibilityData->ipaDescription);
 }
-if (property_exists($eligibilityData, 'planNetworkIdentificationNumber:')) {
+if (property_exists($eligibilityData, 'planNetworkIdentificationNumber')) {
     PrintProperty::displayProperty("Plan Network Identification Number:", $eligibilityData->planNetworkIdentificationNumber);
 }
