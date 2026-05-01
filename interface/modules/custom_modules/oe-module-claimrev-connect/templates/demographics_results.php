@@ -20,7 +20,7 @@ if ($demographicInfo === null) {
 /**
  * @return string The string-typed property value or '' if missing.
  */
-$str = static function (\stdClass $o, string $prop): string {
+$str = static function (object $o, string $prop): string {
     if (!property_exists($o, $prop)) {
         return '';
     }

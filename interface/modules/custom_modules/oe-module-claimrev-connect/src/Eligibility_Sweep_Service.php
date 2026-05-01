@@ -103,7 +103,7 @@ function start_eligibility_sweep(): void
                 'endDate' => $endDate,
             ]);
         }
-    } catch (\Exception $e) {
+    } catch (\RuntimeException | \LogicException $e) {
         $logger->error('ClaimRev Eligibility Sweep error', ['exception' => $e]);
     }
 }
