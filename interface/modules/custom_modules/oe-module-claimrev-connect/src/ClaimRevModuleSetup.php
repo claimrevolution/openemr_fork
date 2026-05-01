@@ -81,27 +81,27 @@ class ClaimRevModuleSetup
         QueryUtils::sqlStatementThrowException($sql, [$nextId, $x12Name, $idNumber, $senderId, $senderId]);
     }
 
-    public static function couldSftpServiceCauseIssues()
+    public static function couldSftpServiceCauseIssues(): bool
     {
-        $sftp = ClaimRevModuleSetup::getServiceRecord("X12_SFTP");
-        if ($sftp != null) {
-            if ($sftp["active"] == 1) {
-                if ($sftp["require_once"] == "/library/billing_sftp_service.php") {
-                    return true;
-                }
-            }
+        $sftp = self::getServiceRecord("X12_SFTP");
+        if ($sftp === null) {
+            return false;
         }
-        return false;
+        $active = TypeCoerce::asInt($sftp['active'] ?? 0);
+        $requireOnce = TypeCoerce::asString($sftp['require_once'] ?? '');
+        return $active === 1 && $requireOnce === '/library/billing_sftp_service.php';
     }
-    public static function deactivateSftpService()
+
+    public static function deactivateSftpService(): void
     {
         $require_once = "/interface/modules/custom_modules/oe-module-claimrev-connect/src/SFTP_Mock_Service.php";
-        ClaimRevModuleSetup::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
+        self::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
     }
-    public static function reactivateSftpService()
+
+    public static function reactivateSftpService(): void
     {
         $require_once = "/library/billing_sftp_service.php";
-        ClaimRevModuleSetup::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
+        self::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
     }
     public static function updateBackGroundServiceSetRequireOnce(string $name, string $requireOnce): void
     {
