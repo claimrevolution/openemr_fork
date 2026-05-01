@@ -22,7 +22,7 @@ use OpenEMR\Modules\ClaimRevConnector\ClaimRevApi;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
 use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
 
-require_once($GLOBALS['fileroot'] . "/library/pnotes.inc.php");
+require_once(OEGlobalsBag::getInstance()->getString('fileroot') . "/library/pnotes.inc.php");
 
 /**
  * Convert HTML to readable plain text, preserving paragraph breaks,
@@ -62,8 +62,8 @@ function htmlToPlainText(string $html): string
 
 function start_claimrev_notifications(): void
 {
-    $enabled = $GLOBALS[GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS] ?? '1';
-    if (!$enabled) {
+    $enabledRaw = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS) ?? '1';
+    if ($enabledRaw === false || $enabledRaw === '' || $enabledRaw === '0' || $enabledRaw === 0) {
         return;
     }
 
