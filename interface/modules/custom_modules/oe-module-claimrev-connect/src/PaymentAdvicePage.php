@@ -18,29 +18,29 @@ use OpenEMR\Common\Database\QueryUtils;
 
 /**
  * @phpstan-type PaymentInfoShape array{
- *     patientFirstName?: string,
- *     patientLastName?: string,
- *     patientControlNumber?: string,
- *     claimStatusCode?: string,
- *     totalClaimAmount?: float,
- *     claimPaymentAmount?: float,
- *     patientResponsibility?: float,
- *     isWorked?: bool
+ *     patientFirstName: string,
+ *     patientLastName: string,
+ *     patientControlNumber: string,
+ *     claimStatusCode: string,
+ *     totalClaimAmount: float,
+ *     claimPaymentAmount: float,
+ *     patientResponsibility: float,
+ *     isWorked: bool
  * }
  * @phpstan-type CheckInfoShape array{
- *     checkNumber?: string,
- *     checkDate?: string,
- *     paymentMethodCode?: string,
- *     paymentAmount?: float
+ *     checkNumber: string,
+ *     checkDate: string,
+ *     paymentMethodCode: string,
+ *     paymentAmount: float
  * }
  * @phpstan-type PaymentAdviceShape array{
- *     paymentAdviceId?: string,
- *     receivedDate?: string,
- *     payerName?: string,
- *     payerNumber?: string,
- *     eraClassification?: string,
- *     paymentInfo?: PaymentInfoShape,
- *     checkInformation?: CheckInfoShape
+ *     paymentAdviceId: string,
+ *     receivedDate: string,
+ *     payerName: string,
+ *     payerNumber: string,
+ *     eraClassification: string,
+ *     paymentInfo: PaymentInfoShape,
+ *     checkInformation: CheckInfoShape
  * }
  */
 class PaymentAdvicePage
@@ -84,8 +84,7 @@ class PaymentAdvicePage
         if (is_array($rawResults)) {
             foreach ($rawResults as $entry) {
                 if (is_array($entry)) {
-                    /** @var PaymentAdviceShape $entry */
-                    $results[] = $entry;
+                    $results[] = self::normalizeAdvice($entry);
                 }
             }
         }
@@ -93,6 +92,46 @@ class PaymentAdvicePage
         return [
             'results' => $results,
             'totalRecords' => TypeCoerce::asInt($raw['totalRecords'] ?? 0),
+        ];
+    }
+
+    /**
+     * Coerce a raw API response entry into a fully-populated PaymentAdviceShape
+     * with all keys present. Keeps a single shape across the producer and the
+     * mock service so consumers don't have to deal with optional offsets.
+     *
+     * @param array<int|string, mixed> $entry
+     * @return PaymentAdviceShape
+     */
+    public static function normalizeAdvice(array $entry): array
+    {
+        $piRaw = $entry['paymentInfo'] ?? null;
+        $piArr = is_array($piRaw) ? $piRaw : [];
+        $ciRaw = $entry['checkInformation'] ?? null;
+        $ciArr = is_array($ciRaw) ? $ciRaw : [];
+
+        return [
+            'paymentAdviceId' => TypeCoerce::asString($entry['paymentAdviceId'] ?? ''),
+            'receivedDate' => TypeCoerce::asString($entry['receivedDate'] ?? ''),
+            'payerName' => TypeCoerce::asString($entry['payerName'] ?? ''),
+            'payerNumber' => TypeCoerce::asString($entry['payerNumber'] ?? ''),
+            'eraClassification' => TypeCoerce::asString($entry['eraClassification'] ?? ''),
+            'paymentInfo' => [
+                'patientFirstName' => TypeCoerce::asString($piArr['patientFirstName'] ?? ''),
+                'patientLastName' => TypeCoerce::asString($piArr['patientLastName'] ?? ''),
+                'patientControlNumber' => TypeCoerce::asString($piArr['patientControlNumber'] ?? ''),
+                'claimStatusCode' => TypeCoerce::asString($piArr['claimStatusCode'] ?? ''),
+                'totalClaimAmount' => TypeCoerce::asFloat($piArr['totalClaimAmount'] ?? 0),
+                'claimPaymentAmount' => TypeCoerce::asFloat($piArr['claimPaymentAmount'] ?? 0),
+                'patientResponsibility' => TypeCoerce::asFloat($piArr['patientResponsibility'] ?? 0),
+                'isWorked' => TypeCoerce::asBool($piArr['isWorked'] ?? false),
+            ],
+            'checkInformation' => [
+                'checkNumber' => TypeCoerce::asString($ciArr['checkNumber'] ?? ''),
+                'checkDate' => TypeCoerce::asString($ciArr['checkDate'] ?? ''),
+                'paymentMethodCode' => TypeCoerce::asString($ciArr['paymentMethodCode'] ?? ''),
+                'paymentAmount' => TypeCoerce::asFloat($ciArr['paymentAmount'] ?? 0),
+            ],
         ];
     }
 

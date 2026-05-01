@@ -20,6 +20,9 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-import-type PaymentAdviceShape from PaymentAdvicePage
+ */
 class PaymentAdviceMockService
 {
     /**
@@ -29,7 +32,7 @@ class PaymentAdviceMockService
      * fake ClaimPaymentAggregation responses that mirror the ClaimRev API format.
      *
      * @param array{patientFirstName?: string, patientLastName?: string, patientControlNumber?: string, receivedDateStart?: string, receivedDateEnd?: string, pageIndex?: int} $filters
-     * @return array{results: list<\OpenEMR\Modules\ClaimRevConnector\PaymentAdviceShape>, totalRecords: int}
+     * @return array{results: list<PaymentAdviceShape>, totalRecords: int}
      */
     public static function generateMockResults(array $filters): array
     {
