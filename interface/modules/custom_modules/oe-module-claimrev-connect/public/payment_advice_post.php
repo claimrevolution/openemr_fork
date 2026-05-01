@@ -17,6 +17,7 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePostingService;
 
 header('Content-Type: application/json');
@@ -27,18 +28,17 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'payment_advice')) {
+if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'payment_advice')) {
     http_response_code(403);
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
 
-$mode = $_POST['mode'] ?? 'single';
-$skipMarkWorked = !empty($_POST['testMode']);
+$mode = ModuleInput::postString('mode', 'single');
+$skipMarkWorked = ModuleInput::postExists('testMode');
 
 if ($mode === 'batch') {
-    $paymentDataListJsonRaw = $_POST['paymentDataList'] ?? '';
-    $paymentDataListJson = is_string($paymentDataListJsonRaw) ? $paymentDataListJsonRaw : '';
+    $paymentDataListJson = ModuleInput::postString('paymentDataList');
     $paymentDataList = json_decode($paymentDataListJson, true);
 
     if (!is_array($paymentDataList)) {
@@ -50,8 +50,7 @@ if ($mode === 'batch') {
     $result = PaymentAdvicePostingService::batchPost($paymentDataList, $skipMarkWorked);
     echo json_encode($result);
 } else {
-    $paymentDataJsonRaw = $_POST['paymentData'] ?? '';
-    $paymentDataJson = is_string($paymentDataJsonRaw) ? $paymentDataJsonRaw : '';
+    $paymentDataJson = ModuleInput::postString('paymentData');
     $paymentData = json_decode($paymentDataJson, true);
 
     if (!is_array($paymentData)) {
@@ -60,7 +59,7 @@ if ($mode === 'batch') {
         exit;
     }
 
-    $approved = !empty($_POST['approved']);
+    $approved = ModuleInput::postExists('approved');
     $result = PaymentAdvicePostingService::post($paymentData, $skipMarkWorked, $approved);
     echo json_encode($result);
 }

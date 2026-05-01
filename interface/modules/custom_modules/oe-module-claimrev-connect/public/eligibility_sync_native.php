@@ -15,6 +15,7 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityTransfer;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -24,17 +25,17 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-$pid = $_POST['pid'] ?? '';
-$payerResponsibility = $_POST['payer_responsibility'] ?? '';
+$pid = ModuleInput::postString('pid');
+$payerResponsibility = ModuleInput::postString('payer_responsibility');
 
-if (empty($pid) || empty($payerResponsibility)) {
+if ($pid === '' || $payerResponsibility === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Missing pid or payer_responsibility']);
     exit;
 }
 
 $record = EligibilityData::getRaw271($pid, $payerResponsibility);
-if ($record === null || empty($record['raw271'])) {
+if ($record === null || ($record['raw271'] ?? '') === '') {
     echo json_encode(['success' => false, 'message' => 'No raw 271 data available for this eligibility check']);
     exit;
 }
