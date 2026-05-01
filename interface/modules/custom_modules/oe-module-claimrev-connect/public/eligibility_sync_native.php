@@ -43,6 +43,6 @@ if ($record === null || ($record['raw271'] ?? '') === '') {
 try {
     EligibilityTransfer::populateNativeEligibility($record['raw271'], $record['id']);
     echo json_encode(['success' => true, 'message' => 'Native eligibility updated']);
-} catch (\Throwable) {
+} catch (\Exception) {
     echo json_encode(['success' => false, 'message' => 'Failed to parse 271 data']);
 }

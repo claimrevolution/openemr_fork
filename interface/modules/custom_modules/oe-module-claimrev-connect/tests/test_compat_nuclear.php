@@ -89,7 +89,7 @@ $ignoreAuth = 1;
 try {
     require_once $openemrRoot . '/interface/globals.php';
     echo "  globals.php loaded OK\n";
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     echo "  FAILED: " . $e->getMessage() . "\n";
     echo "  at " . $e->getFile() . ":" . $e->getLine() . "\n";
     exit(1);
@@ -128,7 +128,7 @@ test('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\
 try {
     $gc = new \OpenEMR\Modules\ClaimRevConnector\GlobalConfig($GLOBALS);
     test('GlobalConfig instantiation', true, 'configured=' . ($gc->isConfigured() ? 'yes' : 'no'));
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     test('GlobalConfig instantiation', false, $e->getMessage());
 }
 
@@ -136,7 +136,7 @@ try {
 try {
     $bootstrap = new \OpenEMR\Modules\ClaimRevConnector\Bootstrap($GLOBALS['kernel']->getEventDispatcher());
     test('Bootstrap instantiation', true, 'v' . \OpenEMR\Modules\ClaimRevConnector\Bootstrap::MODULE_VERSION);
-} catch (\Throwable $e) {
+} catch (\Exception $e) {
     test('Bootstrap instantiation', false, $e->getMessage());
 }
 

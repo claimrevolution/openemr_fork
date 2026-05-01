@@ -259,7 +259,7 @@ $searchFilters = [
                 $pagedResult = ClaimsPage::searchClaims($searchFilters);
                 $datas = $pagedResult['results'];
                 $totalRecords = $pagedResult['totalRecords'];
-            } catch (\Throwable $t) {
+            } catch (\Exception $t) {
                 echo "<div class='alert alert-danger mt-3'>" . text($t->getMessage()) . "</div>";
             }
         }
