@@ -20,6 +20,7 @@ if (!defined('OPENEMR_GLOBALS_LOADED')) {
 }
 
 use OpenEMR\Billing\EDI270;
+use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Services\BaseService;
 
@@ -138,7 +139,7 @@ class EligibilityTransfer extends BaseService
         EligibilityData::removeEligibilityCheck($pid, $formattedPr);
 
         $requestObjects = EligibilityObjectCreator::buildObject($pid, $payerResponsibility, $eventDate, $facilityId, $providerId, $productsToRun);
-        if (empty($requestObjects)) {
+        if ($requestObjects === []) {
             return ['success' => false, 'message' => 'No insurance data found for patient'];
         }
 
@@ -174,8 +175,8 @@ class EligibilityTransfer extends BaseService
 
         // If retryLater, poll for results (like the portal does for coverage discovery)
         if ($result['retryLater'] ?? false) {
-            $claimRevResultId = $result['claimRevResultId'] ?? '';
-            if (!empty($claimRevResultId)) {
+            $claimRevResultId = TypeCoerce::asString($result['claimRevResultId'] ?? '');
+            if ($claimRevResultId !== '') {
                 $result = self::pollForResults($api, $claimRevResultId, $result);
             }
         }
@@ -188,9 +189,10 @@ class EligibilityTransfer extends BaseService
             $existingResultIds = $existingResponse['_productResultIds'] ?? [];
         }
         // Map each product we just ran to the new claimRevResultId
+        $newResultIdStr = TypeCoerce::asString($newResultId);
         foreach ($productsToRun as $productId) {
-            if (!empty($newResultId)) {
-                $existingResultIds[$productId] = $newResultId;
+            if ($newResultIdStr !== '') {
+                $existingResultIds[$productId] = $newResultIdStr;
             }
         }
         $result['_productResultIds'] = $existingResultIds;
@@ -211,7 +213,7 @@ class EligibilityTransfer extends BaseService
             if (is_array($individual)) {
                 // Try eligibility first, then coverage discovery
                 $eligData = $individual['eligibility'] ?? $individual['coverageDiscovery'] ?? null;
-                if (is_array($eligData) && !empty($eligData)) {
+                if (is_array($eligData) && $eligData !== []) {
                     $firstElig = $eligData[array_key_first($eligData)] ?? null;
                     if (is_array($firstElig)) {
                         $coverageStatus = $firstElig['status'] ?? 'Complete';
@@ -367,13 +369,13 @@ class EligibilityTransfer extends BaseService
         $raw271 = null;
 
         // Process eligibility results (Product 1) if present
-        if (isset($individual['eligibility']) && is_array($individual['eligibility']) && !empty($individual['eligibility'])) {
+        if (isset($individual['eligibility']) && is_array($individual['eligibility']) && $individual['eligibility'] !== []) {
             /** @var array<int|string, array<string, mixed>> */
             $eligibilities = $individual['eligibility'];
             $eligibility = $eligibilities[array_key_first($eligibilities)] ?? null;
             $eligibility_json = json_encode($eligibility, JSON_UNESCAPED_SLASHES);
 
-            if (is_array($eligibility) && isset($eligibility['raw271']) && !empty($eligibility['raw271'])) {
+            if (is_array($eligibility) && isset($eligibility['raw271']) && $eligibility['raw271'] !== '') {
                 $raw271 = $eligibility['raw271'];
                 $siteDir = OEGlobalsBag::getInstance()->get('OE_SITE_DIR');
                 $reportFolder = 'f271';
@@ -410,17 +412,17 @@ class EligibilityTransfer extends BaseService
      * @param string $raw271 Raw X12 271 EDI content
      * @param int|string $eid ClaimRev eligibility record ID
      */
-    public static function populateNativeEligibility(string $raw271, $eid): void
+    public static function populateNativeEligibility(string $raw271, int|string $eid): void
     {
         // Look up the PID for this eligibility record
-        $row = sqlQuery(
+        $row = QueryUtils::querySingleRow(
             'SELECT pid FROM mod_claimrev_eligibility WHERE id = ?',
             [$eid]
         );
-        if ($row === false || empty($row['pid'])) {
+        $pid = TypeCoerce::asInt($row['pid'] ?? 0);
+        if ($pid === 0) {
             return;
         }
-        $pid = (int) $row['pid'];
 
         // Inject a REF*EJ*{pid} segment so the native 271 parser can
         // reliably identify the patient.  Insert it right after the first

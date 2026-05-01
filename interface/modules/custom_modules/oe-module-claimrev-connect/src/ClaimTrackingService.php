@@ -106,16 +106,17 @@ class ClaimTrackingService
         int $payerType,
         array $crData
     ): int {
-        $objectId = $crData['objectId'] ?? null;
-        $statusId = isset($crData['statusId']) ? (int) $crData['statusId'] : null;
-        $statusName = $crData['statusName'] ?? null;
-        $payerAccId = isset($crData['payerAcceptanceStatusId']) ? (int) $crData['payerAcceptanceStatusId'] : null;
-        $payerAccName = $crData['payerAcceptanceStatusName'] ?? null;
-        $eraCls = $crData['eraClassification'] ?? null;
-        $paidAmt = isset($crData['payerPaidAmount']) ? (float) $crData['payerPaidAmount'] : null;
-        $isWorked = !empty($crData['isWorked']) ? 1 : 0;
+        $objectId = TypeCoerce::asString($crData['objectId'] ?? '');
+        $statusId = TypeCoerce::asNullableInt($crData['statusId'] ?? null);
+        $statusName = TypeCoerce::asString($crData['statusName'] ?? '');
+        $payerAccId = TypeCoerce::asNullableInt($crData['payerAcceptanceStatusId'] ?? null);
+        $payerAccName = TypeCoerce::asString($crData['payerAcceptanceStatusName'] ?? '');
+        $eraCls = TypeCoerce::asString($crData['eraClassification'] ?? '');
+        $paidAmtRaw = $crData['payerPaidAmount'] ?? null;
+        $paidAmt = $paidAmtRaw !== null ? TypeCoerce::asFloat($paidAmtRaw) : null;
+        $isWorked = TypeCoerce::asBool($crData['isWorked'] ?? false) ? 1 : 0;
 
-        sqlStatement(
+        QueryUtils::sqlStatementThrowException(
             "INSERT INTO mod_claimrev_claims " .
             "(pid, encounter, payer_type, claimrev_object_id, claimrev_status_id, claimrev_status_name, " .
             " payer_acceptance_status_id, payer_acceptance_status_name, era_classification, " .
@@ -135,12 +136,12 @@ class ClaimTrackingService
              $payerAccId, $payerAccName, $eraCls, $paidAmt, $isWorked]
         );
 
-        $row = sqlQuery(
+        $row = QueryUtils::querySingleRow(
             "SELECT id FROM mod_claimrev_claims WHERE pid = ? AND encounter = ? AND payer_type = ?",
             [$pid, $encounter, $payerType]
         );
 
-        return (int) ($row['id'] ?? 0);
+        return TypeCoerce::asInt($row['id'] ?? 0);
     }
 
     /**
@@ -152,7 +153,7 @@ class ClaimTrackingService
         int $payerType,
         int $arSessionId
     ): void {
-        sqlStatement(
+        QueryUtils::sqlStatementThrowException(
             "INSERT INTO mod_claimrev_claims (pid, encounter, payer_type, ar_session_id) " .
             "VALUES (?, ?, ?, ?) " .
             "ON DUPLICATE KEY UPDATE ar_session_id = VALUES(ar_session_id)",
@@ -178,10 +179,10 @@ class ClaimTrackingService
         ?string $createdBy = null
     ): int {
         if ($createdBy === null) {
-            $createdBy = $_SESSION['authUser'] ?? 'system';
+            $createdBy = TypeCoerce::asString($_SESSION['authUser'] ?? 'system', 'system');
         }
 
-        sqlStatement(
+        QueryUtils::sqlStatementThrowException(
             "INSERT INTO mod_claimrev_claim_events " .
             "(pid, encounter, payer_type, event_type, source, status_code, status_description, " .
             " detail_text, amount, created_by) " .
@@ -190,7 +191,8 @@ class ClaimTrackingService
              $statusCode, $statusDescription, $detailText, $amount, $createdBy]
         );
 
-        return (int) sqlQuery("SELECT LAST_INSERT_ID() AS id")['id'];
+        $row = QueryUtils::querySingleRow("SELECT LAST_INSERT_ID() AS id");
+        return TypeCoerce::asInt($row['id'] ?? 0);
     }
 
     /**
@@ -200,12 +202,12 @@ class ClaimTrackingService
      */
     public static function getClaimRecord(int $pid, int $encounter, int $payerType): ?array
     {
-        $row = sqlQuery(
+        $row = QueryUtils::querySingleRow(
             "SELECT * FROM mod_claimrev_claims WHERE pid = ? AND encounter = ? AND payer_type = ?",
             [$pid, $encounter, $payerType]
         );
 
-        return !empty($row) ? $row : null;
+        return $row !== false && $row !== [] ? $row : null;
     }
 
     /**
@@ -469,7 +471,7 @@ class ClaimTrackingService
             return ['success' => false, 'message' => 'Failed to connect to ClaimRev', 'statusData' => []];
         }
 
-        if (empty($claims)) {
+        if ($claims === []) {
             self::logEvent(
                 $pid,
                 $encounter,
@@ -480,7 +482,7 @@ class ClaimTrackingService
             );
 
             // Update check date even if not found
-            sqlStatement(
+            QueryUtils::sqlStatementThrowException(
                 "UPDATE mod_claimrev_claims SET last_status_check_date = NOW() WHERE pid = ? AND encounter = ? AND payer_type = ?",
                 [$pid, $encounter, $payerType]
             );
@@ -489,6 +491,9 @@ class ClaimTrackingService
         }
 
         $crClaim = $claims[0];
+        if (!is_array($crClaim)) {
+            return ['success' => false, 'message' => 'Invalid claim data', 'statusData' => []];
+        }
 
         // Get old state for comparison
         $oldRecord = self::getClaimRecord($pid, $encounter, $payerType);
@@ -497,32 +502,32 @@ class ClaimTrackingService
         self::upsertClaimRecord($pid, $encounter, $payerType, $crClaim);
 
         // Update check date
-        sqlStatement(
+        QueryUtils::sqlStatementThrowException(
             "UPDATE mod_claimrev_claims SET last_status_check_date = NOW() WHERE pid = ? AND encounter = ? AND payer_type = ?",
             [$pid, $encounter, $payerType]
         );
 
         // Build change description
         $changes = [];
-        $newStatusName = $crClaim['statusName'] ?? '';
-        $oldStatusName = $oldRecord['claimrev_status_name'] ?? '';
+        $newStatusName = TypeCoerce::asString($crClaim['statusName'] ?? '');
+        $oldStatusName = TypeCoerce::asString($oldRecord['claimrev_status_name'] ?? '');
         if ($newStatusName !== $oldStatusName && $newStatusName !== '') {
             $changes[] = "Status: {$oldStatusName} -> {$newStatusName}";
         }
 
-        $newPayerAcc = $crClaim['payerAcceptanceStatusName'] ?? '';
-        $oldPayerAcc = $oldRecord['payer_acceptance_status_name'] ?? '';
+        $newPayerAcc = TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? '');
+        $oldPayerAcc = TypeCoerce::asString($oldRecord['payer_acceptance_status_name'] ?? '');
         if ($newPayerAcc !== $oldPayerAcc && $newPayerAcc !== '') {
             $changes[] = "Payer: {$oldPayerAcc} -> {$newPayerAcc}";
         }
 
-        $newEra = $crClaim['eraClassification'] ?? '';
-        $oldEra = $oldRecord['era_classification'] ?? '';
+        $newEra = TypeCoerce::asString($crClaim['eraClassification'] ?? '');
+        $oldEra = TypeCoerce::asString($oldRecord['era_classification'] ?? '');
         if ($newEra !== $oldEra && $newEra !== '') {
             $changes[] = "ERA: {$oldEra} -> {$newEra}";
         }
 
-        $detail = !empty($changes) ? implode('; ', $changes) : 'No changes detected';
+        $detail = $changes !== [] ? implode('; ', $changes) : 'No changes detected';
 
         self::logEvent(
             $pid,
@@ -530,14 +535,14 @@ class ClaimTrackingService
             $payerType,
             self::EVENT_STATUS_CHECK_276,
             self::SOURCE_CLAIMREV,
-            statusCode: (string) ($crClaim['statusId'] ?? ''),
+            statusCode: TypeCoerce::asString($crClaim['statusId'] ?? ''),
             statusDescription: $newStatusName,
             detailText: $detail
         );
 
         return [
             'success' => true,
-            'message' => !empty($changes) ? 'Status updated: ' . implode('; ', $changes) : 'No changes',
+            'message' => $changes !== [] ? 'Status updated: ' . implode('; ', $changes) : 'No changes',
             'statusData' => $crClaim,
         ];
     }
@@ -550,7 +555,7 @@ class ClaimTrackingService
      */
     public static function syncFromClaimRev(array $crClaimData): array
     {
-        $pcn = $crClaimData['patientControlNumber'] ?? '';
+        $pcn = TypeCoerce::asString($crClaimData['patientControlNumber'] ?? '');
         $parsed = self::parsePcn($pcn);
         if ($parsed === null) {
             return ['success' => false, 'message' => 'Invalid patient control number: ' . $pcn];
@@ -568,8 +573,8 @@ class ClaimTrackingService
             $payerType,
             self::EVENT_CLAIMREV_SYNC,
             self::SOURCE_CLAIMREV,
-            statusCode: (string) ($crClaimData['statusId'] ?? ''),
-            statusDescription: $crClaimData['statusName'] ?? '',
+            statusCode: TypeCoerce::asString($crClaimData['statusId'] ?? ''),
+            statusDescription: TypeCoerce::asString($crClaimData['statusName'] ?? ''),
             detailText: 'Synced from ClaimRev'
         );
 
@@ -586,7 +591,7 @@ class ClaimTrackingService
     {
         $summary = ['synced' => 0, 'errors' => 0, 'notFound' => 0, 'results' => []];
 
-        if (empty($pcns)) {
+        if ($pcns === []) {
             return $summary;
         }
 
@@ -598,7 +603,7 @@ class ClaimTrackingService
             $model->pagingSearch->pageIndex = 0;
 
             $result = $api->searchClaims($model);
-            $crClaims = $result['results'] ?? [];
+            $crClaims = is_array($result['results'] ?? null) ? $result['results'] : [];
         } catch (ClaimRevException) {
             $summary['errors'] = count($pcns);
             foreach ($pcns as $pcn) {
@@ -610,7 +615,10 @@ class ClaimTrackingService
         // Index by PCN
         $crMap = [];
         foreach ($crClaims as $cr) {
-            $crPcn = $cr['patientControlNumber'] ?? '';
+            if (!is_array($cr)) {
+                continue;
+            }
+            $crPcn = TypeCoerce::asString($cr['patientControlNumber'] ?? '');
             if ($crPcn !== '') {
                 $crMap[$crPcn] = $cr;
             }
