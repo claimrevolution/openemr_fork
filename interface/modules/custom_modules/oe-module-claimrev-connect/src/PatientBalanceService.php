@@ -208,15 +208,16 @@ class PatientBalanceService
             $totalBalance += $bal;
 
             $details = [];
-            if (!empty($cdata['dtl'])) {
-                foreach ($cdata['dtl'] as $key => $dtl) {
+            $dtlList = $cdata['dtl'] ?? null;
+            if (is_array($dtlList) && $dtlList !== []) {
+                foreach ($dtlList as $key => $dtl) {
                     $details[] = [
                         'date' => trim(substr((string) $key, 0, 10)),
-                        'payment' => (float) ($dtl['pmt'] ?? 0),
-                        'adjustment' => (float) ($dtl['chg'] ?? 0),
-                        'reason' => $dtl['rsn'] ?? '',
-                        'source' => $dtl['src'] ?? '',
-                        'payerLevel' => (int) ($dtl['plv'] ?? 0),
+                        'payment' => TypeCoerce::asFloat($dtl['pmt'] ?? 0),
+                        'adjustment' => TypeCoerce::asFloat($dtl['chg'] ?? 0),
+                        'reason' => TypeCoerce::asString($dtl['rsn'] ?? ''),
+                        'source' => TypeCoerce::asString($dtl['src'] ?? ''),
+                        'payerLevel' => TypeCoerce::asInt($dtl['plv'] ?? 0),
                     ];
                 }
             }

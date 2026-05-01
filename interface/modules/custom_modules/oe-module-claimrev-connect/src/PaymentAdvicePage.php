@@ -12,6 +12,8 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
+use OpenEMR\Common\Database\QueryUtils;
+
 /**
  * @phpstan-type PaymentInfoShape array{
  *     patientFirstName?: string,
@@ -117,12 +119,12 @@ class PaymentAdvicePage
             return null;
         }
 
-        $row = sqlQuery(
+        $row = QueryUtils::querySingleRow(
             "SELECT status, bill_process FROM claims WHERE patient_id = ? AND encounter_id = ? ORDER BY version DESC LIMIT 1",
             [$pid, $encounter]
         );
 
-        if (empty($row)) {
+        if ($row === [] || $row === false) {
             return [
                 'pid' => $pid,
                 'encounter' => $encounter,
@@ -131,7 +133,7 @@ class PaymentAdvicePage
             ];
         }
 
-        $status = (int) $row['status'];
+        $status = TypeCoerce::asInt($row['status'] ?? 0);
         $labels = [
             0 => 'Not Billed',
             1 => 'Unbilled',

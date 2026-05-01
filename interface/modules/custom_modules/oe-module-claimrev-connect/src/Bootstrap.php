@@ -20,6 +20,7 @@ namespace OpenEMR\Modules\ClaimRevConnector;
  * Note the below use statements are importing classes from the OpenEMR core codebase
  */
 use OpenEMR\BC\ServiceContainer;
+use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Common\Twig\TwigContainer;
 use OpenEMR\Core\Kernel;
 use OpenEMR\Core\OEGlobalsBag;
@@ -100,14 +101,18 @@ class Bootstrap
             // Without this, users must manually check "Automatically SFTP Claims To X12 Partner"
             // in Globals for ClaimRev to work.
             if ($this->globalsConfig->getGlobalSetting(GlobalConfig::CONFIG_AUTO_SEND_CLAIM_FILES)) {
-                $GLOBALS['auto_sftp_claims_to_x12_partner'] = true;
+                OEGlobalsBag::getInstance()->set('auto_sftp_claims_to_x12_partner', true);
                 // Persist to the database and activate the X12_SFTP background service
                 // so claims flow through the x12_remote_tracker table.
-                $row = sqlQuery("SELECT gl_value FROM globals WHERE gl_name = 'auto_sftp_claims_to_x12_partner'");
-                if (empty($row['gl_value'])) {
-                    sqlStatement("UPDATE globals SET gl_value = '1' WHERE gl_name = 'auto_sftp_claims_to_x12_partner'");
+                $glValue = QueryUtils::fetchSingleValue(
+                    "SELECT gl_value FROM globals WHERE gl_name = 'auto_sftp_claims_to_x12_partner'",
+                    'gl_value',
+                    []
+                );
+                if ($glValue === null || (string) $glValue === '' || (string) $glValue === '0') {
+                    QueryUtils::sqlStatementThrowException("UPDATE globals SET gl_value = '1' WHERE gl_name = 'auto_sftp_claims_to_x12_partner'");
                     // Activate the X12_SFTP background service (same as what edit_globals.php does)
-                    sqlStatement("UPDATE background_services SET active = 1, execute_interval = 1 WHERE name = 'X12_SFTP'");
+                    QueryUtils::sqlStatementThrowException("UPDATE background_services SET active = 1, execute_interval = 1 WHERE name = 'X12_SFTP'");
                 }
             }
 
