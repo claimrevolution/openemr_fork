@@ -18,7 +18,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use OpenEMR\Core\OEGlobalsBag;
-use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
 use Psr\Http\Message\ResponseInterface;
 use SensitiveParameter;
 
@@ -62,7 +61,7 @@ readonly class ClaimRevApi
      */
     public static function makeFromGlobals(): self
     {
-        $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+        $bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
         $globalsConfig = $bootstrap->getGlobalConfig();
 
         $authority = $globalsConfig->getClientAuthority();
@@ -190,7 +189,7 @@ readonly class ClaimRevApi
     public static function getSupportInfo(): array|false
     {
         try {
-            $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+            $bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
             $globalsConfig = $bootstrap->getGlobalConfig();
             $apiServer = $globalsConfig->getApiServer();
         } catch (\RuntimeException | \LogicException) {

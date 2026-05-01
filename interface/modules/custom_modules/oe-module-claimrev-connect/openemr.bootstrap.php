@@ -12,9 +12,6 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
-// Load compatibility shims for OpenEMR 7.x (no-op on 8.x)
-require_once __DIR__ . '/src/Compat/compat.php';
-
 /**
  * @var \OpenEMR\Core\ModulesClassLoader $classLoader
  */
