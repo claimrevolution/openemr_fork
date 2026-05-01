@@ -25,18 +25,15 @@ class ClaimRevModuleSetup
     {
     }
 
-    public static function doesPartnerExists()
+    public static function doesPartnerExists(): bool
     {
         $x12Name = OEGlobalsBag::getInstance()->get('oe_claimrev_x12_partner_name');
-        $sql = "SELECT * FROM x12_partners WHERE name = ?";
-        $sqlarr = [$x12Name];
-        $result = sqlStatementNoLog($sql, $sqlarr);
-        $rowCount = sqlNumRows($result);
-
-        if ($rowCount > 0) {
-            return true;
-        }
-        return false;
+        $count = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
+            "SELECT COUNT(*) AS cnt FROM x12_partners WHERE name = ?",
+            'cnt',
+            [$x12Name]
+        ));
+        return $count > 0;
     }
     /**
      * Create the X12 partner record for ClaimRev.
@@ -57,8 +54,11 @@ class ClaimRevModuleSetup
         }
 
         // Get the next available ID since x12_partners.id is not auto-increment
-        $row = sqlQuery("SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM x12_partners");
-        $nextId = $row['next_id'];
+        $nextId = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
+            "SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM x12_partners",
+            'next_id',
+            []
+        ));
 
         $sql = "INSERT INTO x12_partners (
             id, name, id_number,
@@ -78,7 +78,7 @@ class ClaimRevModuleSetup
             '', 'A'
         )";
 
-        sqlStatement($sql, [$nextId, $x12Name, $idNumber, $senderId, $senderId]);
+        QueryUtils::sqlStatementThrowException($sql, [$nextId, $x12Name, $idNumber, $senderId, $senderId]);
     }
 
     public static function couldSftpServiceCauseIssues()
@@ -103,33 +103,35 @@ class ClaimRevModuleSetup
         $require_once = "/library/billing_sftp_service.php";
         ClaimRevModuleSetup::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
     }
-    public static function updateBackGroundServiceSetRequireOnce($name, $requireOnce)
+    public static function updateBackGroundServiceSetRequireOnce(string $name, string $requireOnce): void
     {
-        $sql = "UPDATE background_services SET require_once = ? WHERE name = ?";
-        $sqlarr = [$requireOnce,$name];
-        sqlStatement($sql, $sqlarr);
+        QueryUtils::sqlStatementThrowException(
+            "UPDATE background_services SET require_once = ? WHERE name = ?",
+            [$requireOnce, $name]
+        );
     }
-    public static function getServiceRecord($name)
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function getServiceRecord(string $name): ?array
     {
-        $sql = "SELECT * FROM background_services WHERE name = ? LIMIT 1";
-        $sqlarr = [$name];
-        $result = sqlStatement($sql, $sqlarr);
-        if (sqlNumRows($result) == 1) {
-            foreach ($result as $row) {
-                return $row;
-            }
-        }
-        return null;
+        $row = QueryUtils::querySingleRow(
+            "SELECT * FROM background_services WHERE name = ? LIMIT 1",
+            [$name]
+        );
+        return $row !== false && $row !== [] ? $row : null;
     }
     /**
      * Reset any ClaimRev background services that are stuck in running state.
      * If running = 1 and next_run is more than 10 minutes in the past,
      * the service is stuck (PHP crash, OOM kill, etc.) and needs to be freed.
      */
-    public static function resetStuckServices()
+    public static function resetStuckServices(): void
     {
-        $sql = "UPDATE background_services SET running = 0 WHERE running = 1 AND next_run < (NOW() - INTERVAL 10 MINUTE) AND name LIKE '%ClaimRev%'";
-        sqlStatementNoLog($sql);
+        QueryUtils::sqlStatementThrowException(
+            "UPDATE background_services SET running = 0 WHERE running = 1 AND next_run < (NOW() - INTERVAL 10 MINUTE) AND name LIKE '%ClaimRev%'"
+        );
     }
 
     /**
@@ -195,8 +197,8 @@ class ClaimRevModuleSetup
             $query .= $line;
             if (preg_match('/;\s*$/', $query)) {
                 $query = rtrim($query, "; \t\n\r");
-                if (!empty(trim($query))) {
-                    sqlStatementNoLog($query);
+                if (trim($query) !== '') {
+                    QueryUtils::sqlStatementThrowException($query);
                 }
                 $query = '';
             }
@@ -205,11 +207,14 @@ class ClaimRevModuleSetup
         fclose($fd);
     }
 
-    public static function getBackgroundServices()
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function getBackgroundServices(): array
     {
-        $sql = "SELECT * FROM background_services WHERE name like '%ClaimRev%' OR name = 'X12_SFTP'";
-        $result = sqlStatement($sql);
-        return $result;
+        return QueryUtils::fetchRecords(
+            "SELECT * FROM background_services WHERE name like '%ClaimRev%' OR name = 'X12_SFTP'"
+        );
     }
     public static function createBackGroundServices(): void
     {
