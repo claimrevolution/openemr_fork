@@ -19,6 +19,24 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 use OpenEMR\Billing\InvoiceSummary;
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type PatientBalanceRow array{
+ *     pid: int,
+ *     encounter: int,
+ *     encounterDate: string,
+ *     patientName: string,
+ *     patientDob: string,
+ *     payerName: string,
+ *     payerNumber: string,
+ *     totalCharges: float,
+ *     insPaid: float,
+ *     balance: float,
+ *     stmtCount: int,
+ *     lastStmtDate: string,
+ *     inCollection: bool
+ * }
+ * @phpstan-type PatientBalanceStats array{totalWithBalance: int, totalAmount: float, neverSent: int, sent1x: int, sent2plus: int, inCollection: int}
+ */
 class PatientBalanceService
 {
     /**
@@ -42,39 +60,44 @@ class PatientBalanceService
      * charges + drug_sales - payments - adjustments.
      * Only shows encounters where last_level_closed >= 1 (insurance responded).
      *
-     * @param array<string, mixed> $filters Search filters
-     * @return array{encounters: list<array<string, mixed>>, totalRecords: int}
+     * @param array{dateStart?: string, dateEnd?: string, patientName?: string, payerName?: string, minAmount?: string, stmtFilter?: string, pageIndex?: int} $filters
+     * @return array{encounters: list<PatientBalanceRow>, totalRecords: int}
      */
     public static function getPatientBalanceQueue(array $filters): array
     {
-        $pageIndex = isset($filters['pageIndex']) ? (int) $filters['pageIndex'] : 0;
+        $pageIndex = $filters['pageIndex'] ?? 0;
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
-        $minAmount = isset($filters['minAmount']) && $filters['minAmount'] !== '' ? (float) $filters['minAmount'] : 0.01;
+        $minAmountRaw = $filters['minAmount'] ?? '';
+        $minAmount = $minAmountRaw !== '' ? (float) $minAmountRaw : 0.01;
         $stmtFilter = $filters['stmtFilter'] ?? '';
         $hasStmtTable = self::statementsTableExists();
 
         $where = ["fe.last_level_closed >= 1"];
         $params = [];
 
-        if (!empty($filters['dateStart'])) {
+        $dateStart = $filters['dateStart'] ?? '';
+        if ($dateStart !== '') {
             $where[] = "fe.date >= ?";
-            $params[] = $filters['dateStart'] . ' 00:00:00';
+            $params[] = $dateStart . ' 00:00:00';
         }
-        if (!empty($filters['dateEnd'])) {
+        $dateEnd = $filters['dateEnd'] ?? '';
+        if ($dateEnd !== '') {
             $where[] = "fe.date <= ?";
-            $params[] = $filters['dateEnd'] . ' 23:59:59';
+            $params[] = $dateEnd . ' 23:59:59';
         }
-        if (!empty($filters['patientName'])) {
+        $patientName = $filters['patientName'] ?? '';
+        if ($patientName !== '') {
             $where[] = "(p.lname LIKE ? OR p.fname LIKE ?)";
-            $namePat = '%' . $filters['patientName'] . '%';
+            $namePat = '%' . $patientName . '%';
             $params[] = $namePat;
             $params[] = $namePat;
         }
-        if (!empty($filters['payerName'])) {
+        $payerName = $filters['payerName'] ?? '';
+        if ($payerName !== '') {
             // Use a subquery for payer filter to avoid join duplication
             $where[] = "EXISTS (SELECT 1 FROM insurance_data id2 JOIN insurance_companies ic2 ON ic2.id = id2.provider WHERE id2.pid = fe.pid AND id2.type = 'primary' AND ic2.name LIKE ?)";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerName . '%';
         }
 
         $whereClause = 'WHERE ' . implode(' AND ', $where);
@@ -134,7 +157,7 @@ class PatientBalanceService
 
         // Count
         $countSql = "SELECT COUNT(*) AS cnt FROM ($innerSql) AS sub $outerWhereClause";
-        $totalRecords = (int) QueryUtils::fetchSingleValue($countSql, 'cnt', $allParams);
+        $totalRecords = TypeCoerce::asInt(QueryUtils::fetchSingleValue($countSql, 'cnt', $allParams));
 
         // Data
         $dataSql = "SELECT sub.* FROM ($innerSql) AS sub $outerWhereClause " .
@@ -143,23 +166,25 @@ class PatientBalanceService
 
         $encounters = [];
         foreach ($rows as $row) {
-            $stmtCount = max((int) ($row['stmt_sent'] ?? 0), (int) ($row['oe_stmt_count'] ?? 0));
-            $lastStmt = ($row['last_stmt_date_cr'] ?? '') ?: ($row['last_stmt_date'] ?? '');
+            $stmtCount = max(TypeCoerce::asInt($row['stmt_sent'] ?? 0), TypeCoerce::asInt($row['oe_stmt_count'] ?? 0));
+            $lastStmtCr = TypeCoerce::asString($row['last_stmt_date_cr'] ?? '');
+            $lastStmtOe = TypeCoerce::asString($row['last_stmt_date'] ?? '');
+            $lastStmt = $lastStmtCr !== '' ? $lastStmtCr : $lastStmtOe;
 
             $encounters[] = [
-                'pid' => (int) $row['pid'],
-                'encounter' => (int) $row['encounter'],
-                'encounterDate' => substr((string) $row['encounter_date'], 0, 10),
-                'patientName' => ($row['lname'] ?? '') . ', ' . ($row['fname'] ?? ''),
-                'patientDob' => substr((string) ($row['DOB'] ?? ''), 0, 10),
-                'payerName' => $row['payer_name'] ?? '',
-                'payerNumber' => $row['payer_number'] ?? '',
-                'totalCharges' => (float) $row['total_charges'],
-                'insPaid' => (float) $row['ins_paid'],
-                'balance' => round((float) $row['balance'], 2),
+                'pid' => TypeCoerce::asInt($row['pid'] ?? 0),
+                'encounter' => TypeCoerce::asInt($row['encounter'] ?? 0),
+                'encounterDate' => substr(TypeCoerce::asString($row['encounter_date'] ?? ''), 0, 10),
+                'patientName' => TypeCoerce::asString($row['lname'] ?? '') . ', ' . TypeCoerce::asString($row['fname'] ?? ''),
+                'patientDob' => substr(TypeCoerce::asString($row['DOB'] ?? ''), 0, 10),
+                'payerName' => TypeCoerce::asString($row['payer_name'] ?? ''),
+                'payerNumber' => TypeCoerce::asString($row['payer_number'] ?? ''),
+                'totalCharges' => TypeCoerce::asFloat($row['total_charges'] ?? 0),
+                'insPaid' => TypeCoerce::asFloat($row['ins_paid'] ?? 0),
+                'balance' => round(TypeCoerce::asFloat($row['balance'] ?? 0), 2),
                 'stmtCount' => $stmtCount,
                 'lastStmtDate' => $lastStmt,
-                'inCollection' => (bool) ($row['in_collection'] ?? false),
+                'inCollection' => TypeCoerce::asBool($row['in_collection'] ?? false),
             ];
         }
 
@@ -312,7 +337,8 @@ class PatientBalanceService
      * Get aggregate stats for the queue summary cards.
      *
      * @param array<string, mixed> $filters Same filters as getPatientBalanceQueue
-     * @return array{totalWithBalance: int, totalAmount: float, neverSent: int, sent1x: int, sent2plus: int, inCollection: int}
+     * @param array{dateStart?: string, dateEnd?: string, patientName?: string, payerName?: string, minAmount?: string, stmtFilter?: string} $filters
+     * @return PatientBalanceStats
      */
     public static function getQueueStats(array $filters): array
     {
@@ -320,25 +346,30 @@ class PatientBalanceService
 
         $where = ["fe.last_level_closed >= 1"];
         $params = [];
-        $minAmount = isset($filters['minAmount']) && $filters['minAmount'] !== '' ? (float) $filters['minAmount'] : 0.01;
+        $minAmountRaw = $filters['minAmount'] ?? '';
+        $minAmount = $minAmountRaw !== '' ? (float) $minAmountRaw : 0.01;
 
-        if (!empty($filters['dateStart'])) {
+        $dateStart = $filters['dateStart'] ?? '';
+        if ($dateStart !== '') {
             $where[] = "fe.date >= ?";
-            $params[] = $filters['dateStart'] . ' 00:00:00';
+            $params[] = $dateStart . ' 00:00:00';
         }
-        if (!empty($filters['dateEnd'])) {
+        $dateEnd = $filters['dateEnd'] ?? '';
+        if ($dateEnd !== '') {
             $where[] = "fe.date <= ?";
-            $params[] = $filters['dateEnd'] . ' 23:59:59';
+            $params[] = $dateEnd . ' 23:59:59';
         }
-        if (!empty($filters['patientName'])) {
+        $patientName = $filters['patientName'] ?? '';
+        if ($patientName !== '') {
             $where[] = "(p.lname LIKE ? OR p.fname LIKE ?)";
-            $namePat = '%' . $filters['patientName'] . '%';
+            $namePat = '%' . $patientName . '%';
             $params[] = $namePat;
             $params[] = $namePat;
         }
-        if (!empty($filters['payerName'])) {
+        $payerName = $filters['payerName'] ?? '';
+        if ($payerName !== '') {
             $where[] = "EXISTS (SELECT 1 FROM insurance_data id2 JOIN insurance_companies ic2 ON ic2.id = id2.provider WHERE id2.pid = fe.pid AND id2.type = 'primary' AND ic2.name LIKE ?)";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerName . '%';
         }
 
         $whereClause = 'WHERE ' . implode(' AND ', $where);
@@ -372,12 +403,12 @@ class PatientBalanceService
         $r = $row[0] ?? [];
 
         return [
-            'totalWithBalance' => (int) ($r['total_with_balance'] ?? 0),
-            'totalAmount' => round((float) ($r['total_amount'] ?? 0), 2),
-            'neverSent' => (int) ($r['never_sent'] ?? 0),
-            'sent1x' => (int) ($r['sent_1x'] ?? 0),
-            'sent2plus' => (int) ($r['sent_2plus'] ?? 0),
-            'inCollection' => (int) ($r['in_collection'] ?? 0),
+            'totalWithBalance' => TypeCoerce::asInt($r['total_with_balance'] ?? 0),
+            'totalAmount' => round(TypeCoerce::asFloat($r['total_amount'] ?? 0), 2),
+            'neverSent' => TypeCoerce::asInt($r['never_sent'] ?? 0),
+            'sent1x' => TypeCoerce::asInt($r['sent_1x'] ?? 0),
+            'sent2plus' => TypeCoerce::asInt($r['sent_2plus'] ?? 0),
+            'inCollection' => TypeCoerce::asInt($r['in_collection'] ?? 0),
         ];
     }
 }

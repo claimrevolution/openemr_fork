@@ -245,8 +245,8 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         $isRejected = in_array($crStatusId, [10, 16, 17], true) || $payerAccId === 3;
                         $isDenied = stripos($eraCls, 'denied') !== false || $claim['oeStatus'] === 7;
                         $isPaid = stripos($eraCls, 'paid') !== false;
-                        $billTime = is_string($claim['billTime'] ?? null) ? $claim['billTime'] : '';
-                        $isStale = $claim['oeStatus'] === 2 && $eraCls === '' && $billTime !== '' && strtotime($billTime) < strtotime('-' . 45 . ' days');
+                        $billTime = $claim['billTime'];
+                        $isStale = $claim['oeStatus'] === 2 && $eraCls === '' && $billTime !== '' && strtotime($billTime) < strtotime('-45 days');
 
                         if ($isRejected) {
                             $rowClass .= ' row-rejected';
@@ -312,7 +312,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                                     <br/><small class="text-muted"><?php echo text($claim['payerAcceptanceName']); ?></small>
                                 <?php } ?>
                             <?php } else { ?>
-                                <span class="text-muted small"><?php echo $claim['trackingId'] ? xlt("Synced") : xlt("Not tracked"); ?></span>
+                                <span class="text-muted small"><?php echo $claim['trackingId'] !== null ? xlt("Synced") : xlt("Not tracked"); ?></span>
                             <?php } ?>
                         </td>
                         <td>
@@ -330,9 +330,8 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                             <?php } ?>
                         </td>
                         <td>
-                            <?php $lastStatusCheck = is_string($claim['lastStatusCheck'] ?? null) ? $claim['lastStatusCheck'] : ''; ?>
-                            <?php if ($lastStatusCheck !== '') { ?>
-                                <small><?php echo text(substr($lastStatusCheck, 0, 10)); ?></small>
+                            <?php if ($claim['lastStatusCheck'] !== '') { ?>
+                                <small><?php echo text(substr($claim['lastStatusCheck'], 0, 10)); ?></small>
                             <?php } else { ?>
                                 <small class="text-muted"><?php echo xlt("Never"); ?></small>
                             <?php } ?>
@@ -372,7 +371,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                                         <?php if ($claim['lastSynced'] !== '') { ?>
                                             <strong><?php echo xlt("Last Synced"); ?>:</strong> <?php echo text($claim['lastSynced']); ?><br/>
                                         <?php } ?>
-                                        <?php if ($claim['arSessionId'] !== null && $claim['arSessionId'] !== 0) { ?>
+                                        <?php if ($claim['arSessionId'] !== null) { ?>
                                             <strong><?php echo xlt("Payment Session"); ?>:</strong> <?php echo text((string) $claim['arSessionId']); ?><br/>
                                         <?php } ?>
                                     </div>
