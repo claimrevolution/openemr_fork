@@ -15,6 +15,7 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApi;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -24,17 +25,18 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-$sharpRevenueObjectId = $_POST['sharpRevenueObjectId'] ?? '';
-$question = trim($_POST['question'] ?? '');
-$payerCode = $_POST['payerCode'] ?? null;
+$sharpRevenueObjectId = ModuleInput::postString('sharpRevenueObjectId');
+$question = trim(ModuleInput::postString('question'));
+$payerCodeRaw = ModuleInput::postString('payerCode');
+$payerCode = $payerCodeRaw !== '' ? $payerCodeRaw : null;
 
-if (empty($sharpRevenueObjectId)) {
+if ($sharpRevenueObjectId === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Missing sharpRevenueObjectId']);
     exit;
 }
 
-if (empty($question)) {
+if ($question === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Missing question']);
     exit;
