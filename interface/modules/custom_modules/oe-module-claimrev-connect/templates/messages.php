@@ -12,19 +12,22 @@
 
 /** @var \stdClass $benefit */
 
-if ($benefit->messages != null && $benefit->messages) {
-    ?>
+$messages = property_exists($benefit, 'messages') && is_iterable($benefit->messages) ? $benefit->messages : null;
+if ($messages === null) {
+    return;
+}
+?>
     <div class="row">
         <div class="col">
-            <?php echo xlt("Messages");?>
+            <?php echo xlt("Messages"); ?>
         </div>
         <div class="col">
     <?php
-    foreach ($benefit->messages as $message) {
+    foreach ($messages as $message) {
         ?>
                 <div class="row">
                     <div class="col">
-                <?php echo text($message); ?>
+                <?php echo text(is_string($message) ? $message : ''); ?>
                     </div>
                 </div>
         <?php
@@ -32,6 +35,3 @@ if ($benefit->messages != null && $benefit->messages) {
     ?>
         </div>
     </div>
-    <?php
-}
-?>
