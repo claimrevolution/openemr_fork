@@ -18,8 +18,7 @@ use OpenEMR\Core\Header;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimTrackingService;
-use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
-use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 $tab = "claim_status";
@@ -31,7 +30,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
-$bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+$bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claim_status');
 $webRoot = OEGlobalsBag::getInstance()->getString('webroot');

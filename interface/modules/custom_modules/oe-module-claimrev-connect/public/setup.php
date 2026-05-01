@@ -17,7 +17,7 @@
     use OpenEMR\Common\Csrf\CsrfUtils;
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
-    use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+    use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
     use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
     $tab = "setup";

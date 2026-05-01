@@ -49,12 +49,6 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
                     </ul>
                 </div>
             </div>
-            <div class="mt-3">
-                <a href="compat_check.php" class="btn btn-outline-secondary btn-sm">
-                    <i class="fa fa-stethoscope"></i> <?php echo xlt("Run Compatibility Check"); ?>
-                </a>
-                <small class="text-muted ml-2"><?php echo xlt("Verifies the module can run on this OpenEMR version"); ?></small>
-            </div>
         </div>
     </body>
 </html>

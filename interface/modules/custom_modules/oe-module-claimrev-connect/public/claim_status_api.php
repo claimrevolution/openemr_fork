@@ -16,7 +16,7 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimTrackingService;
-use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');

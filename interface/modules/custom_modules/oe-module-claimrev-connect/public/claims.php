@@ -18,8 +18,7 @@ use OpenEMR\Core\Header;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
-use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
-use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 
@@ -32,7 +31,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 
 $claimStatuses = ClaimsPage::getClaimStatuses();
 
-$bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+$bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claims');
 $webRoot = OEGlobalsBag::getInstance()->getString('webroot');
