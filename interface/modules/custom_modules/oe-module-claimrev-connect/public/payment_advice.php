@@ -217,7 +217,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 </div>
             </form>
 
-        <?php if ($testMode && !empty($datas)) { ?>
+        <?php if ($testMode && $datas !== []) { ?>
             <div class="alert alert-warning mt-3 py-2">
                 <i class="fa fa-flask"></i> <strong><?php echo xlt("Test Mode"); ?></strong> &mdash;
                 <?php echo xlt("This is simulated data for demonstration purposes only. The payment information shown below is not real. Do not post test mode results in a production environment."); ?>
