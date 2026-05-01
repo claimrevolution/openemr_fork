@@ -15,10 +15,12 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 
 $tab = "claims";
@@ -33,7 +35,53 @@ $claimStatuses = ClaimsPage::getClaimStatuses();
 $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claims');
-$webRoot = $GLOBALS['webroot'];
+$webRoot = OEGlobalsBag::getInstance()->getString('webroot');
+
+// Pull all known POST filters once into typed locals; the form/template echoes these.
+$sortFieldRaw = ModuleInput::postString('sortField');
+$sortDirectionRaw = ModuleInput::postString('sortDirection');
+$startDate = ModuleInput::postString('startDate');
+$endDate = ModuleInput::postString('endDate');
+$patFirstName = ModuleInput::postString('patFirstName');
+$patLastName = ModuleInput::postString('patLastName');
+$statusIdFilter = ModuleInput::postString('statusId');
+$serviceDateStart = ModuleInput::postString('serviceDateStart');
+$serviceDateEnd = ModuleInput::postString('serviceDateEnd');
+$patientBirthDate = ModuleInput::postString('patientBirthDate');
+$patientGender = ModuleInput::postString('patientGender');
+$payerName = ModuleInput::postString('payerName');
+$payerNumber = ModuleInput::postString('payerNumber');
+$billingProviderNpi = ModuleInput::postString('billingProviderNpi');
+$traceNumber = ModuleInput::postString('traceNumber');
+$patientControlNumber = ModuleInput::postString('patientControlNumber');
+$payerControlNumber = ModuleInput::postString('payerControlNumber');
+$payerPaidAmtStart = ModuleInput::postString('payerPaidAmtStart');
+$payerPaidAmtEnd = ModuleInput::postString('payerPaidAmtEnd');
+$errorMessageFilter = ModuleInput::postString('errorMessage');
+
+$searchFilters = [
+    'sortField' => $sortFieldRaw,
+    'sortDirection' => $sortDirectionRaw,
+    'startDate' => $startDate,
+    'endDate' => $endDate,
+    'patFirstName' => $patFirstName,
+    'patLastName' => $patLastName,
+    'statusId' => $statusIdFilter,
+    'serviceDateStart' => $serviceDateStart,
+    'serviceDateEnd' => $serviceDateEnd,
+    'patientBirthDate' => $patientBirthDate,
+    'patientGender' => $patientGender,
+    'payerName' => $payerName,
+    'payerNumber' => $payerNumber,
+    'billingProviderNpi' => $billingProviderNpi,
+    'traceNumber' => $traceNumber,
+    'patientControlNumber' => $patientControlNumber,
+    'payerControlNumber' => $payerControlNumber,
+    'payerPaidAmtStart' => $payerPaidAmtStart,
+    'payerPaidAmtEnd' => $payerPaidAmtEnd,
+    'errorMessage' => $errorMessageFilter,
+    'pageIndex' => ModuleInput::postInt('pageIndex'),
+];
 ?>
 
 <html>
@@ -79,8 +127,8 @@ $webRoot = $GLOBALS['webroot'];
         <div class="container-fluid">
             <?php require '../templates/navbar.php'; ?>
             <form method="post" action="claims.php" id="claimSearchForm">
-                <input type="hidden" name="sortField" id="sortField" value="<?php echo isset($_POST['sortField']) ? attr($_POST['sortField']) : ''; ?>"/>
-                <input type="hidden" name="sortDirection" id="sortDirection" value="<?php echo isset($_POST['sortDirection']) ? attr($_POST['sortDirection']) : ''; ?>"/>
+                <input type="hidden" name="sortField" id="sortField" value="<?php echo attr($sortFieldRaw); ?>"/>
+                <input type="hidden" name="sortDirection" id="sortDirection" value="<?php echo attr($sortDirectionRaw); ?>"/>
                 <div class="card mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <?php echo xlt("Search Claims"); ?>
@@ -98,32 +146,32 @@ $webRoot = $GLOBALS['webroot'];
                         <div class="form-row">
                             <div class="form-group col-md-2">
                                 <label for="startDate"><?php echo xlt("Send Date Start"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="startDate" name="startDate" value="<?php echo isset($_POST['startDate']) ? attr($_POST['startDate']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="startDate" name="startDate" value="<?php echo attr($startDate); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="endDate"><?php echo xlt("Send Date End"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="endDate" name="endDate" value="<?php echo isset($_POST['endDate']) ? attr($_POST['endDate']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="endDate" name="endDate" value="<?php echo attr($endDate); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patFirstName"><?php echo xlt("Patient First"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patFirstName" name="patFirstName" value="<?php echo isset($_POST['patFirstName']) ? attr($_POST['patFirstName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patFirstName" name="patFirstName" value="<?php echo attr($patFirstName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patLastName"><?php echo xlt("Patient Last"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patLastName" name="patLastName" value="<?php echo isset($_POST['patLastName']) ? attr($_POST['patLastName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patLastName" name="patLastName" value="<?php echo attr($patLastName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="statusId"><?php echo xlt("Claim Status"); ?></label>
                                 <select class="form-control form-control-sm" id="statusId" name="statusId">
                                     <option value=""><?php echo xlt("All"); ?></option>
                                     <?php foreach ($claimStatuses as $status) {
-                                        $statusId = $status['listItemId'] ?? '';
-                                        $statusName = $status['listName'] ?? '';
-                                        if ($statusName === '') {
+                                        $statusOptId = (string) ($status['listItemId'] ?? '');
+                                        $statusOptName = (string) ($status['listName'] ?? '');
+                                        if ($statusOptName === '') {
                                             continue;
                                         }
                                         ?>
-                                        <option value="<?php echo attr($statusId); ?>" <?php echo (isset($_POST['statusId']) && $_POST['statusId'] == $statusId) ? 'selected' : ''; ?>><?php echo text($statusName); ?></option>
+                                        <option value="<?php echo attr($statusOptId); ?>" <?php echo $statusIdFilter !== '' && $statusIdFilter === $statusOptId ? 'selected' : ''; ?>><?php echo text($statusOptName); ?></option>
                                     <?php } ?>
                                 </select>
                             </div>
@@ -138,61 +186,61 @@ $webRoot = $GLOBALS['webroot'];
                             <div class="form-row">
                                 <div class="form-group col-md-2">
                                     <label for="serviceDateStart"><?php echo xlt("Service Date Start"); ?></label>
-                                    <input type="date" class="form-control form-control-sm" id="serviceDateStart" name="serviceDateStart" value="<?php echo isset($_POST['serviceDateStart']) ? attr($_POST['serviceDateStart']) : ''; ?>"/>
+                                    <input type="date" class="form-control form-control-sm" id="serviceDateStart" name="serviceDateStart" value="<?php echo attr($serviceDateStart); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="serviceDateEnd"><?php echo xlt("Service Date End"); ?></label>
-                                    <input type="date" class="form-control form-control-sm" id="serviceDateEnd" name="serviceDateEnd" value="<?php echo isset($_POST['serviceDateEnd']) ? attr($_POST['serviceDateEnd']) : ''; ?>"/>
+                                    <input type="date" class="form-control form-control-sm" id="serviceDateEnd" name="serviceDateEnd" value="<?php echo attr($serviceDateEnd); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="patientBirthDate"><?php echo xlt("Date of Birth"); ?></label>
-                                    <input type="date" class="form-control form-control-sm" id="patientBirthDate" name="patientBirthDate" value="<?php echo isset($_POST['patientBirthDate']) ? attr($_POST['patientBirthDate']) : ''; ?>"/>
+                                    <input type="date" class="form-control form-control-sm" id="patientBirthDate" name="patientBirthDate" value="<?php echo attr($patientBirthDate); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="patientGender"><?php echo xlt("Gender"); ?></label>
                                     <select class="form-control form-control-sm" id="patientGender" name="patientGender">
                                         <option value=""><?php echo xlt("All"); ?></option>
-                                        <option value="M" <?php echo (isset($_POST['patientGender']) && $_POST['patientGender'] === 'M') ? 'selected' : ''; ?>><?php echo xlt("Male"); ?></option>
-                                        <option value="F" <?php echo (isset($_POST['patientGender']) && $_POST['patientGender'] === 'F') ? 'selected' : ''; ?>><?php echo xlt("Female"); ?></option>
+                                        <option value="M" <?php echo $patientGender === 'M' ? 'selected' : ''; ?>><?php echo xlt("Male"); ?></option>
+                                        <option value="F" <?php echo $patientGender === 'F' ? 'selected' : ''; ?>><?php echo xlt("Female"); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="payerName"><?php echo xlt("Payer Name"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo isset($_POST['payerName']) ? attr($_POST['payerName']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo attr($payerName); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="payerNumber"><?php echo xlt("Payer Number"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="payerNumber" name="payerNumber" value="<?php echo isset($_POST['payerNumber']) ? attr($_POST['payerNumber']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="payerNumber" name="payerNumber" value="<?php echo attr($payerNumber); ?>"/>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group col-md-2">
                                     <label for="billingProviderNpi"><?php echo xlt("Billing NPI"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="billingProviderNpi" name="billingProviderNpi" value="<?php echo isset($_POST['billingProviderNpi']) ? attr($_POST['billingProviderNpi']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="billingProviderNpi" name="billingProviderNpi" value="<?php echo attr($billingProviderNpi); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="traceNumber"><?php echo xlt("Trace Number"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="traceNumber" name="traceNumber" value="<?php echo isset($_POST['traceNumber']) ? attr($_POST['traceNumber']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="traceNumber" name="traceNumber" value="<?php echo attr($traceNumber); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="patientControlNumber"><?php echo xlt("Patient Control #"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="patientControlNumber" name="patientControlNumber" value="<?php echo isset($_POST['patientControlNumber']) ? attr($_POST['patientControlNumber']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="patientControlNumber" name="patientControlNumber" value="<?php echo attr($patientControlNumber); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="payerControlNumber"><?php echo xlt("Payer Control #"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="payerControlNumber" name="payerControlNumber" value="<?php echo isset($_POST['payerControlNumber']) ? attr($_POST['payerControlNumber']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="payerControlNumber" name="payerControlNumber" value="<?php echo attr($payerControlNumber); ?>"/>
                                 </div>
                                 <div class="form-group col-md-1">
                                     <label for="payerPaidAmtStart"><?php echo xlt("Paid Min"); ?></label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm" id="payerPaidAmtStart" name="payerPaidAmtStart" value="<?php echo isset($_POST['payerPaidAmtStart']) ? attr($_POST['payerPaidAmtStart']) : ''; ?>"/>
+                                    <input type="number" step="0.01" class="form-control form-control-sm" id="payerPaidAmtStart" name="payerPaidAmtStart" value="<?php echo attr($payerPaidAmtStart); ?>"/>
                                 </div>
                                 <div class="form-group col-md-1">
                                     <label for="payerPaidAmtEnd"><?php echo xlt("Paid Max"); ?></label>
-                                    <input type="number" step="0.01" class="form-control form-control-sm" id="payerPaidAmtEnd" name="payerPaidAmtEnd" value="<?php echo isset($_POST['payerPaidAmtEnd']) ? attr($_POST['payerPaidAmtEnd']) : ''; ?>"/>
+                                    <input type="number" step="0.01" class="form-control form-control-sm" id="payerPaidAmtEnd" name="payerPaidAmtEnd" value="<?php echo attr($payerPaidAmtEnd); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="errorMessage"><?php echo xlt("Error Message"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="errorMessage" name="errorMessage" value="<?php echo isset($_POST['errorMessage']) ? attr($_POST['errorMessage']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="errorMessage" name="errorMessage" value="<?php echo attr($errorMessageFilter); ?>"/>
                                 </div>
                             </div>
                         </div>
@@ -203,23 +251,24 @@ $webRoot = $GLOBALS['webroot'];
         <?php
             $datas = [];
             $totalRecords = 0;
-            $pageIndex = isset($_POST['pageIndex']) ? (int)$_POST['pageIndex'] : 0;
+            $pageIndex = ModuleInput::postInt('pageIndex');
             $pageSize = 50;
-        if (isset($_POST['SubmitButton']) || isset($_POST['pageIndex'])) {
+            $hasSubmit = ModuleInput::postExists('SubmitButton') || ModuleInput::postExists('pageIndex');
+        if ($hasSubmit) {
             try {
-                $pagedResult = ClaimsPage::searchClaims($_POST);
+                $pagedResult = ClaimsPage::searchClaims($searchFilters);
                 $datas = $pagedResult['results'];
                 $totalRecords = $pagedResult['totalRecords'];
             } catch (\Throwable $t) {
                 echo "<div class='alert alert-danger mt-3'>" . text($t->getMessage()) . "</div>";
             }
         }
-        if (empty($datas)) {
-            if (isset($_POST['SubmitButton']) || isset($_POST['pageIndex'])) {
+        if ($datas === []) {
+            if ($hasSubmit) {
                 echo "<div class='alert alert-info mt-3'>" . xlt("No results found") . "</div>";
             }
         } else {
-            $totalPages = ceil($totalRecords / $pageSize);
+            $totalPages = (int) ceil($totalRecords / $pageSize);
             // Validate sort inputs against allowlists. The integer index is
             // laundered through intval() so the final $currentSort value is
             // sourced from a static literal array, not from $_POST.
@@ -230,10 +279,10 @@ $webRoot = $GLOBALS['webroot'];
                 'MainProperties.StartServiceDate',
                 'ReceivedDate',
             ];
-            $rawIdx = array_search($_POST['sortField'] ?? '', $validSortFields, true);
+            $rawIdx = array_search($sortFieldRaw, $validSortFields, true);
             $sortIdx = intval($rawIdx === false ? 0 : $rawIdx);
             $currentSort = $validSortFields[$sortIdx];
-            $currentDir = ($_POST['sortDirection'] ?? '') === 'desc' ? 'desc' : 'asc';
+            $currentDir = $sortDirectionRaw === 'desc' ? 'desc' : 'asc';
             // Helper to render sort indicator
             function sortIcon($field, $currentSort, $currentDir)
             {
@@ -385,7 +434,7 @@ $webRoot = $GLOBALS['webroot'];
                         }
                         $errorCount = $data->errorCount ?? 0;
                         ?>
-                        <tr class="claim-row <?php echo attr($rowClass); ?>" data-target="#detail-<?php echo attr($rowIndex); ?>">
+                        <tr class="claim-row <?php echo attr($rowClass); ?>" data-target="#detail-<?php echo attr((string) $rowIndex); ?>">
                             <td>
                                 <div class="status-icons">
                                     <span class="status-icon <?php echo attr($claimIconClass); ?>" title="<?php echo xla("Claim"); ?>: <?php echo attr($statusName); ?>">
@@ -435,7 +484,7 @@ $webRoot = $GLOBALS['webroot'];
                             <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>
                             <td class="text-right"><?php echo text(number_format((float)($data->billedAmount ?? 0), 2)); ?></td>
                             <td class="text-right"><?php echo text(number_format((float)($data->payerPaidAmount ?? 0), 2)); ?></td>
-                            <td class="oe-status-cell" id="oe-status-<?php echo attr($rowIndex); ?>">
+                            <td class="oe-status-cell" id="oe-status-<?php echo attr((string) $rowIndex); ?>">
                                 <?php if ($oeStatus !== null) {
                                     $oeBadgeClass = match ($oeStatus['status']) {
                                         0 => 'badge-light text-dark',
@@ -455,25 +504,25 @@ $webRoot = $GLOBALS['webroot'];
                             <td class="text-center" onclick="event.stopPropagation();">
                                 <div class="btn-group btn-group-sm action-btn-group">
                                     <?php if ($oeStatus !== null && $oeStatus['status'] !== -1) { ?>
-                                        <a href="<?php echo attr($webRoot); ?>/interface/billing/sl_eob_search.php?form_pid=<?php echo attr($oeStatus['pid']); ?>&form_encounter=<?php echo attr($oeStatus['encounter']); ?>"
+                                        <a href="<?php echo attr($webRoot); ?>/interface/billing/sl_eob_search.php?form_pid=<?php echo attr((string) $oeStatus['pid']); ?>&form_encounter=<?php echo attr((string) $oeStatus['encounter']); ?>"
                                            target="_blank" class="btn btn-outline-info" title="<?php echo xla("Open Encounter in Billing"); ?>">
                                             <i class="fa fa-folder-open"></i>
                                         </a>
                                     <?php } ?>
                                     <?php if ($isRejected && $oeStatus !== null && $oeStatus['status'] !== 7) { ?>
                                         <button type="button" class="btn btn-outline-danger sync-status-btn"
-                                            data-rowindex="<?php echo attr($rowIndex); ?>"
+                                            data-rowindex="<?php echo attr((string) $rowIndex); ?>"
                                             data-pcn="<?php echo attr($pcn); ?>"
-                                            data-statusid="<?php echo attr($statusId); ?>"
+                                            data-statusid="<?php echo attr((string) $statusId); ?>"
                                             data-statusname="<?php echo attr($statusName); ?>"
-                                            data-payeracceptance="<?php echo attr($payerAcceptanceStatusId); ?>"
+                                            data-payeracceptance="<?php echo attr((string) $payerAcceptanceStatusId); ?>"
                                             title="<?php echo xla("Sync rejected status to OpenEMR"); ?>">
                                             <i class="fa fa-sync-alt"></i>
                                         </button>
                                     <?php } ?>
                                     <?php if ($oeStatus !== null && in_array($oeStatus['status'], [2, 7])) { ?>
                                         <button type="button" class="btn btn-outline-warning requeue-btn"
-                                            data-rowindex="<?php echo attr($rowIndex); ?>"
+                                            data-rowindex="<?php echo attr((string) $rowIndex); ?>"
                                             data-pcn="<?php echo attr($pcn); ?>"
                                             title="<?php echo xla("Requeue for billing"); ?>">
                                             <i class="fa fa-redo"></i>
@@ -494,7 +543,7 @@ $webRoot = $GLOBALS['webroot'];
                                 </div>
                             </td>
                         </tr>
-                        <tr class="claim-detail-row" id="detail-<?php echo attr($rowIndex); ?>">
+                        <tr class="claim-detail-row" id="detail-<?php echo attr((string) $rowIndex); ?>">
                             <td colspan="10" class="claim-detail-cell p-3">
                                 <div class="row">
                                     <div class="col-md-3">
@@ -556,7 +605,7 @@ $webRoot = $GLOBALS['webroot'];
                                                 </a>
                                             <?php } ?>
                                             <?php if ($oeStatus !== null && $oeStatus['status'] !== -1) { ?>
-                                                <a href="<?php echo attr($webRoot); ?>/interface/billing/sl_eob_search.php?form_pid=<?php echo attr($oeStatus['pid']); ?>&form_encounter=<?php echo attr($oeStatus['encounter']); ?>"
+                                                <a href="<?php echo attr($webRoot); ?>/interface/billing/sl_eob_search.php?form_pid=<?php echo attr((string) $oeStatus['pid']); ?>&form_encounter=<?php echo attr((string) $oeStatus['encounter']); ?>"
                                                    target="_blank" class="btn btn-sm btn-outline-info">
                                                     <i class="fa fa-folder-open"></i> <?php echo xlt("Open Encounter"); ?>
                                                 </a>
@@ -583,7 +632,7 @@ $webRoot = $GLOBALS['webroot'];
                 <nav>
                     <ul class="pagination justify-content-center">
                         <li class="page-item <?php echo ($pageIndex <= 0) ? 'disabled' : ''; ?>">
-                            <button type="submit" name="pageIndex" value="<?php echo attr($pageIndex - 1); ?>" form="claimSearchForm" class="page-link"><?php echo xlt("Previous"); ?></button>
+                            <button type="submit" name="pageIndex" value="<?php echo attr((string) ($pageIndex - 1)); ?>" form="claimSearchForm" class="page-link"><?php echo xlt("Previous"); ?></button>
                         </li>
                         <?php
                         $startPage = max(0, $pageIndex - 2);
@@ -594,7 +643,7 @@ $webRoot = $GLOBALS['webroot'];
                             </li>
                         <?php } ?>
                         <li class="page-item <?php echo ($pageIndex >= $totalPages - 1) ? 'disabled' : ''; ?>">
-                            <button type="submit" name="pageIndex" value="<?php echo attr($pageIndex + 1); ?>" form="claimSearchForm" class="page-link"><?php echo xlt("Next"); ?></button>
+                            <button type="submit" name="pageIndex" value="<?php echo attr((string) ($pageIndex + 1)); ?>" form="claimSearchForm" class="page-link"><?php echo xlt("Next"); ?></button>
                         </li>
                     </ul>
                 </nav>
