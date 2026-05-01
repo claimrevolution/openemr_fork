@@ -122,17 +122,30 @@ if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
                     </thead>
                     <tbody>
                         <?php
+                        $eraStr = static function (\stdClass $o, string $prop): string {
+                            if (!property_exists($o, $prop)) {
+                                return '';
+                            }
+                            $v = $o->$prop;
+                            if (is_string($v)) {
+                                return $v;
+                            }
+                            if (is_int($v) || is_float($v)) {
+                                return (string) $v;
+                            }
+                            return '';
+                        };
                         foreach ($datas as $data) {
                             ?>
                             <tr>
-                                <td scope="row"><?php echo text(substr((string) $data->receivedDate, 0, 10)); ?></td>
-                                <td scope="row"><?php echo text((string) $data->payerName); ?></td>
-                                <td scope="row"><?php echo text((string) $data->payerNumber); ?></td>
-                                <td scope="row"><?php echo text((string) $data->billedAmt); ?></td>
-                                <td scope="row"><?php echo text((string) $data->payerPaidAmt); ?></td>
-                                <td scope="row"><?php echo text((string) $data->patientResponsibility); ?></td>
+                                <td scope="row"><?php echo text(substr($eraStr($data, 'receivedDate'), 0, 10)); ?></td>
+                                <td scope="row"><?php echo text($eraStr($data, 'payerName')); ?></td>
+                                <td scope="row"><?php echo text($eraStr($data, 'payerNumber')); ?></td>
+                                <td scope="row"><?php echo text($eraStr($data, 'billedAmt')); ?></td>
+                                <td scope="row"><?php echo text($eraStr($data, 'payerPaidAmt')); ?></td>
+                                <td scope="row"><?php echo text($eraStr($data, 'patientResponsibility')); ?></td>
                                 <td scope="row">
-                                    <button type="button" onClick="downloadEra('<?php echo attr((string) $data->id); ?>');" name="downloadFile" class="btn btn-primary">
+                                    <button type="button" onClick="downloadEra('<?php echo attr($eraStr($data, 'id')); ?>');" name="downloadFile" class="btn btn-primary">
                                         <?php echo xlt("Download ERA"); ?>
                                     </button>
                                 </td>
