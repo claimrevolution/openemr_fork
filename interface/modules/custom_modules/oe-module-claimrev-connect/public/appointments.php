@@ -17,6 +17,7 @@
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\AppointmentsPage;
     use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
+    use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
     $tab = "appointments";
 
@@ -25,30 +26,34 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     AccessDeniedHelper::denyWithTemplate("ACL check failed for acct/bill: ClaimRev Connect - Appointments", xl("ClaimRev Connect - Appointments"));
 }
 
-// Handle bulk eligibility queue (Run & Go)
-if (isset($_POST['runBulkEligibility'])) {
-    $eids = $_POST['eids'] ?? [];
-    foreach ($eids as $eid) {
-        AppointmentsPage::runEligibilityForAppointment($eid);
+// Handle bulk eligibility queue (Run & Go) — read raw $_POST['eids'] array via filter_input_array.
+$bulkEids = filter_input(INPUT_POST, 'eids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+if (ModuleInput::postExists('runBulkEligibility') && is_array($bulkEids)) {
+    foreach ($bulkEids as $eid) {
+        if (is_string($eid) && $eid !== '') {
+            AppointmentsPage::runEligibilityForAppointment($eid);
+        }
     }
 }
 
 // Handle single appointment queue (fallback, non-JS)
-if (isset($_POST['runEligibility'])) {
-    $eid = $_POST['eid'];
-    if ($eid != null) {
-        AppointmentsPage::runEligibilityForAppointment($eid);
+if (ModuleInput::postExists('runEligibility')) {
+    $singleEid = ModuleInput::postString('eid');
+    if ($singleEid !== '') {
+        AppointmentsPage::runEligibilityForAppointment($singleEid);
     }
 }
 
 // Default date range: today through 7 days out
 $defaultStart = date('Y-m-d');
 $defaultEnd = date('Y-m-d', strtotime('+7 days'));
-$startDate = isset($_POST['startDate']) && $_POST['startDate'] != '' ? $_POST['startDate'] : $defaultStart;
-$endDate = isset($_POST['endDate']) && $_POST['endDate'] != '' ? $_POST['endDate'] : $defaultEnd;
-$facilityId = $_POST['facilityId'] ?? '';
-$providerId = $_POST['providerId'] ?? '';
-$eligFilter = $_POST['eligFilter'] ?? 'all';
+$startDateRaw = ModuleInput::postString('startDate');
+$endDateRaw = ModuleInput::postString('endDate');
+$startDate = $startDateRaw !== '' ? $startDateRaw : $defaultStart;
+$endDate = $endDateRaw !== '' ? $endDateRaw : $defaultEnd;
+$facilityId = ModuleInput::postString('facilityId');
+$providerId = ModuleInput::postString('providerId');
+$eligFilter = ModuleInput::postString('eligFilter', 'all');
 
 $appointments = AppointmentsPage::getUpcomingAppointments($startDate, $endDate, $facilityId, $providerId, $eligFilter);
 $facilities = AppointmentsPage::getFacilities();
