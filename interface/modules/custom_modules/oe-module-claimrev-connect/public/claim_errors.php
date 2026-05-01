@@ -15,6 +15,7 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApi;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -24,9 +25,9 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-$claimId = $_GET['claimId'] ?? '';
+$claimId = ModuleInput::getString('claimId');
 
-if (empty($claimId)) {
+if ($claimId === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Missing claimId']);
     exit;

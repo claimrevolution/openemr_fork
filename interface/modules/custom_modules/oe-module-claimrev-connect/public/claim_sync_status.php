@@ -15,6 +15,7 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimStatusSyncService;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -24,14 +25,13 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'claims')) {
+if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'claims')) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
     exit;
 }
 
-$claimDataJsonRaw = $_POST['claimData'] ?? '';
-$claimDataJson = is_string($claimDataJsonRaw) ? $claimDataJsonRaw : '';
+$claimDataJson = ModuleInput::postString('claimData');
 $claimData = json_decode($claimDataJson, true);
 
 if (!is_array($claimData)) {

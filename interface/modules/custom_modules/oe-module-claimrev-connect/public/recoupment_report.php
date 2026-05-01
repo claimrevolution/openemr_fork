@@ -19,6 +19,7 @@ use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\RecoupmentReportService;
 
 $tab = "recoupment_report";
@@ -30,9 +31,26 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
+$dateStart = ModuleInput::postString('dateStart');
+$dateEnd = ModuleInput::postString('dateEnd');
+$payerName = ModuleInput::postString('payerName');
+$patientName = ModuleInput::postString('patientName');
+if ($dateStart === '') {
+    $dateStart = date('Y-m-d', strtotime('-6 months'));
+}
+if ($dateEnd === '') {
+    $dateEnd = date('Y-m-d');
+}
+$filters = [
+    'dateStart' => $dateStart,
+    'dateEnd' => $dateEnd,
+    'payerName' => $payerName,
+    'patientName' => $patientName,
+];
+
 // CSV export
-if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'recoupment')) {
-    $data = RecoupmentReportService::getRecoupmentReport($_POST);
+if (ModuleInput::postExists('export_csv') && CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'recoupment')) {
+    $data = RecoupmentReportService::getRecoupmentReport($filters);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="recoupment_report_' . date('Y-m-d') . '.csv"');
     file_put_contents('php://output', RecoupmentReportService::toCsv($data['recoupments']));
@@ -43,9 +61,9 @@ $csrfToken = CsrfHelper::collectCsrfToken('recoupment');
 $data = null;
 $searched = false;
 
-if (!empty($_POST) && isset($_POST['SubmitButton'])) {
+if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
     $searched = true;
-    $data = RecoupmentReportService::getRecoupmentReport($_POST);
+    $data = RecoupmentReportService::getRecoupmentReport($filters);
 }
 ?>
 
@@ -85,19 +103,19 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                         <div class="form-row">
                             <div class="form-group col-md-2">
                                 <label for="dateStart"><?php echo xlt("From"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo isset($_POST['dateStart']) ? attr($_POST['dateStart']) : attr(date('Y-m-d', strtotime('-6 months'))); ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo attr($dateStart); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="dateEnd"><?php echo xlt("To"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo isset($_POST['dateEnd']) ? attr($_POST['dateEnd']) : attr(date('Y-m-d')); ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo attr($dateEnd); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="payerName"><?php echo xlt("Payer"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo isset($_POST['payerName']) ? attr($_POST['payerName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo attr($payerName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patientName"><?php echo xlt("Patient"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patientName" name="patientName" value="<?php echo isset($_POST['patientName']) ? attr($_POST['patientName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patientName" name="patientName" value="<?php echo attr($patientName); ?>"/>
                             </div>
                             <div class="form-group col-md-2 d-flex align-items-end">
                                 <button type="submit" name="SubmitButton" class="btn btn-primary btn-sm btn-block"><?php echo xlt("Run Report"); ?></button>
@@ -112,7 +130,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                 </div>
             </form>
 
-        <?php if ($searched && ($data === null || empty($data['recoupments']))) { ?>
+        <?php if ($searched && ($data === null || $data['recoupments'] === [])) { ?>
             <div class="mt-3"><?php echo xlt("No recoupments found in this date range."); ?></div>
         <?php } elseif ($data !== null) { ?>
             <?php $summary = $data['summary']; ?>
@@ -121,7 +139,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
             <div class="d-flex summary-cards mt-3 mb-2" style="gap: 10px;">
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text($summary['count']); ?></h5>
+                        <h5><?php echo text((string) $summary['count']); ?></h5>
                         <small><?php echo xlt("Recoupments"); ?></small>
                     </div>
                 </div>
@@ -148,7 +166,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                 </div>
                 <div class="card border-warning">
                     <div class="card-body">
-                        <h5 class="text-warning"><?php echo text($summary['pendingReprocess']); ?></h5>
+                        <h5 class="text-warning"><?php echo text((string) $summary['pendingReprocess']); ?></h5>
                         <small><?php echo xlt("Pending Reprocess"); ?></small>
                     </div>
                 </div>
@@ -175,12 +193,12 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                     <?php foreach ($data['recoupments'] as $idx => $r) {
                         $rowClass = 'recoup-row' . (!$r['hasReprocessed'] ? ' row-pending' : '');
                         ?>
-                    <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr($idx); ?>)">
+                    <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr((string) $idx); ?>)">
                         <td>
                             <?php echo text($r['patientName']); ?>
                             <br/><small class="text-muted"><?php echo text($r['patientDob']); ?></small>
                         </td>
-                        <td><?php echo text($r['encounter']); ?></td>
+                        <td><?php echo text((string) $r['encounter']); ?></td>
                         <td><?php echo text($r['encounterDate']); ?></td>
                         <td><?php echo text($r['payerName']); ?></td>
                         <td><?php echo text($r['code']); ?></td>
@@ -205,7 +223,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                             <?php } ?>
                         </td>
                     </tr>
-                    <tr class="recoup-detail-row" id="detail-<?php echo attr($idx); ?>">
+                    <tr class="recoup-detail-row" id="detail-<?php echo attr((string) $idx); ?>">
                         <td colspan="11" style="background-color: rgba(0,0,0,.02); padding: 15px 25px;">
                             <div class="row">
                                 <div class="col-md-4">
@@ -226,7 +244,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                                 </div>
                                 <div class="col-md-4">
                                     <div class="detail-label"><?php echo xlt("Original Payments"); ?></div>
-                                    <?php if (!empty($r['originalPayments'])) { ?>
+                                    <?php if ($r['originalPayments'] !== []) { ?>
                                         <table class="table table-sm table-borderless pmt-table mb-0">
                                             <tr><th><?php echo xlt("Date"); ?></th><th><?php echo xlt("Amount"); ?></th><th><?php echo xlt("Ref"); ?></th></tr>
                                             <?php foreach ($r['originalPayments'] as $pmt) { ?>
@@ -243,7 +261,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                                 </div>
                                 <div class="col-md-4">
                                     <div class="detail-label"><?php echo xlt("Reprocessed Payments"); ?></div>
-                                    <?php if (!empty($r['reprocessedPayments'])) { ?>
+                                    <?php if ($r['reprocessedPayments'] !== []) { ?>
                                         <table class="table table-sm table-borderless pmt-table mb-0">
                                             <tr><th><?php echo xlt("Date"); ?></th><th><?php echo xlt("Amount"); ?></th><th><?php echo xlt("Ref"); ?></th></tr>
                                             <?php foreach ($r['reprocessedPayments'] as $pmt) { ?>

@@ -17,6 +17,12 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type DenialReasonRow array{reason: string, carcCode: string, carcDescription: string, count: int, totalAmount: float}
+ * @phpstan-type DenialPayerRow array{payerName: string, count: int, totalAmount: float, encounterCount: int}
+ * @phpstan-type DenialMonthRow array{month: string, count: int, totalAmount: float}
+ * @phpstan-type DenialSummary array{totalAdjustments: int, totalAmount: float, affectedEncounters: int, payerCount: int}
+ */
 class DenialAnalyticsService
 {
     /**
@@ -63,28 +69,29 @@ class DenialAnalyticsService
     /**
      * Get denial analytics data.
      *
-     * @param array<string, mixed> $filters Optional: dateStart, dateEnd, payerName
-     * @return array{byReason: list<array>, byPayer: list<array>, byMonth: list<array>, summary: array}
+     * @param array{dateStart?: string, dateEnd?: string, payerName?: string} $filters
+     * @return array{byReason: list<DenialReasonRow>, byPayer: list<DenialPayerRow>, byMonth: list<DenialMonthRow>, summary: DenialSummary}
      */
     public static function getAnalytics(array $filters = []): array
     {
         $where = [];
         $params = [];
 
-        $dateStart = $filters['dateStart'] ?? date('Y-m-d', strtotime('-12 months'));
-        $dateEnd = $filters['dateEnd'] ?? date('Y-m-d');
+        $dateStart = ($filters['dateStart'] ?? '') !== '' ? $filters['dateStart'] : date('Y-m-d', strtotime('-12 months'));
+        $dateEnd = ($filters['dateEnd'] ?? '') !== '' ? $filters['dateEnd'] : date('Y-m-d');
 
         $where[] = "a.post_time >= ?";
         $params[] = $dateStart . ' 00:00:00';
         $where[] = "a.post_time <= ?";
         $params[] = $dateEnd . ' 23:59:59';
 
-        if (!empty($filters['payerName'])) {
+        $payerNameFilter = $filters['payerName'] ?? '';
+        if ($payerNameFilter !== '') {
             $where[] = "ic.name LIKE ?";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerNameFilter . '%';
         }
 
-        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
 
         // Base FROM clause for all queries — joins ar_activity to payer info
         $baseFrom = "FROM ar_activity a " .
@@ -101,26 +108,23 @@ class DenialAnalyticsService
         );
 
         // Enrich with CARC descriptions
-        $byReason = array_map(function ($r) {
-            $reason = $r['reason'];
+        $byReason = array_map(function (array $r): array {
+            $reason = self::asString($r['reason'] ?? '');
             $carcCode = '';
             if (preg_match('/Adjust code (\d+)/', $reason, $m)) {
                 $carcCode = $m[1];
-            } elseif (preg_match('/Ins\d+ (dedbl|coins|copay|ptresp)/', $reason)) {
-                // PR memos — not denials, skip enrichment
-                $carcCode = '';
             }
             return [
                 'reason' => $reason,
                 'carcCode' => $carcCode,
                 'carcDescription' => self::CARC_DESCRIPTIONS[$carcCode] ?? '',
-                'count' => (int) $r['denial_count'],
-                'totalAmount' => round((float) $r['total_amount'], 2),
+                'count' => self::asInt($r['denial_count'] ?? 0),
+                'totalAmount' => round(self::asFloat($r['total_amount'] ?? 0), 2),
             ];
         }, $byReason);
 
         // By payer (top 20)
-        $byPayer = QueryUtils::fetchRecords(
+        $byPayerRows = QueryUtils::fetchRecords(
             "SELECT COALESCE(ic.name, 'Unknown') AS payer_name, " .
             "COUNT(*) AS denial_count, " .
             "SUM(ABS(a.adj_amount)) AS total_amount, " .
@@ -129,15 +133,15 @@ class DenialAnalyticsService
             "GROUP BY payer_name ORDER BY denial_count DESC LIMIT 20",
             $params
         );
-        $byPayer = array_map(fn($r) => [
-            'payerName' => $r['payer_name'],
-            'count' => (int) $r['denial_count'],
-            'totalAmount' => round((float) $r['total_amount'], 2),
-            'encounterCount' => (int) $r['encounter_count'],
-        ], $byPayer);
+        $byPayer = array_map(fn(array $r): array => [
+            'payerName' => self::asString($r['payer_name'] ?? ''),
+            'count' => self::asInt($r['denial_count'] ?? 0),
+            'totalAmount' => round(self::asFloat($r['total_amount'] ?? 0), 2),
+            'encounterCount' => self::asInt($r['encounter_count'] ?? 0),
+        ], $byPayerRows);
 
         // By month (trend)
-        $byMonth = QueryUtils::fetchRecords(
+        $byMonthRows = QueryUtils::fetchRecords(
             "SELECT DATE_FORMAT(a.post_time, '%Y-%m') AS month, " .
             "COUNT(*) AS denial_count, " .
             "SUM(ABS(a.adj_amount)) AS total_amount " .
@@ -145,11 +149,11 @@ class DenialAnalyticsService
             "GROUP BY month ORDER BY month",
             $params
         );
-        $byMonth = array_map(fn($r) => [
-            'month' => $r['month'],
-            'count' => (int) $r['denial_count'],
-            'totalAmount' => round((float) $r['total_amount'], 2),
-        ], $byMonth);
+        $byMonth = array_map(fn(array $r): array => [
+            'month' => self::asString($r['month'] ?? ''),
+            'count' => self::asInt($r['denial_count'] ?? 0),
+            'totalAmount' => round(self::asFloat($r['total_amount'] ?? 0), 2),
+        ], $byMonthRows);
 
         // Summary
         $summaryRow = QueryUtils::fetchRecords(
@@ -167,18 +171,57 @@ class DenialAnalyticsService
             'byPayer' => $byPayer,
             'byMonth' => $byMonth,
             'summary' => [
-                'totalAdjustments' => (int) ($s['total_adjustments'] ?? 0),
-                'totalAmount' => round((float) ($s['total_amount'] ?? 0), 2),
-                'affectedEncounters' => (int) ($s['affected_encounters'] ?? 0),
-                'payerCount' => (int) ($s['payer_count'] ?? 0),
+                'totalAdjustments' => self::asInt($s['total_adjustments'] ?? 0),
+                'totalAmount' => round(self::asFloat($s['total_amount'] ?? 0), 2),
+                'affectedEncounters' => self::asInt($s['affected_encounters'] ?? 0),
+                'payerCount' => self::asInt($s['payer_count'] ?? 0),
             ],
         ];
+    }
+
+    private static function asString(mixed $v): string
+    {
+        if (is_string($v)) {
+            return $v;
+        }
+        if (is_int($v) || is_float($v)) {
+            return (string) $v;
+        }
+        return '';
+    }
+
+    private static function asInt(mixed $v): int
+    {
+        if (is_int($v)) {
+            return $v;
+        }
+        if (is_string($v) && is_numeric($v)) {
+            return (int) $v;
+        }
+        if (is_float($v)) {
+            return (int) $v;
+        }
+        return 0;
+    }
+
+    private static function asFloat(mixed $v): float
+    {
+        if (is_float($v)) {
+            return $v;
+        }
+        if (is_int($v)) {
+            return (float) $v;
+        }
+        if (is_string($v) && is_numeric($v)) {
+            return (float) $v;
+        }
+        return 0.0;
     }
 
     /**
      * Export denial data as CSV.
      *
-     * @param list<array<string, mixed>> $byReason
+     * @param list<DenialReasonRow> $byReason
      */
     public static function toCsv(array $byReason): string
     {

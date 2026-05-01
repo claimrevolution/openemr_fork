@@ -18,35 +18,44 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type RecoupPayment array{amount: float, date: string, reference: string, memo: string}
+ * @phpstan-type RecoupRow array{pid: int, encounter: int, patientName: string, patientDob: string, encounterDate: string, payerName: string, code: string, recoupAmount: float, recoupDate: string, recoupReference: string, recoupCheckDate: string, recoupMemo: string, originalTotal: float, reprocessedTotal: float, netImpact: float, currentBalance: float, hasReprocessed: bool, originalPayments: list<RecoupPayment>, reprocessedPayments: list<RecoupPayment>}
+ * @phpstan-type RecoupSummary array{count: int, totalRecouped: float, totalOriginal: float, totalReprocessed: float, netImpact: float, pendingReprocess: int}
+ */
 class RecoupmentReportService
 {
     /**
      * Get encounters that have had recoupments (negative payments).
      *
-     * @param array<string, mixed> $filters dateStart, dateEnd, payerName, patientName
-     * @return array{recoupments: list<array<string, mixed>>, summary: array<string, mixed>}
+     * @param array{dateStart?: string, dateEnd?: string, payerName?: string, patientName?: string} $filters
+     * @return array{recoupments: list<RecoupRow>, summary: RecoupSummary}
      */
     public static function getRecoupmentReport(array $filters = []): array
     {
         $where = ["a.pay_amount < 0", "a.deleted IS NULL"];
         $params = [];
 
-        if (!empty($filters['dateStart'])) {
+        $dateStart = $filters['dateStart'] ?? '';
+        if ($dateStart !== '') {
             $where[] = "a.post_time >= ?";
-            $params[] = $filters['dateStart'] . ' 00:00:00';
+            $params[] = $dateStart . ' 00:00:00';
         }
-        if (!empty($filters['dateEnd'])) {
+        $dateEnd = $filters['dateEnd'] ?? '';
+        if ($dateEnd !== '') {
             $where[] = "a.post_time <= ?";
-            $params[] = $filters['dateEnd'] . ' 23:59:59';
+            $params[] = $dateEnd . ' 23:59:59';
         }
-        if (!empty($filters['payerName'])) {
+        $payerNameFilter = $filters['payerName'] ?? '';
+        if ($payerNameFilter !== '') {
             $where[] = "ic.name LIKE ?";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerNameFilter . '%';
         }
-        if (!empty($filters['patientName'])) {
+        $patientNameFilter = $filters['patientName'] ?? '';
+        if ($patientNameFilter !== '') {
             $where[] = "(p.lname LIKE ? OR p.fname LIKE ?)";
-            $params[] = '%' . $filters['patientName'] . '%';
-            $params[] = '%' . $filters['patientName'] . '%';
+            $params[] = '%' . $patientNameFilter . '%';
+            $params[] = '%' . $patientNameFilter . '%';
         }
 
         $whereClause = 'WHERE ' . implode(' AND ', $where);
@@ -76,10 +85,10 @@ class RecoupmentReportService
         $totalReprocessed = 0.0;
 
         foreach ($rows as $row) {
-            $pid = (int) $row['pid'];
-            $encounter = (int) $row['encounter'];
-            $recoupAmount = round((float) $row['recoup_amount'], 2); // negative
-            $recoupSessionId = (int) $row['recoup_session_id'];
+            $pid = TypeCoerce::asInt($row['pid'] ?? 0);
+            $encounter = TypeCoerce::asInt($row['encounter'] ?? 0);
+            $recoupAmount = round(TypeCoerce::asFloat($row['recoup_amount'] ?? 0), 2); // negative
+            $recoupSessionId = TypeCoerce::asInt($row['recoup_session_id'] ?? 0);
 
             // Get all positive payments for this encounter to find original and reprocessed
             $payments = QueryUtils::fetchRecords(
@@ -93,18 +102,20 @@ class RecoupmentReportService
             );
 
             // Classify payments as original (before recoup) or reprocessed (after recoup)
-            $recoupDate = $row['recoup_date'];
+            $recoupDateRaw = TypeCoerce::asString($row['recoup_date'] ?? '');
             $originalPayments = [];
             $reprocessedPayments = [];
             $originalTotal = 0.0;
             $reprocessedTotal = 0.0;
 
             foreach ($payments as $pmt) {
-                $pmtAmount = round((float) $pmt['pay_amount'], 2);
-                if ($pmt['post_time'] <= $recoupDate && $pmt['session_id'] != $recoupSessionId) {
+                $pmtAmount = round(TypeCoerce::asFloat($pmt['pay_amount'] ?? 0), 2);
+                $postTime = TypeCoerce::asString($pmt['post_time'] ?? '');
+                $sessionId = TypeCoerce::asInt($pmt['session_id'] ?? 0);
+                if ($postTime <= $recoupDateRaw && $sessionId !== $recoupSessionId) {
                     $originalPayments[] = $pmt;
                     $originalTotal += $pmtAmount;
-                } elseif ($pmt['post_time'] > $recoupDate) {
+                } elseif ($postTime > $recoupDateRaw) {
                     $reprocessedPayments[] = $pmt;
                     $reprocessedTotal += $pmtAmount;
                 }
@@ -118,32 +129,32 @@ class RecoupmentReportService
             $recoupments[] = [
                 'pid' => $pid,
                 'encounter' => $encounter,
-                'patientName' => ($row['lname'] ?? '') . ', ' . ($row['fname'] ?? ''),
-                'patientDob' => substr((string) ($row['DOB'] ?? ''), 0, 10),
-                'encounterDate' => substr((string) $row['encounter_date'], 0, 10),
-                'payerName' => $row['payer_name'] ?? '',
-                'code' => $row['code'] ?? '',
+                'patientName' => TypeCoerce::asString($row['lname'] ?? '') . ', ' . TypeCoerce::asString($row['fname'] ?? ''),
+                'patientDob' => substr(TypeCoerce::asString($row['DOB'] ?? ''), 0, 10),
+                'encounterDate' => substr(TypeCoerce::asString($row['encounter_date'] ?? ''), 0, 10),
+                'payerName' => TypeCoerce::asString($row['payer_name'] ?? ''),
+                'code' => TypeCoerce::asString($row['code'] ?? ''),
                 'recoupAmount' => $recoupAmount,
-                'recoupDate' => substr((string) $recoupDate, 0, 10),
-                'recoupReference' => $row['recoup_reference'] ?? '',
-                'recoupCheckDate' => $row['recoup_check_date'] ?? '',
-                'recoupMemo' => $row['recoup_memo'] ?? '',
+                'recoupDate' => substr($recoupDateRaw, 0, 10),
+                'recoupReference' => TypeCoerce::asString($row['recoup_reference'] ?? ''),
+                'recoupCheckDate' => TypeCoerce::asString($row['recoup_check_date'] ?? ''),
+                'recoupMemo' => TypeCoerce::asString($row['recoup_memo'] ?? ''),
                 'originalTotal' => round($originalTotal, 2),
                 'reprocessedTotal' => round($reprocessedTotal, 2),
                 'netImpact' => $netImpact,
                 'currentBalance' => $balance,
-                'hasReprocessed' => !empty($reprocessedPayments),
-                'originalPayments' => array_map(fn($p) => [
-                    'amount' => round((float) $p['pay_amount'], 2),
-                    'date' => substr((string) $p['post_time'], 0, 10),
-                    'reference' => $p['reference'] ?? '',
-                    'memo' => $p['memo'] ?? '',
+                'hasReprocessed' => $reprocessedPayments !== [],
+                'originalPayments' => array_map(fn(array $p): array => [
+                    'amount' => round(TypeCoerce::asFloat($p['pay_amount'] ?? 0), 2),
+                    'date' => substr(TypeCoerce::asString($p['post_time'] ?? ''), 0, 10),
+                    'reference' => TypeCoerce::asString($p['reference'] ?? ''),
+                    'memo' => TypeCoerce::asString($p['memo'] ?? ''),
                 ], $originalPayments),
-                'reprocessedPayments' => array_map(fn($p) => [
-                    'amount' => round((float) $p['pay_amount'], 2),
-                    'date' => substr((string) $p['post_time'], 0, 10),
-                    'reference' => $p['reference'] ?? '',
-                    'memo' => $p['memo'] ?? '',
+                'reprocessedPayments' => array_map(fn(array $p): array => [
+                    'amount' => round(TypeCoerce::asFloat($p['pay_amount'] ?? 0), 2),
+                    'date' => substr(TypeCoerce::asString($p['post_time'] ?? ''), 0, 10),
+                    'reference' => TypeCoerce::asString($p['reference'] ?? ''),
+                    'memo' => TypeCoerce::asString($p['memo'] ?? ''),
                 ], $reprocessedPayments),
             ];
 
@@ -160,7 +171,7 @@ class RecoupmentReportService
                 'totalOriginal' => round($totalOriginal, 2),
                 'totalReprocessed' => round($totalReprocessed, 2),
                 'netImpact' => round($totalRecouped + $totalReprocessed, 2),
-                'pendingReprocess' => count(array_filter($recoupments, fn($r) => !$r['hasReprocessed'])),
+                'pendingReprocess' => count(array_filter($recoupments, fn(array $r): bool => !$r['hasReprocessed'])),
             ],
         ];
     }
@@ -179,13 +190,13 @@ class RecoupmentReportService
             ") AS balance",
             [$pid, $encounter, $pid, $encounter, $pid, $encounter, $pid, $encounter]
         );
-        return round((float) ($row[0]['balance'] ?? 0), 2);
+        return round(TypeCoerce::asFloat($row[0]['balance'] ?? 0), 2);
     }
 
     /**
      * Export as CSV.
      *
-     * @param list<array<string, mixed>> $recoupments
+     * @param list<RecoupRow> $recoupments
      */
     public static function toCsv(array $recoupments): string
     {

@@ -17,29 +17,37 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type AgingTotals array{current: float, days30: float, days60: float, days90: float, days120: float, days120plus: float, total: float}
+ * @phpstan-type AgingPayerRow array{payerName: string, payerId: ?int, current: float, days30: float, days60: float, days90: float, days120: float, days120plus: float, total: float, encounterCount: int}
+ * @phpstan-type AgingEncounter array{pid: int, encounter: int, encounterDate: string, patientName: string, payerName: string, ageDays: int, bucket: string, balance: float, lastLevelClosed: int, stmtCount: int}
+ */
 class AgingReportService
 {
     /**
      * Get aging report grouped by payer.
      *
-     * @param array<string, mixed> $filters Optional filters: payerName, patientName, minAmount
-     * @return array{payers: list<array<string, mixed>>, totals: array<string, float>, encounters: list<array<string, mixed>>}
+     * @param array{payerName?: string, patientName?: string, minAmount?: string} $filters
+     * @return array{payers: list<AgingPayerRow>, totals: AgingTotals, encounters: list<AgingEncounter>}
      */
     public static function getAgingReport(array $filters = []): array
     {
         $where = ["fe.date >= DATE_SUB(NOW(), INTERVAL 730 DAY)"];
         $params = [];
 
-        if (!empty($filters['payerName'])) {
+        $payerNameFilter = $filters['payerName'] ?? '';
+        if ($payerNameFilter !== '') {
             $where[] = "ic.name LIKE ?";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerNameFilter . '%';
         }
-        if (!empty($filters['patientName'])) {
+        $patientNameFilter = $filters['patientName'] ?? '';
+        if ($patientNameFilter !== '') {
             $where[] = "(p.lname LIKE ? OR p.fname LIKE ?)";
-            $params[] = '%' . $filters['patientName'] . '%';
-            $params[] = '%' . $filters['patientName'] . '%';
+            $params[] = '%' . $patientNameFilter . '%';
+            $params[] = '%' . $patientNameFilter . '%';
         }
-        $minAmount = isset($filters['minAmount']) && $filters['minAmount'] !== '' ? (float) $filters['minAmount'] : 0.01;
+        $minAmountFilter = $filters['minAmount'] ?? '';
+        $minAmount = $minAmountFilter !== '' ? (float) $minAmountFilter : 0.01;
 
         $whereClause = 'WHERE ' . implode(' AND ', $where);
 
@@ -67,22 +75,37 @@ class AgingReportService
         $rows = QueryUtils::fetchRecords($sql, array_merge($params, [$minAmount]));
 
         // Group by payer with aging buckets
+        /** @var array<string, AgingPayerRow> $payerMap */
         $payerMap = [];
-        $totals = ['current' => 0, 'days30' => 0, 'days60' => 0, 'days90' => 0, 'days120' => 0, 'days120plus' => 0, 'total' => 0];
+        $totals = [
+            'current' => 0.0,
+            'days30' => 0.0,
+            'days60' => 0.0,
+            'days90' => 0.0,
+            'days120' => 0.0,
+            'days120plus' => 0.0,
+            'total' => 0.0,
+        ];
         $encounters = [];
 
         foreach ($rows as $row) {
-            $payerName = $row['payer_name'] ?: 'Self-Pay';
-            $balance = round((float) $row['balance'], 2);
-            $ageDays = (int) $row['age_days'];
-
+            $payerName = self::asString($row['payer_name'] ?? '') ?: 'Self-Pay';
+            $balance = round(self::asFloat($row['balance'] ?? 0), 2);
+            $ageDays = self::asInt($row['age_days'] ?? 0);
             $bucket = self::getBucket($ageDays);
 
             if (!isset($payerMap[$payerName])) {
+                $payerId = $row['payer_id'] ?? null;
                 $payerMap[$payerName] = [
                     'payerName' => $payerName,
-                    'payerId' => $row['payer_id'] ?? null,
-                    'current' => 0, 'days30' => 0, 'days60' => 0, 'days90' => 0, 'days120' => 0, 'days120plus' => 0, 'total' => 0,
+                    'payerId' => is_numeric($payerId) ? (int) $payerId : null,
+                    'current' => 0.0,
+                    'days30' => 0.0,
+                    'days60' => 0.0,
+                    'days90' => 0.0,
+                    'days120' => 0.0,
+                    'days120plus' => 0.0,
+                    'total' => 0.0,
                     'encounterCount' => 0,
                 ];
             }
@@ -94,30 +117,71 @@ class AgingReportService
             $totals[$bucket] += $balance;
             $totals['total'] += $balance;
 
+            $lname = self::asString($row['lname'] ?? '');
+            $fname = self::asString($row['fname'] ?? '');
             $encounters[] = [
-                'pid' => (int) $row['pid'],
-                'encounter' => (int) $row['encounter'],
-                'encounterDate' => substr((string) $row['encounter_date'], 0, 10),
-                'patientName' => ($row['lname'] ?? '') . ', ' . ($row['fname'] ?? ''),
+                'pid' => self::asInt($row['pid'] ?? 0),
+                'encounter' => self::asInt($row['encounter'] ?? 0),
+                'encounterDate' => substr(self::asString($row['encounter_date'] ?? ''), 0, 10),
+                'patientName' => $lname . ', ' . $fname,
                 'payerName' => $payerName,
                 'ageDays' => $ageDays,
                 'bucket' => $bucket,
                 'balance' => $balance,
-                'lastLevelClosed' => (int) $row['last_level_closed'],
-                'stmtCount' => (int) $row['stmt_count'],
+                'lastLevelClosed' => self::asInt($row['last_level_closed'] ?? 0),
+                'stmtCount' => self::asInt($row['stmt_count'] ?? 0),
             ];
         }
 
         // Sort payers by total descending
         $payers = array_values($payerMap);
-        usort($payers, fn($a, $b) => $b['total'] <=> $a['total']);
+        usort($payers, fn(array $a, array $b): int => $b['total'] <=> $a['total']);
 
         // Round totals
-        foreach ($totals as &$v) {
-            $v = round($v, 2);
+        foreach ($totals as $key => $v) {
+            $totals[$key] = round($v, 2);
         }
 
         return ['payers' => $payers, 'totals' => $totals, 'encounters' => $encounters];
+    }
+
+    private static function asString(mixed $v): string
+    {
+        if (is_string($v)) {
+            return $v;
+        }
+        if (is_int($v) || is_float($v)) {
+            return (string) $v;
+        }
+        return '';
+    }
+
+    private static function asInt(mixed $v): int
+    {
+        if (is_int($v)) {
+            return $v;
+        }
+        if (is_string($v) && is_numeric($v)) {
+            return (int) $v;
+        }
+        if (is_float($v)) {
+            return (int) $v;
+        }
+        return 0;
+    }
+
+    private static function asFloat(mixed $v): float
+    {
+        if (is_float($v)) {
+            return $v;
+        }
+        if (is_int($v)) {
+            return (float) $v;
+        }
+        if (is_string($v) && is_numeric($v)) {
+            return (float) $v;
+        }
+        return 0.0;
     }
 
     /**
@@ -146,7 +210,7 @@ class AgingReportService
     /**
      * Export aging data as CSV string.
      *
-     * @param list<array<string, mixed>> $encounters
+     * @param list<AgingEncounter> $encounters
      */
     public static function toCsv(array $encounters): string
     {

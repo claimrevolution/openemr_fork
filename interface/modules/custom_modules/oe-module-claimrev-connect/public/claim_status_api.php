@@ -17,6 +17,7 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimTrackingService;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -26,19 +27,19 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'claim_status')) {
+if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'claim_status')) {
     http_response_code(403);
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
 
-$action = $_POST['action'] ?? '';
+$action = ModuleInput::postString('action');
 
 switch ($action) {
     case 'get_timeline':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
-        $payerType = (int) ($_POST['payer_type'] ?? 0);
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
+        $payerType = ModuleInput::postInt('payer_type');
 
         if ($pid <= 0 || $encounter <= 0) {
             echo json_encode(['error' => 'Invalid pid/encounter']);
@@ -46,14 +47,14 @@ switch ($action) {
         }
 
         $timeline = ClaimTrackingService::getClaimTimeline($pid, $encounter, $payerType);
-        $record = ClaimTrackingService::getClaimRecord($pid, $encounter, $payerType ?: 1);
+        $record = ClaimTrackingService::getClaimRecord($pid, $encounter, $payerType !== 0 ? $payerType : 1);
         echo json_encode(['timeline' => $timeline, 'record' => $record]);
         break;
 
     case 'check_status':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
-        $payerType = (int) ($_POST['payer_type'] ?? 1);
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
+        $payerType = ModuleInput::postInt('payer_type', 1);
 
         if ($pid <= 0 || $encounter <= 0) {
             echo json_encode(['error' => 'Invalid pid/encounter']);
@@ -65,11 +66,10 @@ switch ($action) {
         break;
 
     case 'batch_sync':
-        $pcnsJsonRaw = $_POST['pcns'] ?? '';
-        $pcnsJson = is_string($pcnsJsonRaw) ? $pcnsJsonRaw : '';
+        $pcnsJson = ModuleInput::postString('pcns');
         $pcns = json_decode($pcnsJson, true);
 
-        if (!is_array($pcns) || empty($pcns)) {
+        if (!is_array($pcns) || $pcns === []) {
             echo json_encode(['error' => 'Invalid PCN list']);
             exit;
         }
@@ -79,10 +79,10 @@ switch ($action) {
         break;
 
     case 'add_note':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
-        $payerType = (int) ($_POST['payer_type'] ?? 1);
-        $noteText = trim($_POST['note_text'] ?? '');
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
+        $payerType = ModuleInput::postInt('payer_type', 1);
+        $noteText = trim(ModuleInput::postString('note_text'));
 
         if ($pid <= 0 || $encounter <= 0 || $noteText === '') {
             echo json_encode(['error' => 'Invalid parameters']);
@@ -102,7 +102,11 @@ switch ($action) {
         break;
 
     case 'get_stats':
-        $stats = ClaimTrackingService::getDashboardStats($_POST);
+        $statsFilters = [
+            'dateStart' => ModuleInput::postString('dateStart'),
+            'dateEnd' => ModuleInput::postString('dateEnd'),
+        ];
+        $stats = ClaimTrackingService::getDashboardStats($statsFilters);
         echo json_encode($stats);
         break;
 

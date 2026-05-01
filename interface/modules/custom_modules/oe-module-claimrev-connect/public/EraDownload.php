@@ -19,6 +19,7 @@ use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\EraPage;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 if (!AclMain::aclCheckCore('acct', 'bill')) {
     AccessDeniedHelper::denyWithTemplate(
@@ -27,8 +28,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
-$rawEraId = $_GET['eraId'] ?? null;
-$eraId = is_string($rawEraId) ? $rawEraId : '';
+$eraId = ModuleInput::getString('eraId');
 
 try {
     $fileData = EraPage::downloadEra($eraId);
