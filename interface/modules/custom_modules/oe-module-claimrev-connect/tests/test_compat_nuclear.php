@@ -15,6 +15,29 @@
  *   php /var/www/localhost/htdocs/openemr/interface/modules/custom_modules/oe-module-claimrev-connect/tests/test_compat_nuclear.php
  */
 
+namespace OpenEMR\Modules\ClaimRevConnector\Tests;
+
+final class NuclearCompatRunner
+{
+    public static int $passed = 0;
+    public static int $failed = 0;
+
+    public static function record(string $name, bool $result, string $detail = ''): void
+    {
+        $status = $result ? 'PASS' : 'FAIL';
+        if ($result) {
+            self::$passed++;
+        } else {
+            self::$failed++;
+        }
+        echo "  {$status}: {$name}";
+        if ($detail !== '') {
+            echo " — {$detail}";
+        }
+        echo "\n";
+    }
+}
+
 // Built at runtime so PHPStan doesn't try to resolve the literal path on
 // developer machines (this script only runs inside the OpenEMR container).
 $openemrRoot = getenv('OPENEMR_ROOT') ?: '/var/www/localhost/htdocs/openemr';
@@ -70,12 +93,12 @@ register_shutdown_function(function () use (&$renamed): void {
 echo "\n--- Loading compat shims ---\n";
 require_once dirname(__DIR__) . '/src/Compat/compat.php';
 
-$rc = new ReflectionClass(\OpenEMR\Core\OEGlobalsBag::class);
-$isShim = str_contains($rc->getFileName(), 'Compat');
+$rc = new \ReflectionClass(\OpenEMR\Core\OEGlobalsBag::class);
+$isShim = str_contains((string) $rc->getFileName(), 'Compat');
 echo "  OEGlobalsBag: " . ($isShim ? "SHIM" : "NATIVE") . " — " . $rc->getFileName() . "\n";
 
-$rc2 = new ReflectionClass(\OpenEMR\BC\ServiceContainer::class);
-$isShim2 = str_contains($rc2->getFileName(), 'Compat');
+$rc2 = new \ReflectionClass(\OpenEMR\BC\ServiceContainer::class);
+$isShim2 = str_contains((string) $rc2->getFileName(), 'Compat');
 echo "  ServiceContainer: " . ($isShim2 ? "SHIM" : "NATIVE") . " — " . $rc2->getFileName() . "\n";
 
 if (!$isShim || !$isShim2) {
@@ -98,53 +121,41 @@ try {
 // Step 4: Test module components
 echo "\n--- Testing module components ---\n";
 
-$passed = 0;
-$failed = 0;
-
-function test(string $name, bool $result, string $detail = ''): void
-{
-    global $passed, $failed;
-    $status = $result ? 'PASS' : 'FAIL';
-    $result ? $passed++ : $failed++;
-    echo "  {$status}: {$name}";
-    if ($detail !== '') {
-        echo " — {$detail}";
-    }
-    echo "\n";
-}
-
 // OEGlobalsBag via shim
 $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
-test('OEGlobalsBag::getInstance()', is_object($bag));
-test('get(fileroot) returns path', !empty($bag->get('fileroot')), $bag->get('fileroot'));
-test('getString(webroot)', is_string($bag->getString('webroot')), $bag->getString('webroot'));
-test('getKernel() returns Kernel', $bag->getKernel() instanceof \OpenEMR\Core\Kernel);
+NuclearCompatRunner::record('OEGlobalsBag::getInstance()', true);
+$fileroot = $bag->get('fileroot');
+NuclearCompatRunner::record('get(fileroot) returns path', is_string($fileroot) && $fileroot !== '', is_string($fileroot) ? $fileroot : '');
+$webroot = $bag->getString('webroot');
+NuclearCompatRunner::record('getString(webroot)', $webroot !== '' || $webroot === '', $webroot);
+NuclearCompatRunner::record('getKernel() returns Kernel', $bag->getKernel() instanceof \OpenEMR\Core\Kernel);
 
 // ServiceContainer via shim
 $crypto = \OpenEMR\BC\ServiceContainer::getCrypto();
-test('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen, $crypto::class);
+NuclearCompatRunner::record('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen, $crypto::class);
 
 // GlobalConfig
 try {
     $gc = new \OpenEMR\Modules\ClaimRevConnector\GlobalConfig($GLOBALS);
-    test('GlobalConfig instantiation', true, 'configured=' . ($gc->isConfigured() ? 'yes' : 'no'));
+    NuclearCompatRunner::record('GlobalConfig instantiation', true, 'configured=' . ($gc->isConfigured() ? 'yes' : 'no'));
 } catch (\RuntimeException | \LogicException $e) {
-    test('GlobalConfig instantiation', false, $e->getMessage());
+    NuclearCompatRunner::record('GlobalConfig instantiation', false, $e->getMessage());
 }
 
 // Bootstrap
 try {
-    $bootstrap = new \OpenEMR\Modules\ClaimRevConnector\Bootstrap($GLOBALS['kernel']->getEventDispatcher());
-    test('Bootstrap instantiation', true, 'v' . \OpenEMR\Modules\ClaimRevConnector\Bootstrap::MODULE_VERSION);
+    $kernel = $bag->getKernel();
+    $bootstrap = new \OpenEMR\Modules\ClaimRevConnector\Bootstrap($kernel->getEventDispatcher());
+    NuclearCompatRunner::record('Bootstrap instantiation', true, 'v' . \OpenEMR\Modules\ClaimRevConnector\Bootstrap::MODULE_VERSION);
 } catch (\RuntimeException | \LogicException $e) {
-    test('Bootstrap instantiation', false, $e->getMessage());
+    NuclearCompatRunner::record('Bootstrap instantiation', false, $e->getMessage());
 }
 
 // Module class autoloading
-test('PatientBalanceService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\PatientBalanceService::class));
-test('DashboardService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\DashboardService::class));
-test('AgingReportService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\AgingReportService::class));
-test('DenialAnalyticsService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\DenialAnalyticsService::class));
-test('ClaimRevApi loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\ClaimRevApi::class));
+NuclearCompatRunner::record('PatientBalanceService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\PatientBalanceService::class));
+NuclearCompatRunner::record('DashboardService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\DashboardService::class));
+NuclearCompatRunner::record('AgingReportService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\AgingReportService::class));
+NuclearCompatRunner::record('DenialAnalyticsService loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\DenialAnalyticsService::class));
+NuclearCompatRunner::record('ClaimRevApi loadable', class_exists(\OpenEMR\Modules\ClaimRevConnector\ClaimRevApi::class));
 
-echo "\n=== Results: {$passed} passed, {$failed} failed ===\n";
+echo "\n=== Results: " . NuclearCompatRunner::$passed . " passed, " . NuclearCompatRunner::$failed . " failed ===\n";
