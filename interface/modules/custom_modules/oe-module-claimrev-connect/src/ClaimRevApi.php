@@ -193,7 +193,7 @@ readonly class ClaimRevApi
             $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
             $globalsConfig = $bootstrap->getGlobalConfig();
             $apiServer = $globalsConfig->getApiServer();
-        } catch (\Throwable) {
+        } catch (\Exception) {
             return false;
         }
 

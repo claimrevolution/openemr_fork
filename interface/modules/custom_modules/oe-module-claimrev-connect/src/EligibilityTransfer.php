@@ -443,7 +443,7 @@ class EligibilityTransfer extends BaseService
 
         try {
             EDI270::parseEdi271($raw271);
-        } catch (\Throwable) {
+        } catch (\Exception) {
             // Non-fatal — ClaimRev's own eligibility display still works.
             // The native Insurance card tab just won't be populated.
         }
