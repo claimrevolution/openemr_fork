@@ -18,6 +18,7 @@
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
     use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+    use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
     $tab = "setup";
 
@@ -27,29 +28,29 @@ if (!AclMain::aclCheckCore('admin', 'manage_modules')) {
 }
 
 $actionMessage = '';
-if (!empty($_POST)) {
-    if (!CsrfHelper::verifyCsrfToken($_POST["csrf_token_form"], "ClaimRevModule")) {
+if (ModuleInput::isPostRequest()) {
+    if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token_form'), 'ClaimRevModule')) {
         CsrfUtils::csrfNotVerified();
     }
-    if (isset($_POST['deactivateSftp'])) {
+    if (ModuleInput::postExists('deactivateSftp')) {
         ClaimRevModuleSetup::deactivateSftpService();
         $actionMessage = xlt("SFTP service has been deactivated.");
     }
-    if (isset($_POST['reactivateSftp'])) {
+    if (ModuleInput::postExists('reactivateSftp')) {
         ClaimRevModuleSetup::reactivateSftpService();
         $actionMessage = xlt("SFTP service has been reactivated.");
     }
-    if (isset($_POST['backgroundService'])) {
+    if (ModuleInput::postExists('backgroundService')) {
         ClaimRevModuleSetup::createBackGroundServices();
         $actionMessage = xlt("Background services have been reset to defaults.");
     }
-    if (isset($_POST['runMigrations'])) {
+    if (ModuleInput::postExists('runMigrations')) {
         ClaimRevModuleSetup::runMigrations();
         $actionMessage = xlt("Upgrade complete. New tables and services have been applied.");
     }
-    if (isset($_POST['createPartner'])) {
-        $idNumber = $_POST['partnerIdNumber'] ?? '';
-        $senderId = $_POST['partnerSenderId'] ?? '';
+    if (ModuleInput::postExists('createPartner')) {
+        $idNumber = ModuleInput::postString('partnerIdNumber');
+        $senderId = ModuleInput::postString('partnerSenderId');
         ClaimRevModuleSetup::createPartnerRecord($idNumber, $senderId);
         $actionMessage = xlt("X12 partner record has been created.");
     }
@@ -175,19 +176,19 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                             foreach ($services as $service) {
                                 ?>
                                 <tr>
-                                    <td><?php echo text($service["name"]); ?> - <?php echo text($service["title"]); ?></td>
-                                    <td><?php echo text($service["active"]); ?></td>
+                                    <td><?php echo text((string) ($service["name"] ?? '')); ?> - <?php echo text((string) ($service["title"] ?? '')); ?></td>
+                                    <td><?php echo text((string) ($service["active"] ?? '')); ?></td>
                                     <td>
-                                        <?php if ($service["running"] == 1) { ?>
-                                            <span class="text-danger font-weight-bold"><?php echo text($service["running"]); ?></span>
+                                        <?php if ((int) ($service["running"] ?? 0) === 1) { ?>
+                                            <span class="text-danger font-weight-bold"><?php echo text((string) $service["running"]); ?></span>
                                         <?php } else { ?>
-                                            <?php echo text($service["running"]); ?>
+                                            <?php echo text((string) ($service["running"] ?? '')); ?>
                                         <?php } ?>
                                     </td>
-                                    <td><?php echo text($service["next_run"]); ?></td>
-                                    <td><?php echo text($service["execute_interval"]); ?></td>
-                                    <td><?php echo text($service["function"]); ?></td>
-                                    <td><small><?php echo text($service["require_once"]); ?></small></td>
+                                    <td><?php echo text((string) ($service["next_run"] ?? '')); ?></td>
+                                    <td><?php echo text((string) ($service["execute_interval"] ?? '')); ?></td>
+                                    <td><?php echo text((string) ($service["function"] ?? '')); ?></td>
+                                    <td><small><?php echo text((string) ($service["require_once"] ?? '')); ?></small></td>
                                 </tr>
                                 <?php
                             }
