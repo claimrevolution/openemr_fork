@@ -16,6 +16,7 @@
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Billing\BillingUtilities;
+use OpenEMR\Common\Database\QueryUtils;
 
 class ClaimStatusSyncService
 {
@@ -52,11 +53,11 @@ class ClaimStatusSyncService
         $encounter = $parsed['encounter'];
 
         // Check encounter exists
-        $feRow = sqlQuery(
+        $feRow = QueryUtils::querySingleRow(
             "SELECT pid, encounter FROM form_encounter WHERE pid = ? AND encounter = ?",
             [$pid, $encounter]
         );
-        if (empty($feRow)) {
+        if ($feRow === [] || $feRow === false) {
             return [
                 'success' => false,
                 'message' => 'Encounter not found in OpenEMR: ' . $pcn,
@@ -65,13 +66,13 @@ class ClaimStatusSyncService
         }
 
         // Get current OE claim status
-        $claimRow = sqlQuery(
+        $claimRow = QueryUtils::querySingleRow(
             "SELECT status, bill_process, payer_id, payer_type FROM claims " .
             "WHERE patient_id = ? AND encounter_id = ? ORDER BY version DESC LIMIT 1",
             [$pid, $encounter]
         );
 
-        if (empty($claimRow)) {
+        if ($claimRow === [] || $claimRow === false) {
             return [
                 'success' => false,
                 'message' => 'No claim record found in OpenEMR for: ' . $pcn,
@@ -79,9 +80,9 @@ class ClaimStatusSyncService
             ];
         }
 
-        $currentStatus = (int) $claimRow['status'];
-        $payerId = (int) $claimRow['payer_id'];
-        $payerType = (int) $claimRow['payer_type'];
+        $currentStatus = TypeCoerce::asInt($claimRow['status'] ?? 0);
+        $payerId = TypeCoerce::asInt($claimRow['payer_id'] ?? 0);
+        $payerType = TypeCoerce::asInt($claimRow['payer_type'] ?? 0);
 
         $statusId = (int) ($claimData['statusId'] ?? 0);
         $payerAcceptanceStatusId = (int) ($claimData['payerAcceptanceStatusId'] ?? 0);
@@ -182,22 +183,22 @@ class ClaimStatusSyncService
         $encounter = $parsed['encounter'];
 
         // Get current claim record
-        $claimRow = sqlQuery(
+        $claimRow = QueryUtils::querySingleRow(
             "SELECT status, bill_process, payer_id, payer_type FROM claims " .
             "WHERE patient_id = ? AND encounter_id = ? ORDER BY version DESC LIMIT 1",
             [$pid, $encounter]
         );
 
-        if (empty($claimRow)) {
+        if ($claimRow === [] || $claimRow === false) {
             return [
                 'success' => false,
                 'message' => 'No claim record found in OpenEMR',
             ];
         }
 
-        $currentStatus = (int) $claimRow['status'];
-        $payerId = (int) $claimRow['payer_id'];
-        $payerType = (int) $claimRow['payer_type'];
+        $currentStatus = TypeCoerce::asInt($claimRow['status'] ?? 0);
+        $payerId = TypeCoerce::asInt($claimRow['payer_id'] ?? 0);
+        $payerType = TypeCoerce::asInt($claimRow['payer_type'] ?? 0);
 
         // Only requeue if denied (7) or billed (2) — doesn't make sense for unbilled (0/1)
         if ($currentStatus === 0 || $currentStatus === 1) {
