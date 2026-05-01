@@ -43,7 +43,7 @@ class DashboardService
     private static function getClaimMetrics(): array
     {
         // Claims in flight: billed (status 2 or 6) in last 180 days
-        $inFlight = (int) QueryUtils::fetchSingleValue(
+        $inFlight = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(DISTINCT CONCAT(c.patient_id, '-', c.encounter_id)) AS cnt " .
             "FROM claims c " .
             "JOIN (SELECT patient_id, encounter_id, MAX(version) AS mv FROM claims GROUP BY patient_id, encounter_id) cv " .
@@ -52,26 +52,26 @@ class DashboardService
             "WHERE c.status IN (2, 6) AND fe.date >= DATE_SUB(NOW(), INTERVAL 180 DAY)",
             'cnt',
             []
-        );
+        ));
 
         // Pending ERAs: claims with ERA received but no payment posted (from tracking table)
         $pendingEras = 0;
-        $hasTrackingTable = QueryUtils::fetchSingleValue(
+        $hasTrackingTable = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'mod_claimrev_claims'",
             'cnt',
             []
-        );
-        if ((int) $hasTrackingTable > 0) {
-            $pendingEras = (int) QueryUtils::fetchSingleValue(
+        ));
+        if ($hasTrackingTable > 0) {
+            $pendingEras = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
                 "SELECT COUNT(*) AS cnt FROM mod_claimrev_claims " .
                 "WHERE era_classification IS NOT NULL AND era_classification != '' AND ar_session_id IS NULL",
                 'cnt',
                 []
-            );
+            ));
         }
 
         // Rejected in last 90 days
-        $rejected = (int) QueryUtils::fetchSingleValue(
+        $rejected = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(DISTINCT CONCAT(c.patient_id, '-', c.encounter_id)) AS cnt " .
             "FROM claims c " .
             "JOIN (SELECT patient_id, encounter_id, MAX(version) AS mv FROM claims GROUP BY patient_id, encounter_id) cv " .
@@ -80,10 +80,10 @@ class DashboardService
             "WHERE c.status = 7 AND fe.date >= DATE_SUB(NOW(), INTERVAL 90 DAY)",
             'cnt',
             []
-        );
+        ));
 
         // Clean claim rate: (billed - rejected) / billed in last 90 days
-        $totalBilled90 = (int) QueryUtils::fetchSingleValue(
+        $totalBilled90 = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(DISTINCT CONCAT(c.patient_id, '-', c.encounter_id)) AS cnt " .
             "FROM claims c " .
             "JOIN (SELECT patient_id, encounter_id, MAX(version) AS mv FROM claims GROUP BY patient_id, encounter_id) cv " .
@@ -92,7 +92,7 @@ class DashboardService
             "WHERE c.status IN (2, 6, 7) AND fe.date >= DATE_SUB(NOW(), INTERVAL 90 DAY)",
             'cnt',
             []
-        );
+        ));
         $cleanRate = $totalBilled90 > 0 ? round((($totalBilled90 - $rejected) / $totalBilled90) * 100, 1) : 0;
 
         return [
@@ -134,9 +134,9 @@ class DashboardService
 
         $r = $rows[0] ?? [];
         return [
-            'totalAr' => round((float) ($r['total_ar'] ?? 0), 2),
-            'avgDaysInAr' => round((float) ($r['avg_days'] ?? 0), 0),
-            'over90' => round((float) ($r['over_90'] ?? 0), 2),
+            'totalAr' => round(TypeCoerce::asFloat($r['total_ar'] ?? 0), 2),
+            'avgDaysInAr' => round(TypeCoerce::asFloat($r['avg_days'] ?? 0), 0),
+            'over90' => round(TypeCoerce::asFloat($r['over_90'] ?? 0), 2),
         ];
     }
 
@@ -148,7 +148,7 @@ class DashboardService
     private static function getDenialMetrics(): array
     {
         // Denial rate from claims table in last 90 days
-        $denied90 = (int) QueryUtils::fetchSingleValue(
+        $denied90 = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(DISTINCT CONCAT(c.patient_id, '-', c.encounter_id)) AS cnt " .
             "FROM claims c " .
             "JOIN (SELECT patient_id, encounter_id, MAX(version) AS mv FROM claims GROUP BY patient_id, encounter_id) cv " .
@@ -157,9 +157,9 @@ class DashboardService
             "WHERE c.status = 7 AND fe.date >= DATE_SUB(NOW(), INTERVAL 90 DAY)",
             'cnt',
             []
-        );
+        ));
 
-        $processed90 = (int) QueryUtils::fetchSingleValue(
+        $processed90 = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(DISTINCT CONCAT(c.patient_id, '-', c.encounter_id)) AS cnt " .
             "FROM claims c " .
             "JOIN (SELECT patient_id, encounter_id, MAX(version) AS mv FROM claims GROUP BY patient_id, encounter_id) cv " .
@@ -168,7 +168,7 @@ class DashboardService
             "WHERE c.status IN (2, 6, 7) AND fe.date >= DATE_SUB(NOW(), INTERVAL 90 DAY)",
             'cnt',
             []
-        );
+        ));
 
         $denialRate = $processed90 > 0 ? round(($denied90 / $processed90) * 100, 1) : 0;
 
@@ -189,7 +189,7 @@ class DashboardService
             'denialRate' => $denialRate,
             'totalDenied' => $denied90,
             'totalProcessed' => $processed90,
-            'topReasons' => array_map(fn($r) => ['reason' => $r['reason'], 'count' => (int) $r['cnt']], $topReasons),
+            'topReasons' => array_map(fn(array $r): array => ['reason' => TypeCoerce::asString($r['reason'] ?? ''), 'count' => TypeCoerce::asInt($r['cnt'] ?? 0)], $topReasons),
         ];
     }
 
@@ -200,30 +200,30 @@ class DashboardService
      */
     private static function getCollectionMetrics(): array
     {
-        $thisMonth = (float) QueryUtils::fetchSingleValue(
+        $thisMonth = TypeCoerce::asFloat(QueryUtils::fetchSingleValue(
             "SELECT COALESCE(SUM(a.pay_amount), 0) AS total " .
             "FROM ar_activity a WHERE a.deleted IS NULL AND a.pay_amount > 0 " .
             "AND a.post_time >= DATE_FORMAT(NOW(), '%Y-%m-01')",
             'total',
             []
-        );
+        ));
 
-        $lastMonth = (float) QueryUtils::fetchSingleValue(
+        $lastMonth = TypeCoerce::asFloat(QueryUtils::fetchSingleValue(
             "SELECT COALESCE(SUM(a.pay_amount), 0) AS total " .
             "FROM ar_activity a WHERE a.deleted IS NULL AND a.pay_amount > 0 " .
             "AND a.post_time >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01') " .
             "AND a.post_time < DATE_FORMAT(NOW(), '%Y-%m-01')",
             'total',
             []
-        );
+        ));
 
-        $thisQuarter = (float) QueryUtils::fetchSingleValue(
+        $thisQuarter = TypeCoerce::asFloat(QueryUtils::fetchSingleValue(
             "SELECT COALESCE(SUM(a.pay_amount), 0) AS total " .
             "FROM ar_activity a WHERE a.deleted IS NULL AND a.pay_amount > 0 " .
             "AND a.post_time >= DATE_FORMAT(MAKEDATE(YEAR(NOW()), 1) + INTERVAL (QUARTER(NOW()) - 1) * 3 MONTH, '%Y-%m-01')",
             'total',
             []
-        );
+        ));
 
         return [
             'thisMonth' => round($thisMonth, 2),
@@ -257,11 +257,11 @@ class DashboardService
         );
 
         $r = $rows[0] ?? [];
-        $encCount = (int) ($r['enc_count'] ?? 0);
-        $totalBal = round((float) ($r['total_bal'] ?? 0), 2);
+        $encCount = TypeCoerce::asInt($r['enc_count'] ?? 0);
+        $totalBal = round(TypeCoerce::asFloat($r['total_bal'] ?? 0), 2);
 
         // Never sent statements
-        $neverSent = (int) QueryUtils::fetchSingleValue(
+        $neverSent = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt FROM (" .
             "SELECT fe.pid, fe.encounter, " .
             "(COALESCE((SELECT SUM(b.fee) FROM billing b WHERE b.pid = fe.pid AND b.encounter = fe.encounter AND b.activity = 1), 0) " .
@@ -276,7 +276,7 @@ class DashboardService
             ") AS sub",
             'cnt',
             []
-        );
+        ));
 
         return [
             'totalPatientAr' => $totalBal,
