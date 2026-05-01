@@ -18,6 +18,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 use OpenEMR\Core\AbstractModuleActionListener;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
 

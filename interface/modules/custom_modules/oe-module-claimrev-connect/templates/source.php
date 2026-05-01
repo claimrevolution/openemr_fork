@@ -10,6 +10,8 @@
 
 /** @var \stdClass|null $source */
 
+declare(strict_types=1);
+
 if ($source === null) {
     return;
 }

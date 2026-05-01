@@ -12,6 +12,8 @@
 
 /** @var \stdClass|null $demographicInfo set by the caller (individual->demographicInfo) */
 
+declare(strict_types=1);
+
 if ($demographicInfo === null) {
     echo xlt("No demographic results");
     return;

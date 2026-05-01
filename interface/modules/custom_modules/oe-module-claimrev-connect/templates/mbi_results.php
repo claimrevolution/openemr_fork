@@ -12,6 +12,8 @@
 
 /** @var \stdClass|null $mbiResults set by the caller (individual->mbiFinderResults) */
 
+declare(strict_types=1);
+
 if ($mbiResults === null) {
     echo xlt("No MBI results");
     return;

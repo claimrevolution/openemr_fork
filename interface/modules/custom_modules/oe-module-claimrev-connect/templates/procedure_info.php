@@ -12,6 +12,8 @@
 
 /** @var \stdClass $benefit */
 
+declare(strict_types=1);
+
 $procedureInfo = property_exists($benefit, 'procedureInfo') && is_object($benefit->procedureInfo) ? $benefit->procedureInfo : null;
 if ($procedureInfo === null) {
     return;

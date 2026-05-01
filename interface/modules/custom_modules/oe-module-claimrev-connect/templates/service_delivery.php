@@ -12,6 +12,8 @@
 
 /** @var \stdClass $benefit */
 
+declare(strict_types=1);
+
 $serviceDeliveries = property_exists($benefit, 'serviceDeliveries') && is_iterable($benefit->serviceDeliveries) ? $benefit->serviceDeliveries : null;
 if ($serviceDeliveries === null) {
     return;

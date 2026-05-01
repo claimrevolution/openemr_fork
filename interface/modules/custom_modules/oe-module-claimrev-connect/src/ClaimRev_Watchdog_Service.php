@@ -14,6 +14,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
 use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;

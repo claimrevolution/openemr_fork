@@ -12,6 +12,8 @@
 
 /** @var \stdClass $benefit */
 
+declare(strict_types=1);
+
 $dates = property_exists($benefit, 'dates') && is_iterable($benefit->dates) ? $benefit->dates : null;
 if ($dates === null) {
     return;

@@ -14,6 +14,8 @@
 
 
 
+declare(strict_types=1);
+
 function start_X12_SFTP(): void
 {
 }

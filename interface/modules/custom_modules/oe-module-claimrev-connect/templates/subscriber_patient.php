@@ -12,6 +12,8 @@
 
 /** @var \stdClass $subscriberPatient */
 
+declare(strict_types=1);
+
 $str = static function (object $o, string $prop): string {
     if (!property_exists($o, $prop)) {
         return '';
