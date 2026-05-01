@@ -15,10 +15,12 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimTrackingService;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 $tab = "claim_status";
 
@@ -32,21 +34,35 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claim_status');
-$webRoot = $GLOBALS['webroot'];
+$webRoot = OEGlobalsBag::getInstance()->getString('webroot');
+
+$dateStart = ModuleInput::postString('dateStart');
+$dateEnd = ModuleInput::postString('dateEnd');
+$patientLastName = ModuleInput::postString('patientLastName');
+$payerName = ModuleInput::postString('payerName');
+$statusFilter = ModuleInput::postString('statusFilter', 'all');
+$searchFilters = [
+    'dateStart' => $dateStart,
+    'dateEnd' => $dateEnd,
+    'patientLastName' => $patientLastName,
+    'payerName' => $payerName,
+    'statusFilter' => $statusFilter,
+    'pageIndex' => ModuleInput::postInt('pageIndex'),
+];
 
 $claims = [];
 $totalRecords = 0;
-$pageIndex = isset($_POST['pageIndex']) ? (int) $_POST['pageIndex'] : 0;
+$pageIndex = ModuleInput::postInt('pageIndex');
 $pageSize = 50;
 $searched = false;
 $stats = ['total' => 0, 'needingAttention' => 0, 'rejected' => 0, 'denied' => 0, 'stale' => 0, 'paid' => 0, 'paidNotPosted' => 0];
 
-if (!empty($_POST) && isset($_POST['SubmitButton'])) {
+if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
     $searched = true;
-    $result = ClaimTrackingService::getWorkQueue($_POST);
+    $result = ClaimTrackingService::getWorkQueue($searchFilters);
     $claims = $result['claims'];
     $totalRecords = $result['totalRecords'];
-    $stats = ClaimTrackingService::getDashboardStats($_POST);
+    $stats = ClaimTrackingService::getDashboardStats($searchFilters);
 }
 
 $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
@@ -91,7 +107,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
         <div class="container-fluid">
             <?php require '../templates/navbar.php'; ?>
             <form method="post" action="claim_status.php" id="statusSearchForm">
-                <input type="hidden" name="pageIndex" id="pageIndex" value="<?php echo attr($pageIndex); ?>"/>
+                <input type="hidden" name="pageIndex" id="pageIndex" value="<?php echo attr((string) $pageIndex); ?>"/>
                 <div class="card mt-3">
                     <div class="card-header">
                         <?php echo xlt("Claim Status Dashboard"); ?>
@@ -100,29 +116,29 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         <div class="form-row">
                             <div class="form-group col-md-2">
                                 <label for="dateStart"><?php echo xlt("Service Date Start"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo isset($_POST['dateStart']) ? attr($_POST['dateStart']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo attr($dateStart); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="dateEnd"><?php echo xlt("Service Date End"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo isset($_POST['dateEnd']) ? attr($_POST['dateEnd']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo attr($dateEnd); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patientLastName"><?php echo xlt("Patient Last"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patientLastName" name="patientLastName" value="<?php echo isset($_POST['patientLastName']) ? attr($_POST['patientLastName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patientLastName" name="patientLastName" value="<?php echo attr($patientLastName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="payerName"><?php echo xlt("Payer"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo isset($_POST['payerName']) ? attr($_POST['payerName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo attr($payerName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="statusFilter"><?php echo xlt("Filter"); ?></label>
                                 <select class="form-control form-control-sm" id="statusFilter" name="statusFilter">
-                                    <option value="all" <?php echo (($_POST['statusFilter'] ?? '') === 'all') ? 'selected' : ''; ?>><?php echo xlt("All Billed"); ?></option>
-                                    <option value="rejected" <?php echo (($_POST['statusFilter'] ?? '') === 'rejected') ? 'selected' : ''; ?>><?php echo xlt("Rejected"); ?></option>
-                                    <option value="denied" <?php echo (($_POST['statusFilter'] ?? '') === 'denied') ? 'selected' : ''; ?>><?php echo xlt("Denied"); ?></option>
-                                    <option value="stale" <?php echo (($_POST['statusFilter'] ?? '') === 'stale') ? 'selected' : ''; ?>><?php echo xlt("Stale"); ?></option>
-                                    <option value="paid_not_posted" <?php echo (($_POST['statusFilter'] ?? '') === 'paid_not_posted') ? 'selected' : ''; ?>><?php echo xlt("Paid - Not Posted"); ?></option>
-                                    <option value="unworked" <?php echo (($_POST['statusFilter'] ?? '') === 'unworked') ? 'selected' : ''; ?>><?php echo xlt("Unworked"); ?></option>
+                                    <option value="all" <?php echo $statusFilter === 'all' ? 'selected' : ''; ?>><?php echo xlt("All Billed"); ?></option>
+                                    <option value="rejected" <?php echo $statusFilter === 'rejected' ? 'selected' : ''; ?>><?php echo xlt("Rejected"); ?></option>
+                                    <option value="denied" <?php echo $statusFilter === 'denied' ? 'selected' : ''; ?>><?php echo xlt("Denied"); ?></option>
+                                    <option value="stale" <?php echo $statusFilter === 'stale' ? 'selected' : ''; ?>><?php echo xlt("Stale"); ?></option>
+                                    <option value="paid_not_posted" <?php echo $statusFilter === 'paid_not_posted' ? 'selected' : ''; ?>><?php echo xlt("Paid - Not Posted"); ?></option>
+                                    <option value="unworked" <?php echo $statusFilter === 'unworked' ? 'selected' : ''; ?>><?php echo xlt("Unworked"); ?></option>
                                 </select>
                             </div>
                             <div class="form-group col-md-2 d-flex align-items-end">
@@ -133,22 +149,22 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 </div>
             </form>
 
-        <?php if ($searched && empty($claims)) { ?>
+        <?php if ($searched && $claims === []) { ?>
             <div class="mt-3"><?php echo xlt("No matching claims found."); ?></div>
-        <?php } elseif (!empty($claims)) { ?>
+        <?php } elseif ($claims !== []) { ?>
 
             <!-- Summary cards -->
             <div class="d-flex summary-cards mt-3 mb-2" style="gap: 10px;">
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text($stats['total']); ?></h5>
+                        <h5><?php echo text((string) $stats['total']); ?></h5>
                         <small><?php echo xlt("Total"); ?></small>
                     </div>
                 </div>
                 <?php if ($stats['needingAttention'] > 0) { ?>
                 <div class="card border-danger">
                     <div class="card-body">
-                        <h5 class="text-danger"><?php echo text($stats['needingAttention']); ?></h5>
+                        <h5 class="text-danger"><?php echo text((string) $stats['needingAttention']); ?></h5>
                         <small><?php echo xlt("Need Attention"); ?></small>
                     </div>
                 </div>
@@ -156,7 +172,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 <?php if ($stats['rejected'] > 0) { ?>
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="text-danger"><?php echo text($stats['rejected']); ?></h5>
+                        <h5 class="text-danger"><?php echo text((string) $stats['rejected']); ?></h5>
                         <small><?php echo xlt("Rejected"); ?></small>
                     </div>
                 </div>
@@ -164,7 +180,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 <?php if ($stats['denied'] > 0) { ?>
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="text-danger"><?php echo text($stats['denied']); ?></h5>
+                        <h5 class="text-danger"><?php echo text((string) $stats['denied']); ?></h5>
                         <small><?php echo xlt("Denied"); ?></small>
                     </div>
                 </div>
@@ -172,33 +188,33 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 <?php if ($stats['stale'] > 0) { ?>
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="text-warning"><?php echo text($stats['stale']); ?></h5>
+                        <h5 class="text-warning"><?php echo text((string) $stats['stale']); ?></h5>
                         <small><?php echo xlt("Stale"); ?></small>
                     </div>
                 </div>
                 <?php } ?>
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="text-success"><?php echo text($stats['paid']); ?></h5>
+                        <h5 class="text-success"><?php echo text((string) $stats['paid']); ?></h5>
                         <small><?php echo xlt("Paid"); ?></small>
                     </div>
                 </div>
                 <?php if ($stats['paidNotPosted'] > 0) { ?>
                 <div class="card border-warning">
                     <div class="card-body">
-                        <h5 class="text-warning"><?php echo text($stats['paidNotPosted']); ?></h5>
+                        <h5 class="text-warning"><?php echo text((string) $stats['paidNotPosted']); ?></h5>
                         <small><?php echo xlt("Paid Not Posted"); ?></small>
                     </div>
                 </div>
                 <?php } ?>
                 <?php if ($totalPages > 1) { ?>
                 <div class="ml-auto d-flex align-items-center">
-                    <small class="text-muted mr-2"><?php echo xlt("Page"); ?> <?php echo text($pageIndex + 1); ?>/<?php echo text($totalPages); ?></small>
+                    <small class="text-muted mr-2"><?php echo xlt("Page"); ?> <?php echo text((string) ($pageIndex + 1)); ?>/<?php echo text((string) $totalPages); ?></small>
                     <?php if ($pageIndex > 0) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary mr-1" onclick="goToPage(<?php echo attr($pageIndex - 1); ?>)">&laquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mr-1" onclick="goToPage(<?php echo attr((string) ($pageIndex - 1)); ?>)">&laquo;</button>
                     <?php } ?>
                     <?php if ($pageIndex < $totalPages - 1) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex + 1); ?>)">&raquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex + 1)); ?>)">&raquo;</button>
                     <?php } ?>
                 </div>
                 <?php } ?>
@@ -226,7 +242,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         $crStatusId = $claim['crStatusId'];
                         $payerAccId = $claim['payerAcceptanceStatusId'];
                         $eraCls = $claim['eraClassification'];
-                        $isRejected = in_array($crStatusId, [10, 16, 17]) || $payerAccId === 3;
+                        $isRejected = in_array($crStatusId, [10, 16, 17], true) || $payerAccId === 3;
                         $isDenied = stripos($eraCls, 'denied') !== false || $claim['oeStatus'] === 7;
                         $isPaid = stripos($eraCls, 'paid') !== false;
                         $billTime = is_string($claim['billTime'] ?? null) ? $claim['billTime'] : '';
@@ -259,7 +275,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
         $crBadgeClass = 'badge-danger';
     } elseif ($payerAccId === 4) {
         $crBadgeClass = 'badge-success';
-    } elseif (in_array($crStatusId, [7, 8, 9, 18])) {
+    } elseif (in_array($crStatusId, [7, 8, 9, 18], true)) {
         $crBadgeClass = 'badge-primary';
     }
 
@@ -272,7 +288,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                             default => 'badge-secondary',
                         };
     ?>
-                    <tr class="<?php echo attr($rowClass); ?>" onclick="toggleTimeline(<?php echo attr($idx); ?>)" id="row-<?php echo attr($idx); ?>">
+                    <tr class="<?php echo attr($rowClass); ?>" onclick="toggleTimeline(<?php echo attr((string) $idx); ?>)" id="row-<?php echo attr((string) $idx); ?>">
                         <td>
                             <?php echo text($claim['patientName']); ?>
                             <br/><small class="text-muted"><?php echo text($claim['patientDob']); ?></small>
@@ -324,11 +340,11 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         <td onclick="event.stopPropagation();">
                             <div class="btn-group btn-group-sm">
                                 <button type="button" class="btn btn-outline-info btn-sm" title="<?php echo xla("Check Status"); ?>"
-                                    onclick="checkStatus(<?php echo attr($claim['pid']); ?>, <?php echo attr($claim['encounter']); ?>, <?php echo attr($claim['payerType']); ?>, this)">
+                                    onclick="checkStatus(<?php echo attr((string) $claim['pid']); ?>, <?php echo attr((string) $claim['encounter']); ?>, <?php echo attr((string) $claim['payerType']); ?>, this)">
                                     <i class="fa fa-sync-alt"></i>
                                 </button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm" title="<?php echo xla("Open Encounter"); ?>"
-                                    onclick="openEncounterTab(<?php echo attr($claim['pid']); ?>, <?php echo attr($claim['encounter']); ?>)">
+                                    onclick="openEncounterTab(<?php echo attr((string) $claim['pid']); ?>, <?php echo attr((string) $claim['encounter']); ?>)">
                                     <i class="fa fa-folder-open"></i>
                                 </button>
                                 <?php if ($portalUrl !== '' && $claim['crObjectId'] !== '') { ?>
@@ -339,7 +355,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                             </div>
                         </td>
                     </tr>
-                    <tr class="timeline-row" id="timeline-<?php echo attr($idx); ?>">
+                    <tr class="timeline-row" id="timeline-<?php echo attr((string) $idx); ?>">
                         <td colspan="11" style="background-color: rgba(0,0,0,.02); padding: 15px 25px;">
                             <div class="row">
                                 <div class="col-md-4">
@@ -356,25 +372,25 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                                         <?php if ($claim['lastSynced'] !== '') { ?>
                                             <strong><?php echo xlt("Last Synced"); ?>:</strong> <?php echo text($claim['lastSynced']); ?><br/>
                                         <?php } ?>
-                                        <?php if ($claim['arSessionId']) { ?>
-                                            <strong><?php echo xlt("Payment Session"); ?>:</strong> <?php echo text($claim['arSessionId']); ?><br/>
+                                        <?php if ($claim['arSessionId'] !== null && $claim['arSessionId'] !== 0) { ?>
+                                            <strong><?php echo xlt("Payment Session"); ?>:</strong> <?php echo text((string) $claim['arSessionId']); ?><br/>
                                         <?php } ?>
                                     </div>
                                     <div class="mt-2">
-                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleNoteForm(<?php echo attr($idx); ?>)">
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleNoteForm(<?php echo attr((string) $idx); ?>)">
                                             <i class="fa fa-sticky-note"></i> <?php echo xlt("Add Note"); ?>
                                         </button>
                                     </div>
-                                    <div class="note-form" id="noteForm-<?php echo attr($idx); ?>">
-                                        <textarea class="form-control form-control-sm mt-1" id="noteText-<?php echo attr($idx); ?>" rows="2" placeholder="<?php echo xla("Enter note..."); ?>"></textarea>
-                                        <button type="button" class="btn btn-sm btn-primary mt-1" onclick="addNote(<?php echo attr($claim['pid']); ?>, <?php echo attr($claim['encounter']); ?>, <?php echo attr($claim['payerType']); ?>, <?php echo attr($idx); ?>)">
+                                    <div class="note-form" id="noteForm-<?php echo attr((string) $idx); ?>">
+                                        <textarea class="form-control form-control-sm mt-1" id="noteText-<?php echo attr((string) $idx); ?>" rows="2" placeholder="<?php echo xla("Enter note..."); ?>"></textarea>
+                                        <button type="button" class="btn btn-sm btn-primary mt-1" onclick="addNote(<?php echo attr((string) $claim['pid']); ?>, <?php echo attr((string) $claim['encounter']); ?>, <?php echo attr((string) $claim['payerType']); ?>, <?php echo attr((string) $idx); ?>)">
                                             <?php echo xlt("Save Note"); ?>
                                         </button>
                                     </div>
                                 </div>
                                 <div class="col-md-8">
                                     <h6><?php echo xlt("Timeline"); ?></h6>
-                                    <div id="timelineContent-<?php echo attr($idx); ?>">
+                                    <div id="timelineContent-<?php echo attr((string) $idx); ?>">
                                         <div class="text-muted"><i class="fa fa-spinner fa-spin"></i> <?php echo xlt("Loading..."); ?></div>
                                     </div>
                                 </div>
@@ -388,10 +404,10 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
             <?php if ($totalPages > 1) { ?>
                 <div class="d-flex justify-content-center mb-3">
                     <?php if ($pageIndex > 0) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" onclick="goToPage(<?php echo attr($pageIndex - 1); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" onclick="goToPage(<?php echo attr((string) ($pageIndex - 1)); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
                     <?php } ?>
                     <?php if ($pageIndex < $totalPages - 1) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex + 1); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex + 1)); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
                     <?php } ?>
                 </div>
             <?php } ?>
@@ -404,7 +420,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
 
             function openEncounterTab(pid, encounter) {
                 top.restoreSession();
-                top.RTop.location = '<?php echo $GLOBALS['webroot']; ?>/interface/patient_file/summary/demographics.php?set_pid=' + encodeURIComponent(pid) + '&set_encounterid=' + encodeURIComponent(encounter);
+                top.RTop.location = '<?php echo attr($webRoot); ?>/interface/patient_file/summary/demographics.php?set_pid=' + encodeURIComponent(pid) + '&set_encounterid=' + encodeURIComponent(encounter);
             }
 
             function toggleTimeline(idx) {

@@ -17,6 +17,7 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePostingService;
 
 header('Content-Type: application/json');
@@ -27,14 +28,13 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'payment_advice')) {
+if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'payment_advice')) {
     http_response_code(403);
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
 
-$paymentDataJsonRaw = $_POST['paymentData'] ?? '';
-$paymentDataJson = is_string($paymentDataJsonRaw) ? $paymentDataJsonRaw : '';
+$paymentDataJson = ModuleInput::postString('paymentData');
 $paymentData = json_decode($paymentDataJson, true);
 
 if (!is_array($paymentData)) {

@@ -19,6 +19,7 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityTransfer;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -28,9 +29,9 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-$eid = $_POST['eid'] ?? '';
+$eid = ModuleInput::postString('eid');
 
-if (empty($eid)) {
+if ($eid === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Missing appointment ID']);
     exit;

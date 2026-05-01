@@ -17,6 +17,7 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\DenialAnalyticsService;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 $tab = "denial_analytics";
 
@@ -27,9 +28,24 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
+$dateStart = ModuleInput::postString('dateStart');
+$dateEnd = ModuleInput::postString('dateEnd');
+$payerName = ModuleInput::postString('payerName');
+if ($dateStart === '') {
+    $dateStart = date('Y-m-d', strtotime('-12 months'));
+}
+if ($dateEnd === '') {
+    $dateEnd = date('Y-m-d');
+}
+$filters = [
+    'dateStart' => $dateStart,
+    'dateEnd' => $dateEnd,
+    'payerName' => $payerName,
+];
+
 // CSV export
-if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'denials')) {
-    $data = DenialAnalyticsService::getAnalytics($_POST);
+if (ModuleInput::postExists('export_csv') && CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'denials')) {
+    $data = DenialAnalyticsService::getAnalytics($filters);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="denial_analytics_' . date('Y-m-d') . '.csv"');
     file_put_contents('php://output', DenialAnalyticsService::toCsv($data['byReason']));
@@ -40,19 +56,10 @@ $csrfToken = CsrfHelper::collectCsrfToken('denials');
 $data = null;
 $searched = false;
 
-// Default: auto-run on page load with last 12 months
-$filters = $_POST;
-if (empty($filters['dateStart'])) {
-    $filters['dateStart'] = date('Y-m-d', strtotime('-12 months'));
-}
-if (empty($filters['dateEnd'])) {
-    $filters['dateEnd'] = date('Y-m-d');
-}
-
-if (!empty($_POST) && isset($_POST['SubmitButton'])) {
+if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
     $searched = true;
     $data = DenialAnalyticsService::getAnalytics($filters);
-} elseif (empty($_POST)) {
+} elseif (!ModuleInput::isPostRequest()) {
     // Auto-run on first load
     $searched = true;
     $data = DenialAnalyticsService::getAnalytics($filters);
@@ -89,15 +96,15 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                         <div class="form-row">
                             <div class="form-group col-md-2">
                                 <label for="dateStart"><?php echo xlt("From"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo attr($filters['dateStart']); ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo attr($dateStart); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="dateEnd"><?php echo xlt("To"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo attr($filters['dateEnd']); ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo attr($dateEnd); ?>"/>
                             </div>
                             <div class="form-group col-md-3">
                                 <label for="payerName"><?php echo xlt("Payer"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo isset($_POST['payerName']) ? attr($_POST['payerName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo attr($payerName); ?>"/>
                             </div>
                             <div class="form-group col-md-2 d-flex align-items-end">
                                 <button type="submit" name="SubmitButton" class="btn btn-primary btn-sm btn-block"><?php echo xlt("Analyze"); ?></button>
@@ -119,7 +126,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
             <div class="d-flex summary-cards mt-3 mb-2" style="gap: 10px;">
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text($summary['totalAdjustments']); ?></h5>
+                        <h5><?php echo text((string) $summary['totalAdjustments']); ?></h5>
                         <small><?php echo xlt("Total Adjustments"); ?></small>
                     </div>
                 </div>
@@ -131,13 +138,13 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text($summary['affectedEncounters']); ?></h5>
+                        <h5><?php echo text((string) $summary['affectedEncounters']); ?></h5>
                         <small><?php echo xlt("Encounters"); ?></small>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text($summary['payerCount']); ?></h5>
+                        <h5><?php echo text((string) $summary['payerCount']); ?></h5>
                         <small><?php echo xlt("Payers"); ?></small>
                     </div>
                 </div>
@@ -159,7 +166,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                         </thead>
                         <tbody>
                             <?php
-                            $maxCount = !empty($data['byReason']) ? max(array_column($data['byReason'], 'count')) : 1;
+                            $maxCount = $data['byReason'] !== [] ? max(array_column($data['byReason'], 'count')) : 1;
                             foreach ($data['byReason'] as $r) {
                                 $pct = ($r['count'] / max($maxCount, 1)) * 100;
                                 ?>
@@ -171,11 +178,11 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                                     <?php } ?>
                                 </td>
                                 <td><?php echo $r['carcCode'] !== '' ? text($r['carcCode']) : '<span class="text-muted">—</span>'; ?></td>
-                                <td class="text-right"><?php echo text($r['count']); ?></td>
+                                <td class="text-right"><?php echo text((string) $r['count']); ?></td>
                                 <td class="text-right">$<?php echo text(number_format($r['totalAmount'], 2)); ?></td>
                                 <td>
                                     <div class="reason-bar">
-                                        <div class="reason-bar-fill" style="width:<?php echo attr(round($pct)); ?>%;"></div>
+                                        <div class="reason-bar-fill" style="width:<?php echo attr((string) round($pct)); ?>%;"></div>
                                     </div>
                                 </td>
                             </tr>
@@ -200,9 +207,9 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                             <?php foreach ($data['byPayer'] as $p) { ?>
                             <tr>
                                 <td><?php echo text($p['payerName']); ?></td>
-                                <td class="text-right"><?php echo text($p['count']); ?></td>
+                                <td class="text-right"><?php echo text((string) $p['count']); ?></td>
                                 <td class="text-right">$<?php echo text(number_format($p['totalAmount'], 2)); ?></td>
-                                <td class="text-right"><?php echo text($p['encounterCount']); ?></td>
+                                <td class="text-right"><?php echo text((string) $p['encounterCount']); ?></td>
                             </tr>
                             <?php } ?>
                         </tbody>
@@ -210,7 +217,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
 
                     <!-- Monthly Trend -->
                     <div class="section-title"><?php echo xlt("Monthly Trend"); ?></div>
-                    <?php if (!empty($data['byMonth'])) { ?>
+                    <?php if ($data['byMonth'] !== []) { ?>
                         <?php $maxMonthCount = max(array_column($data['byMonth'], 'count')); ?>
                         <table class="table table-sm table-bordered denial-table">
                             <thead class="thead-light">
@@ -227,11 +234,11 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                                     ?>
                                 <tr>
                                     <td><?php echo text($m['month']); ?></td>
-                                    <td class="text-right"><?php echo text($m['count']); ?></td>
+                                    <td class="text-right"><?php echo text((string) $m['count']); ?></td>
                                     <td class="text-right">$<?php echo text(number_format($m['totalAmount'], 2)); ?></td>
                                     <td>
                                         <div class="reason-bar">
-                                            <div class="reason-bar-fill" style="width:<?php echo attr(round($pct)); ?>%; background:#6c757d;"></div>
+                                            <div class="reason-bar-fill" style="width:<?php echo attr((string) round($pct)); ?>%; background:#6c757d;"></div>
                                         </div>
                                     </td>
                                 </tr>

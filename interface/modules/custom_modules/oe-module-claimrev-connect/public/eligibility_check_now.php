@@ -18,6 +18,7 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityTransfer;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 header('Content-Type: application/json');
 
@@ -27,10 +28,10 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-$pid = $_POST['pid'] ?? '';
-$responsibility = $_POST['responsibility'] ?? '';
+$pid = ModuleInput::postString('pid');
+$responsibility = ModuleInput::postString('responsibility');
 
-if (empty($pid) || empty($responsibility)) {
+if ($pid === '' || $responsibility === '') {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Missing pid or responsibility']);
     exit;
@@ -38,25 +39,28 @@ if (empty($pid) || empty($responsibility)) {
 
 // Collect selected products
 $selectedProducts = [];
-if (!empty($_POST['product_1'])) {
+if (ModuleInput::postString('product_1') !== '') {
     $selectedProducts[] = 1;
 }
-if (!empty($_POST['product_2'])) {
+if (ModuleInput::postString('product_2') !== '') {
     $selectedProducts[] = 2;
 }
-if (!empty($_POST['product_3'])) {
+if (ModuleInput::postString('product_3') !== '') {
     $selectedProducts[] = 3;
 }
-if (!empty($_POST['product_5'])) {
+if (ModuleInput::postString('product_5') !== '') {
     $selectedProducts[] = 5;
 }
-if (empty($selectedProducts)) {
+if ($selectedProducts === []) {
     $selectedProducts = [1];
 }
 
-$eventDate = !empty($_POST['eventDate']) ? $_POST['eventDate'] : null;
-$facilityId = !empty($_POST['facilityId']) ? $_POST['facilityId'] : null;
-$providerId = !empty($_POST['providerId']) ? $_POST['providerId'] : null;
+$eventDateRaw = ModuleInput::postString('eventDate');
+$facilityIdRaw = ModuleInput::postString('facilityId');
+$providerIdRaw = ModuleInput::postString('providerId');
+$eventDate = $eventDateRaw !== '' ? $eventDateRaw : null;
+$facilityId = $facilityIdRaw !== '' ? $facilityIdRaw : null;
+$providerId = $providerIdRaw !== '' ? $providerIdRaw : null;
 
 $result = EligibilityTransfer::sendImmediate(
     $pid,

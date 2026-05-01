@@ -13,6 +13,7 @@
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 
 header('Content-Type: application/json');
@@ -23,7 +24,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-$pcn = $_GET['pcn'] ?? '';
+$pcn = ModuleInput::getString('pcn');
 
 if ($pcn === '') {
     echo json_encode(['success' => false, 'message' => 'Missing patient control number']);

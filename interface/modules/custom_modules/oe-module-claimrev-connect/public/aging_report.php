@@ -17,6 +17,7 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\AgingReportService;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 $tab = "aging_report";
 
@@ -27,9 +28,18 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
+$payerName = ModuleInput::postString('payerName');
+$patientName = ModuleInput::postString('patientName');
+$minAmount = ModuleInput::postString('minAmount');
+$filters = [
+    'payerName' => $payerName,
+    'patientName' => $patientName,
+    'minAmount' => $minAmount,
+];
+
 // Handle CSV export
-if (isset($_POST['export_csv']) && CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'aging')) {
-    $report = AgingReportService::getAgingReport($_POST);
+if (ModuleInput::postExists('export_csv') && CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'aging')) {
+    $report = AgingReportService::getAgingReport($filters);
     header('Content-Type: text/csv');
     header('Content-Disposition: attachment; filename="aging_report_' . date('Y-m-d') . '.csv"');
     file_put_contents('php://output', AgingReportService::toCsv($report['encounters']));
@@ -40,9 +50,9 @@ $csrfToken = CsrfHelper::collectCsrfToken('aging');
 $report = null;
 $searched = false;
 
-if (!empty($_POST) && isset($_POST['SubmitButton'])) {
+if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
     $searched = true;
-    $report = AgingReportService::getAgingReport($_POST);
+    $report = AgingReportService::getAgingReport($filters);
 }
 ?>
 
@@ -77,15 +87,15 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                         <div class="form-row">
                             <div class="form-group col-md-3">
                                 <label for="payerName"><?php echo xlt("Payer"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo isset($_POST['payerName']) ? attr($_POST['payerName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo attr($payerName); ?>"/>
                             </div>
                             <div class="form-group col-md-3">
                                 <label for="patientName"><?php echo xlt("Patient Name"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patientName" name="patientName" value="<?php echo isset($_POST['patientName']) ? attr($_POST['patientName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patientName" name="patientName" value="<?php echo attr($patientName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="minAmount"><?php echo xlt("Min Balance"); ?></label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="minAmount" name="minAmount" value="<?php echo isset($_POST['minAmount']) ? attr($_POST['minAmount']) : ''; ?>" placeholder="0.01"/>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="minAmount" name="minAmount" value="<?php echo attr($minAmount); ?>" placeholder="0.01"/>
                             </div>
                             <div class="form-group col-md-2 d-flex align-items-end">
                                 <button type="submit" name="SubmitButton" class="btn btn-primary btn-sm btn-block"><?php echo xlt("Run Report"); ?></button>
@@ -145,13 +155,13 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text(count($payers)); ?></h5>
+                        <h5><?php echo text((string) count($payers)); ?></h5>
                         <small><?php echo xlt("Payers"); ?></small>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text(count($report['encounters'])); ?></h5>
+                        <h5><?php echo text((string) count($report['encounters'])); ?></h5>
                         <small><?php echo xlt("Encounters"); ?></small>
                     </div>
                 </div>
@@ -174,7 +184,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                 </thead>
                 <tbody>
                     <?php foreach ($payers as $p) {
-                        $pctOver90 = $p['total'] > 0 ? (($p['days90'] + $p['days120'] + $p['days120plus']) / $p['total']) * 100 : 0;
+                        $pctOver90 = $p['total'] > 0 ? (($p['days90'] + $p['days120'] + $p['days120plus']) / $p['total']) * 100 : 0.0;
                         $barColor = $pctOver90 > 50 ? '#dc3545' : ($pctOver90 > 25 ? '#ffc107' : '#28a745');
                         ?>
                     <tr class="payer-row">
@@ -185,12 +195,12 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                         <td class="text-right"><?php echo $p['days90'] > 0 ? '<span class="text-danger">' . text(number_format($p['days90'], 2)) . '</span>' : '<span class="text-muted">—</span>'; ?></td>
                         <td class="text-right"><?php echo ($p['days120'] + $p['days120plus']) > 0 ? '<span class="text-danger font-weight-bold">' . text(number_format($p['days120'] + $p['days120plus'], 2)) . '</span>' : '<span class="text-muted">—</span>'; ?></td>
                         <td class="text-right font-weight-bold">$<?php echo text(number_format($p['total'], 2)); ?></td>
-                        <td class="text-center"><?php echo text($p['encounterCount']); ?></td>
+                        <td class="text-center"><?php echo text((string) $p['encounterCount']); ?></td>
                         <td>
                             <div class="pct-bar">
-                                <div class="pct-bar-fill" style="width:<?php echo attr(min(100, $pctOver90)); ?>%; background-color:<?php echo attr($barColor); ?>;"></div>
+                                <div class="pct-bar-fill" style="width:<?php echo attr((string) min(100.0, $pctOver90)); ?>%; background-color:<?php echo attr($barColor); ?>;"></div>
                             </div>
-                            <small class="text-muted"><?php echo text(round($pctOver90)); ?>% &gt;90d</small>
+                            <small class="text-muted"><?php echo text((string) round($pctOver90)); ?>% &gt;90d</small>
                         </td>
                     </tr>
                     <?php } ?>
@@ -202,7 +212,7 @@ if (!empty($_POST) && isset($_POST['SubmitButton'])) {
                         <td class="text-right text-danger"><?php echo text(number_format($totals['days90'], 2)); ?></td>
                         <td class="text-right text-danger font-weight-bold"><?php echo text(number_format($totals['days120'] + $totals['days120plus'], 2)); ?></td>
                         <td class="text-right font-weight-bold">$<?php echo text(number_format($totals['total'], 2)); ?></td>
-                        <td class="text-center"><?php echo text(count($report['encounters'])); ?></td>
+                        <td class="text-center"><?php echo text((string) count($report['encounters'])); ?></td>
                         <td></td>
                     </tr>
                 </tbody>
