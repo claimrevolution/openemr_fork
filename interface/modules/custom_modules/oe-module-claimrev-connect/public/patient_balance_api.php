@@ -16,6 +16,7 @@ require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PatientBalanceService;
 
 header('Content-Type: application/json');
@@ -26,18 +27,18 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     exit;
 }
 
-if (!CsrfHelper::verifyCsrfToken($_POST['csrf_token'] ?? '', 'patient_balance')) {
+if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'patient_balance')) {
     http_response_code(403);
     echo json_encode(['error' => 'Invalid CSRF token']);
     exit;
 }
 
-$action = $_POST['action'] ?? '';
+$action = ModuleInput::postString('action');
 
 switch ($action) {
     case 'get_detail':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
 
         if ($pid <= 0 || $encounter <= 0) {
             echo json_encode(['error' => 'Invalid pid/encounter']);
@@ -50,11 +51,11 @@ switch ($action) {
         break;
 
     case 'log_statement':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
-        $method = trim($_POST['method'] ?? 'openemr_print');
-        $amount = (float) ($_POST['amount'] ?? 0);
-        $notes = trim($_POST['notes'] ?? '');
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
+        $method = trim(ModuleInput::postString('method', 'openemr_print'));
+        $amount = ModuleInput::postFloat('amount');
+        $notes = trim(ModuleInput::postString('notes'));
 
         if ($pid <= 0 || $encounter <= 0) {
             echo json_encode(['error' => 'Invalid pid/encounter']);
@@ -62,7 +63,7 @@ switch ($action) {
         }
 
         $allowedMethods = ['openemr_print', 'openemr_email', 'openemr_portal', 'claimrev'];
-        if (!in_array($method, $allowedMethods)) {
+        if (!in_array($method, $allowedMethods, true)) {
             $method = 'openemr_print';
         }
 
@@ -71,8 +72,8 @@ switch ($action) {
         break;
 
     case 'get_history':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
 
         if ($pid <= 0 || $encounter <= 0) {
             echo json_encode(['error' => 'Invalid pid/encounter']);
@@ -84,9 +85,9 @@ switch ($action) {
         break;
 
     case 'add_note':
-        $pid = (int) ($_POST['pid'] ?? 0);
-        $encounter = (int) ($_POST['encounter'] ?? 0);
-        $notes = trim($_POST['notes'] ?? '');
+        $pid = ModuleInput::postInt('pid');
+        $encounter = ModuleInput::postInt('encounter');
+        $notes = trim(ModuleInput::postString('notes'));
 
         if ($pid <= 0 || $encounter <= 0 || $notes === '') {
             echo json_encode(['error' => 'Invalid parameters']);
@@ -98,7 +99,15 @@ switch ($action) {
         break;
 
     case 'get_stats':
-        $stats = PatientBalanceService::getQueueStats($_POST);
+        $statsFilters = [
+            'dateStart' => ModuleInput::postString('dateStart'),
+            'dateEnd' => ModuleInput::postString('dateEnd'),
+            'patientName' => ModuleInput::postString('patientName'),
+            'payerName' => ModuleInput::postString('payerName'),
+            'minAmount' => ModuleInput::postString('minAmount'),
+            'stmtFilter' => ModuleInput::postString('stmtFilter'),
+        ];
+        $stats = PatientBalanceService::getQueueStats($statsFilters);
         echo json_encode($stats);
         break;
 
