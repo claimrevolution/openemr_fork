@@ -284,27 +284,27 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 </thead>
                 <tbody>
                     <?php foreach ($datas as $idx => $data) {
-                        $paymentAdviceId = $data['paymentAdviceId'] ?? '';
+                        $paymentAdviceId = (string) ($data['paymentAdviceId'] ?? '');
                         $receivedDate = substr((string) ($data['receivedDate'] ?? ''), 0, 10);
-                        $payerName = $data['payerName'] ?? '';
-                        $payerNumber = $data['payerNumber'] ?? '';
+                        $payerName = (string) ($data['payerName'] ?? '');
+                        $payerNumber = (string) ($data['payerNumber'] ?? '');
 
                         $paymentInfo = $data['paymentInfo'] ?? [];
-                        $patientFirst = $paymentInfo['patientFirstName'] ?? '';
-                        $patientLast = $paymentInfo['patientLastName'] ?? '';
-                        $pcn = $paymentInfo['patientControlNumber'] ?? '';
-                        $claimStatusCode = $paymentInfo['claimStatusCode'] ?? '';
-                        $totalClaimAmount = $paymentInfo['totalClaimAmount'] ?? 0;
-                        $claimPaymentAmount = $paymentInfo['claimPaymentAmount'] ?? 0;
-                        $patientResponsibility = $paymentInfo['patientResponsibility'] ?? 0;
-                        $isWorked = $paymentInfo['isWorked'] ?? false;
+                        $patientFirst = (string) ($paymentInfo['patientFirstName'] ?? '');
+                        $patientLast = (string) ($paymentInfo['patientLastName'] ?? '');
+                        $pcn = (string) ($paymentInfo['patientControlNumber'] ?? '');
+                        $claimStatusCode = (string) ($paymentInfo['claimStatusCode'] ?? '');
+                        $totalClaimAmount = (float) ($paymentInfo['totalClaimAmount'] ?? 0);
+                        $claimPaymentAmount = (float) ($paymentInfo['claimPaymentAmount'] ?? 0);
+                        $patientResponsibility = (float) ($paymentInfo['patientResponsibility'] ?? 0);
+                        $isWorked = (bool) ($paymentInfo['isWorked'] ?? false);
 
                         $checkInfo = $data['checkInformation'] ?? [];
-                        $checkNumber = $checkInfo['checkNumber'] ?? '';
+                        $checkNumber = (string) ($checkInfo['checkNumber'] ?? '');
                         $checkDate = isset($checkInfo['checkDate']) ? substr((string) $checkInfo['checkDate'], 0, 10) : '';
 
                         // ERA classification from ClaimRev (Paid, Denied, PartiallyPaid, etc.)
-                        $eraClassification = $data['eraClassification'] ?? '';
+                        $eraClassification = (string) ($data['eraClassification'] ?? '');
 
                         $claimStatusLabels = [
                             '1' => 'Primary',
@@ -339,9 +339,9 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         };
 
                         $oeStatus = PaymentAdvicePage::getOpenEmrClaimStatus($pcn);
-                        $isPosted = $postedMap[$paymentAdviceId] ?? false;
-                        $isPostable = in_array($claimStatusCode, ['1', '2', '3', '4', '5', '22']) && !$isPosted;
-                        $needsApproval = in_array($claimStatusCode, ['5', '22']);
+                        $isPosted = (bool) ($postedMap[$paymentAdviceId] ?? false);
+                        $isPostable = in_array($claimStatusCode, ['1', '2', '3', '4', '5', '22'], true) && !$isPosted;
+                        $needsApproval = in_array($claimStatusCode, ['5', '22'], true);
                         $isDenied = ($claimStatusCode === '4' || $eraClassification === 'Denied');
 
                         $rowClass = 'payment-row';
@@ -354,7 +354,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                     <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail('<?php echo attr($paymentAdviceId); ?>')" id="row-<?php echo attr($paymentAdviceId); ?>">
                         <td onclick="event.stopPropagation();">
                             <?php if ($isPostable) { ?>
-                                <input type="checkbox" class="post-checkbox" data-index="<?php echo attr($idx); ?>" data-id="<?php echo attr($paymentAdviceId); ?>" onchange="updateSelectedCount()"/>
+                                <input type="checkbox" class="post-checkbox" data-index="<?php echo attr((string) $idx); ?>" data-id="<?php echo attr($paymentAdviceId); ?>" onchange="updateSelectedCount()"/>
                             <?php } elseif ($isPosted) { ?>
                                 <i class="fa fa-check text-success" title="<?php echo xla('Already posted'); ?>"></i>
                             <?php } ?>
@@ -397,11 +397,11 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         <td onclick="event.stopPropagation();">
                             <div class="btn-group btn-group-sm">
                                 <?php if ($isPostable && $needsApproval) { ?>
-                                    <button type="button" class="btn btn-sm btn-outline-warning" onclick="postSingle(<?php echo attr($idx); ?>)" title="<?php echo xla('Requires approval — click to review and post'); ?>">
+                                    <button type="button" class="btn btn-sm btn-outline-warning" onclick="postSingle(<?php echo attr((string) $idx); ?>)" title="<?php echo xla('Requires approval — click to review and post'); ?>">
                                         <i class="fa fa-exclamation-triangle"></i>
                                     </button>
                                 <?php } elseif ($isPostable) { ?>
-                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="postSingle(<?php echo attr($idx); ?>)" title="<?php echo xla('Post to OpenEMR'); ?>">
+                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="postSingle(<?php echo attr((string) $idx); ?>)" title="<?php echo xla('Post to OpenEMR'); ?>">
                                         <i class="fa fa-upload"></i>
                                     </button>
                                 <?php } ?>
@@ -423,7 +423,7 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                                     </div>
                                     <div class="col-md-3">
                                         <span class="detail-label"><?php echo xlt("ERA Classification"); ?></span>
-                                        <span class="detail-value"><?php echo text($data['eraClassification'] ?? ''); ?></span>
+                                        <span class="detail-value"><?php echo text($eraClassification); ?></span>
                                     </div>
                                     <div class="col-md-3">
                                         <span class="detail-label"><?php echo xlt("Worked"); ?></span>
@@ -448,10 +448,10 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
             <?php if ($totalPages > 1) { ?>
                 <div class="d-flex justify-content-center mb-3">
                     <?php if ($pageIndex > 0) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" onclick="goToPage(<?php echo attr($pageIndex - 1); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" onclick="goToPage(<?php echo attr((string) ($pageIndex - 1)); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
                     <?php } ?>
                     <?php if ($pageIndex < $totalPages - 1) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex + 1); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex + 1)); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
                     <?php } ?>
                 </div>
             <?php } ?>
