@@ -17,12 +17,21 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type ClaimMetrics array{inFlight: int, pendingEras: int, rejected: int, cleanClaimRate: float|int}
+ * @phpstan-type ArMetrics array{totalAr: float, avgDaysInAr: float, over90: float}
+ * @phpstan-type DenialReason array{reason: string, count: int}
+ * @phpstan-type DenialMetrics array{denialRate: float|int, totalDenied: int, totalProcessed: int, topReasons: list<DenialReason>}
+ * @phpstan-type CollectionMetrics array{thisMonth: float, lastMonth: float, thisQuarter: float}
+ * @phpstan-type PatientArMetrics array{totalPatientAr: float, encountersWithBalance: int, neverSentStatements: int}
+ * @phpstan-type Kpis array{claims: ClaimMetrics, ar: ArMetrics, denials: DenialMetrics, collections: CollectionMetrics, patientAr: PatientArMetrics}
+ */
 class DashboardService
 {
     /**
      * Get all KPI metrics for the dashboard.
      *
-     * @return array<string, mixed>
+     * @return Kpis
      */
     public static function getKpis(): array
     {
