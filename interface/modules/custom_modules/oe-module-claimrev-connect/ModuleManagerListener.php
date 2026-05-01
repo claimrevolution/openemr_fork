@@ -18,7 +18,10 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 use OpenEMR\Core\AbstractModuleActionListener;
+use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
 
 /* Allows maintenance of background tasks depending on Module Manager action. */
 
@@ -96,6 +99,12 @@ class ModuleManagerListener extends AbstractModuleActionListener
         $sql = "UPDATE `background_services` SET `active` = '1' WHERE `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ? OR `name` = ?";
         $status = sqlQuery($sql, ['ClaimRev_Send', 'ClaimRev_Receive', 'ClaimRev_Elig_Send_Receive', 'ClaimRev_Watchdog', 'ClaimRev_Notifications', 'ClaimRev_Elig_Sweep']);
         error_log($logMessage . ' ' . text($status));
+
+        // One-time persistence: opt the install into core SFTP claim flow if
+        // it has never been configured. Respects an explicit '0' set by an
+        // admin who has deliberately disabled core SFTP.
+        ClaimRevModuleSetup::ensureCoreSftpEnabled();
+
         // Return the current action status from Module Manager in case of error from its action.
         return $currentActionStatus;
     }

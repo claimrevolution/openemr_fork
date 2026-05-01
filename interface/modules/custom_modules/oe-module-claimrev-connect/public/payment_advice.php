@@ -11,6 +11,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
@@ -18,8 +20,8 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
-use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
-use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdviceMockService;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
@@ -34,7 +36,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
     );
 }
 
-$bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+$bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
 $globalConfig = $bootstrap->getGlobalConfig();
 $portalUrl = $globalConfig->getPortalUrl();
 $testModeAllowed = $globalConfig->isTestModeEnabled();

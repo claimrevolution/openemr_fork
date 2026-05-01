@@ -14,6 +14,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
@@ -235,9 +237,14 @@ class ReconciliationService
             $claimRevLookupFailed = true;
         }
 
-        // Compute discrepancies
+        // Compute discrepancies. The "ERA shows paid but nothing posted" check
+        // requires hitting ar_activity, so we pre-compute that signal per
+        // encounter here and pass it into the (otherwise pure) helper.
         foreach ($encounters as &$enc) {
-            $enc['discrepancy'] = self::computeDiscrepancy($enc);
+            $oeHasPayments = self::oeEncounterHasPayments($enc['pid'], $enc['encounter']);
+            $verdict = self::computeDiscrepancy($enc, $oeHasPayments);
+            $enc['discrepancy'] = $verdict['description'];
+            $enc['discrepancyLevel'] = $verdict['level'];
         }
         unset($enc);
 
@@ -279,12 +286,16 @@ class ReconciliationService
     }
 
     /**
-     * Determine if there's a discrepancy between OE and ClaimRev status.
+     * Pure discrepancy classifier — given a merged encounter row plus the
+     * pre-computed "OE has payments?" signal, return the description + level.
+     * No DB, no API, no globals.
      *
-     * @param ReconcileRow $enc Merged encounter data
-     * @return string Discrepancy description (empty if none)
+     * Empty description means "no discrepancy" (level will be empty too).
+     *
+     * @param ReconcileRow $enc
+     * @return array{description: string, level: string}
      */
-    private static function computeDiscrepancy(array $enc): string
+    public static function computeDiscrepancy(array $enc, bool $oeHasPayments): array
     {
         $oeStatus = $enc['oeStatus'];
         $crFound = $enc['crFound'];
@@ -294,49 +305,49 @@ class ReconciliationService
 
         // Billed in OE but not found in ClaimRev
         if ($oeStatus === 2 && !$crFound) {
-            $enc['discrepancyLevel'] = 'danger';
-            return 'Billed in OpenEMR but not found in ClaimRev';
+            return ['description' => 'Billed in OpenEMR but not found in ClaimRev', 'level' => 'danger'];
         }
 
         if (!$crFound) {
-            return '';
+            return ['description' => '', 'level' => ''];
         }
 
         // ClaimRev says rejected but OE still shows billed
         $crRejected = in_array($crStatusId, [10, 16, 17], true) || $crPayerAcceptanceStatusId === 3;
         if ($crRejected && $oeStatus === 2) {
-            $enc['discrepancyLevel'] = 'danger';
-            return 'Rejected in ClaimRev but still Billed in OpenEMR';
+            return ['description' => 'Rejected in ClaimRev but still Billed in OpenEMR', 'level' => 'danger'];
         }
 
         // OE says denied but ClaimRev says accepted
         if ($oeStatus === 7 && $crPayerAcceptanceStatusId === 4) {
-            $enc['discrepancyLevel'] = 'warning';
-            return 'Denied in OpenEMR but Accepted in ClaimRev';
+            return ['description' => 'Denied in OpenEMR but Accepted in ClaimRev', 'level' => 'warning'];
         }
 
         // Has ERA/payment but not posted to OE
-        if ($crEra !== '' && stripos($crEra, 'paid') !== false) {
-            // Check if payment has been posted
-            $pid = $enc['pid'];
-            $encounter = $enc['encounter'];
-            $count = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
-                "SELECT COUNT(*) AS cnt FROM ar_activity WHERE pid = ? AND encounter = ? AND deleted IS NULL AND pay_amount > 0",
-                'cnt',
-                [$pid, $encounter]
-            ));
-            if ($count === 0) {
-                $enc['discrepancyLevel'] = 'warning';
-                return 'ERA shows paid but no payment posted in OpenEMR';
-            }
+        if ($crEra !== '' && stripos($crEra, 'paid') !== false && !$oeHasPayments) {
+            return ['description' => 'ERA shows paid but no payment posted in OpenEMR', 'level' => 'warning'];
         }
 
         // ERA denied but OE not marked denied
         if ($crEra !== '' && stripos($crEra, 'denied') !== false && $oeStatus !== 7) {
-            $enc['discrepancyLevel'] = 'warning';
-            return 'ERA shows denied but OpenEMR not marked as denied';
+            return ['description' => 'ERA shows denied but OpenEMR not marked as denied', 'level' => 'warning'];
         }
 
-        return '';
+        return ['description' => '', 'level' => ''];
+    }
+
+    /**
+     * Returns true if the OE encounter has at least one positive ar_activity
+     * payment row. Split out from computeDiscrepancy() so the discrepancy
+     * classifier itself can stay pure and unit-testable.
+     */
+    private static function oeEncounterHasPayments(int $pid, int $encounter): bool
+    {
+        $count = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
+            "SELECT COUNT(*) AS cnt FROM ar_activity WHERE pid = ? AND encounter = ? AND deleted IS NULL AND pay_amount > 0",
+            'cnt',
+            [$pid, $encounter]
+        ));
+        return $count > 0;
     }
 }

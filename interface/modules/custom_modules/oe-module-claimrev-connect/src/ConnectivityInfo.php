@@ -12,9 +12,11 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 namespace OpenEMR\Modules\ClaimRevConnector;
 
-use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Core\OEGlobalsBag;
 
 class ConnectivityInfo
 {
@@ -28,7 +30,7 @@ class ConnectivityInfo
 
     public function __construct()
     {
-        $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+        $bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
         $globalsConfig = $bootstrap->getGlobalConfig();
 
         /** @var string $clientId */

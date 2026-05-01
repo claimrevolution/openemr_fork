@@ -10,10 +10,9 @@
   * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
   */
 
-namespace OpenEMR\Modules\ClaimRevConnector;
+declare(strict_types=1);
 
-// Load compatibility shims for OpenEMR 7.x (no-op on 8.x)
-require_once __DIR__ . '/src/Compat/compat.php';
+namespace OpenEMR\Modules\ClaimRevConnector;
 
 /**
  * @var \OpenEMR\Core\ModulesClassLoader $classLoader

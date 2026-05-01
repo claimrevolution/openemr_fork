@@ -10,6 +10,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AccessDeniedHelper;
@@ -18,8 +20,7 @@ use OpenEMR\Core\Header;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
-use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
-use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 
@@ -32,7 +33,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 
 $claimStatuses = ClaimsPage::getClaimStatuses();
 
-$bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
+$bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claims');
 $webRoot = OEGlobalsBag::getInstance()->getString('webroot');
@@ -127,6 +128,7 @@ $searchFilters = [
         <div class="container-fluid">
             <?php require '../templates/navbar.php'; ?>
             <form method="post" action="claims.php" id="claimSearchForm">
+                <input type="hidden" name="csrf_token" value="<?php echo attr($csrfToken); ?>"/>
                 <input type="hidden" name="sortField" id="sortField" value="<?php echo attr($sortFieldRaw); ?>"/>
                 <input type="hidden" name="sortDirection" id="sortDirection" value="<?php echo attr($sortDirectionRaw); ?>"/>
                 <div class="card mt-3">
@@ -662,7 +664,8 @@ $searchFilters = [
                 $btn.prop('disabled', true);
                 $.post('claim_mark_worked.php', {
                     objectId: objectId,
-                    isWorked: newWorked ? '1' : '0'
+                    isWorked: newWorked ? '1' : '0',
+                    csrf_token: csrfToken
                 }, function(response) {
                     if (response.success) {
                         $btn.data('worked', newWorked ? '1' : '0');

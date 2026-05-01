@@ -14,6 +14,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Billing\BillingUtilities;
@@ -26,7 +28,104 @@ class PaymentAdvicePostingService
     /**
      * Reference prefix used in ar_session to identify ClaimRev postings.
      */
-    private const REFERENCE_PREFIX = 'ClaimRev-';
+    public const REFERENCE_PREFIX = 'ClaimRev-';
+
+    /**
+     * Map of X12 835 claim status codes (CLP02) to display labels.
+     *
+     * @var array<string, string>
+     */
+    public const CLAIM_STATUS_LABELS = [
+        '1' => 'Processed as Primary',
+        '2' => 'Processed as Secondary',
+        '3' => 'Processed as Tertiary',
+        '4' => 'Denied',
+        '5' => 'Pended',
+        '22' => 'Reversal of Previous Payment',
+    ];
+
+    /**
+     * Build the ar_session.reference value used for idempotency lookup of a
+     * payment advice. The format is fixed: anything posting under this prefix
+     * is considered a ClaimRev-originated payment session, and re-posting the
+     * same paymentAdviceId must match the same reference.
+     */
+    public static function buildIdempotencyReference(string $paymentAdviceId): string
+    {
+        return self::REFERENCE_PREFIX . $paymentAdviceId;
+    }
+
+    /**
+     * Parse a ClaimRev patient control number into pid + encounter.
+     *
+     * The PCN is emitted by the ClaimRev integration as "{pid}-{encounter}"
+     * (or "{pid} {encounter}"); both pid and encounter must be positive
+     * integers. Returns null on any unparseable input so the caller can
+     * surface a single error path rather than separate "couldn't parse"
+     * and "got 0/0" cases.
+     *
+     * @return array{pid: int, encounter: int}|null
+     */
+    public static function parsePatientControlNumber(string $pcn): ?array
+    {
+        $parts = preg_split('/[\s\-]/', $pcn);
+        if (!is_array($parts) || count($parts) < 2) {
+            return null;
+        }
+        $pid = (int) $parts[0];
+        $encounter = (int) $parts[1];
+        if ($pid <= 0 || $encounter <= 0) {
+            return null;
+        }
+        return ['pid' => $pid, 'encounter' => $encounter];
+    }
+
+    /**
+     * Look up the human-readable label for an X12 835 claim status code.
+     *
+     * Codes outside the 835 vocabulary fall through to the raw code so the
+     * UI surfaces something instead of going blank.
+     */
+    public static function getClaimStatusLabel(string $code): string
+    {
+        return self::CLAIM_STATUS_LABELS[$code] ?? $code;
+    }
+
+    /**
+     * Sum charged / paid / adjusted amounts across an 835 service lines
+     * payload. Pure: no DB, no network, no globals.
+     *
+     * Each entry is expected to look like:
+     *   ['chargeAmount' => float, 'paymentAmount' => float,
+     *    'adjustmentGroups' => [['adjustments' => [['adjustmentAmount' => float]]]]]
+     *
+     * @param list<array<string, mixed>> $servicePaymentInfos
+     * @return array{billed: float, paid: float, adjusted: float}
+     */
+    public static function sumServiceAmounts(array $servicePaymentInfos): array
+    {
+        $billed = 0.0;
+        $paid = 0.0;
+        $adjusted = 0.0;
+        foreach ($servicePaymentInfos as $svc) {
+            $billed += (float) ($svc['chargeAmount'] ?? 0);
+            $paid += (float) ($svc['paymentAmount'] ?? 0);
+            $svcAdjGroups = $svc['adjustmentGroups'] ?? [];
+            if (!is_array($svcAdjGroups)) {
+                continue;
+            }
+            foreach ($svcAdjGroups as $group) {
+                $adjustments = $group['adjustments'] ?? [];
+                if (!is_array($adjustments)) {
+                    continue;
+                }
+                foreach ($adjustments as $adj) {
+                    $adjusted += (float) ($adj['adjustmentAmount'] ?? 0);
+                }
+            }
+        }
+        return ['billed' => $billed, 'paid' => $paid, 'adjusted' => $adjusted];
+    }
 
     /**
      * Check if a payment advice has already been posted to OpenEMR.
@@ -39,7 +138,7 @@ class PaymentAdvicePostingService
      */
     public static function isAlreadyPosted(string $paymentAdviceId, int $pid = 0, int $encounter = 0): array
     {
-        $reference = self::REFERENCE_PREFIX . $paymentAdviceId;
+        $reference = self::buildIdempotencyReference($paymentAdviceId);
 
         // Check 1: session-level duplicate
         // The reference may be stored with a prefix like "ePay - " by arPostSession
@@ -97,7 +196,7 @@ class PaymentAdvicePostingService
      */
     public static function getPostingDetails(string $paymentAdviceId, int $pid = 0, int $encounter = 0): array
     {
-        $reference = self::REFERENCE_PREFIX . $paymentAdviceId;
+        $reference = self::buildIdempotencyReference($paymentAdviceId);
         $result = [
             'found' => false,
             'session_id' => null,
@@ -215,21 +314,15 @@ class PaymentAdvicePostingService
         // Parse patient control number
         $pcnRaw = $paymentInfo['patientControlNumber'] ?? '';
         $pcn = is_string($pcnRaw) ? $pcnRaw : '';
-        $parts = preg_split('/[\s\-]/', $pcn);
-        if (!is_array($parts) || count($parts) < 2) {
+        $parsed = self::parsePatientControlNumber($pcn);
+        if ($parsed === null) {
             $result['errors'][] = 'Cannot parse patient control number: ' . $pcn;
             return $result;
         }
-
-        $pid = (int) $parts[0];
-        $encounter = (int) $parts[1];
+        $pid = $parsed['pid'];
+        $encounter = $parsed['encounter'];
         $result['pid'] = $pid;
         $result['encounter'] = $encounter;
-
-        if ($pid <= 0 || $encounter <= 0) {
-            $result['errors'][] = 'Invalid pid/encounter from control number: ' . $pcn;
-            return $result;
-        }
 
         // Check for duplicate
         $dupeCheck = self::isAlreadyPosted($paymentAdviceId, $pid, $encounter);
@@ -267,15 +360,7 @@ class PaymentAdvicePostingService
             $result['approvalReason'] = 'tertiary_before_secondary';
         }
         $result['claimStatusCode'] = $csc;
-        $claimStatusLabels = [
-            '1' => 'Processed as Primary',
-            '2' => 'Processed as Secondary',
-            '3' => 'Processed as Tertiary',
-            '4' => 'Denied',
-            '5' => 'Pended',
-            '22' => 'Reversal of Previous Payment',
-        ];
-        $result['claimStatusLabel'] = $claimStatusLabels[$csc] ?? $csc;
+        $result['claimStatusLabel'] = self::getClaimStatusLabel($csc);
 
         if ($csc === '4') {
             $result['warnings'][] = 'Claim was denied — reason codes will be stored but no payments posted';
@@ -419,7 +504,7 @@ class PaymentAdvicePostingService
         $checkNumber = $checkInfo['checkNumber'] ?? '';
         $checkDate = $preview['checkDate'] ?: date('Y-m-d');
         $payTotal = (float) ($checkInfo['totalActualProviderPaymentAmt'] ?? 0);
-        $reference = self::REFERENCE_PREFIX . $paymentAdviceId;
+        $reference = self::buildIdempotencyReference($paymentAdviceId);
         $memo = 'Chk#' . ($checkNumber ?: 'N/A') . ' ' . $pid . '-' . $encounter;
 
         // Determine payer type from claim status

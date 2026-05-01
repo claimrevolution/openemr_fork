@@ -12,6 +12,8 @@
 
 /** @var \stdClass $benefit */
 
+declare(strict_types=1);
+
 $relatedEntities = property_exists($benefit, 'relatedEntities') && is_iterable($benefit->relatedEntities) ? $benefit->relatedEntities : null;
 if ($relatedEntities === null) {
     return;

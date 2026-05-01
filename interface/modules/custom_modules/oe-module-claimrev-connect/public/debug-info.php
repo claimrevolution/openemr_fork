@@ -10,6 +10,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
     require_once "../../../../globals.php";
 
     use OpenEMR\Common\Acl\AccessDeniedHelper;
@@ -48,12 +50,6 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
                         <li><?php echo xlt("Token");?>: <?php echo $connectivityInfo->hasToken ? xlt("Yes") : xlt("No"); ?></li>
                     </ul>
                 </div>
-            </div>
-            <div class="mt-3">
-                <a href="compat_check.php" class="btn btn-outline-secondary btn-sm">
-                    <i class="fa fa-stethoscope"></i> <?php echo xlt("Run Compatibility Check"); ?>
-                </a>
-                <small class="text-muted ml-2"><?php echo xlt("Verifies the module can run on this OpenEMR version"); ?></small>
             </div>
         </div>
     </body>

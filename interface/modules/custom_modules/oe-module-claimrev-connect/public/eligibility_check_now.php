@@ -14,9 +14,12 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityTransfer;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
@@ -25,6 +28,12 @@ header('Content-Type: application/json');
 if (!AclMain::aclCheckCore('acct', 'bill')) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit;
+}
+
+if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'eligibility')) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
     exit;
 }
 

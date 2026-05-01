@@ -12,6 +12,8 @@
 
 /** @var iterable<\stdClass>|null $coverageResults set by the caller (individual->coverageDiscovery) */
 
+declare(strict_types=1);
+
 if ($coverageResults === null || (is_array($coverageResults) && count($coverageResults) === 0)) {
     echo xlt("No coverage discovered");
     return;

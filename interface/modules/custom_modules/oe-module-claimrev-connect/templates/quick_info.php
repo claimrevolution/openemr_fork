@@ -12,6 +12,8 @@
 
 /** @var \stdClass $eligibilityData Passed from eligibility.php */
 
+declare(strict_types=1);
+
 use OpenEMR\Modules\ClaimRevConnector\PrintProperty;
 
 if (property_exists($eligibilityData, 'payerInfo') && is_object($eligibilityData->payerInfo)) {

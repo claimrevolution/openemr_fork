@@ -17,6 +17,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 use OpenEMR\BC\ServiceContainer;
 use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Core\OEGlobalsBag;
@@ -40,7 +42,9 @@ function start_eligibility_sweep(): void
     if ($sweepDaysConfig === '') {
         $sweepDaysConfig = '1,4';
     }
-    $sweepDays = array_map(intval(...), array_filter(explode(',', $sweepDaysConfig)));
+    // array_filter without a callback drops '0' (Sunday) — use an explicit
+    // empty-string check so a 'Sunday + Wednesday' config of '0,3' survives.
+    $sweepDays = array_map(intval(...), array_filter(explode(',', $sweepDaysConfig), fn($s) => $s !== ''));
     $todayDow = (int) date('w'); // 0=Sun, 1=Mon, ..., 6=Sat
 
     if (!in_array($todayDow, $sweepDays, true)) {

@@ -12,6 +12,8 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+declare(strict_types=1);
+
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
@@ -98,6 +100,30 @@ class ClaimRevModuleSetup
         self::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
     }
 
+    /**
+     * Set the core 'auto_sftp_claims_to_x12_partner' global to '1' and
+     * activate the X12_SFTP background service — but only if those values
+     * have never been touched. Respects an explicit '0' that an admin
+     * deliberately set, and does nothing if they're already '1'.
+     *
+     * Intended to be called once at module enable time (and from setup
+     * when the admin opts into auto-send), not on every request.
+     */
+    public static function ensureCoreSftpEnabled(): void
+    {
+        // Single atomic UPDATE per row so we don't race a concurrent admin
+        // edit. The WHERE clause is what makes this safe to call repeatedly.
+        QueryUtils::sqlStatementThrowException(
+            "UPDATE globals SET gl_value = '1' "
+            . "WHERE gl_name = 'auto_sftp_claims_to_x12_partner' "
+            . "AND (gl_value IS NULL OR gl_value = '')"
+        );
+        QueryUtils::sqlStatementThrowException(
+            "UPDATE background_services SET active = 1, execute_interval = 1 "
+            . "WHERE name = 'X12_SFTP' AND active = 0"
+        );
+    }
+
     public static function reactivateSftpService(): void
     {
         $require_once = "/library/billing_sftp_service.php";
@@ -126,11 +152,15 @@ class ClaimRevModuleSetup
      * Reset any ClaimRev background services that are stuck in running state.
      * If running = 1 and next_run is more than 10 minutes in the past,
      * the service is stuck (PHP crash, OOM kill, etc.) and needs to be freed.
+     *
+     * Excludes ClaimRev_Watchdog itself: the watchdog calls this method, so a
+     * watchdog run that exceeds 10 minutes would otherwise clear its own
+     * running flag mid-execution and allow a second watchdog to start.
      */
     public static function resetStuckServices(): void
     {
         QueryUtils::sqlStatementThrowException(
-            "UPDATE background_services SET running = 0 WHERE running = 1 AND next_run < (NOW() - INTERVAL 10 MINUTE) AND name LIKE '%ClaimRev%'"
+            "UPDATE background_services SET running = 0 WHERE running = 1 AND next_run < (NOW() - INTERVAL 10 MINUTE) AND name LIKE '%ClaimRev%' AND name != 'ClaimRev_Watchdog'"
         );
     }
 
@@ -162,10 +192,12 @@ class ClaimRevModuleSetup
             }
 
             if (preg_match('/^#IfNotRow\s+(\S+)\s+(\S+)\s+(.+)/', $line, $matches)) {
-                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
-                $safeCol = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[2]);
+                // Whitelist against actual schema; both helpers return the
+                // identifier already wrapped in backticks and throw on miss.
+                $tbl = QueryUtils::escapeTableName($matches[1]);
+                $col = QueryUtils::escapeColumnName($matches[2], [$matches[1]]);
                 $row = QueryUtils::fetchSingleValue(
-                    "SELECT 1 AS x FROM `$safeTbl` WHERE `$safeCol` = ?",
+                    "SELECT 1 AS x FROM $tbl WHERE $col = ?",
                     'x',
                     [trim($matches[3])]
                 );

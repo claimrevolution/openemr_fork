@@ -12,6 +12,8 @@
 
 /** @var \stdClass|null $receiver */
 
+declare(strict_types=1);
+
 if ($receiver === null) {
     return;
 }
