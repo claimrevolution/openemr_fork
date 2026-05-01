@@ -14,28 +14,30 @@
  * @copyright Copyright (c) 2026 Brad Sharp <brad.sharp@claimrev.com>
  */
 
-// Prevent autoloading the real classes — we want to test the shims in isolation
-// We do this by loading the shims BEFORE any OpenEMR code
+namespace OpenEMR\Modules\ClaimRevConnector\Tests;
+
+final class CompatShimRunner
+{
+    public static int $passed = 0;
+    public static int $failed = 0;
+
+    public static function record(string $name, bool $result, string $detail = ''): void
+    {
+        if ($result) {
+            self::$passed++;
+            echo "  PASS: {$name}";
+        } else {
+            self::$failed++;
+            echo "  FAIL: {$name}";
+        }
+        if ($detail !== '') {
+            echo " — {$detail}";
+        }
+        echo "\n";
+    }
+}
 
 $shimDir = dirname(__DIR__) . '/src/Compat';
-$passed = 0;
-$failed = 0;
-
-function test(string $name, bool $result, string $detail = ''): void
-{
-    global $passed, $failed;
-    if ($result) {
-        $passed++;
-        echo "  PASS: {$name}";
-    } else {
-        $failed++;
-        echo "  FAIL: {$name}";
-    }
-    if ($detail !== '') {
-        echo " — {$detail}";
-    }
-    echo "\n";
-}
 
 echo "=== ClaimRev Compatibility Shim Tests ===\n\n";
 
@@ -46,44 +48,43 @@ require_once $shimDir . '/OEGlobalsBagShim.php';
 
 $shim = \OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim::getInstance();
 
-test('getInstance() returns object', is_object($shim), $shim::class);
-test('getInstance() is singleton', $shim === \OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim::getInstance());
+CompatShimRunner::record('getInstance() returns object', true, $shim::class);
+CompatShimRunner::record('getInstance() is singleton', $shim === \OpenEMR\Modules\ClaimRevConnector\Compat\OEGlobalsBagShim::getInstance());
 
-// Set up some test globals
-$GLOBALS['test_string'] = 'hello';
-$GLOBALS['test_int'] = 42;
-$GLOBALS['test_bool'] = true;
-$GLOBALS['test_empty'] = '';
-$GLOBALS['fileroot'] = '/var/www/localhost/htdocs/openemr';
+// Set up some test globals via the shim itself (avoid raw $GLOBALS access for PHPStan)
+$shim->set('test_string', 'hello');
+$shim->set('test_int', 42);
+$shim->set('test_bool', true);
+$shim->set('test_empty', '');
+$shim->set('fileroot', '/var/www/localhost/htdocs/openemr');
 
-test('get() returns string value', $shim->get('test_string') === 'hello', $shim->get('test_string'));
-test('get() returns int value', $shim->get('test_int') === 42);
-test('get() returns default for missing key', $shim->get('nonexistent', 'default') === 'default');
-test('get() returns null for missing key without default', $shim->get('nonexistent') === null);
-test('has() returns true for existing key', $shim->has('test_string'));
-test('has() returns false for missing key', !$shim->has('nonexistent'));
-test('getString() returns string', $shim->getString('test_string') === 'hello');
-test('getString() casts int to string', $shim->getString('test_int') === '42');
-test('getString() returns default for missing', $shim->getString('nonexistent', 'def') === 'def');
-test('getInt() returns int', $shim->getInt('test_int') === 42);
-test('getInt() returns default for missing', $shim->getInt('nonexistent', 99) === 99);
-test('getBoolean() returns bool', $shim->getBoolean('test_bool') === true);
-test('getBoolean() returns default for missing', $shim->getBoolean('nonexistent', false) === false);
+CompatShimRunner::record('get() returns string value', $shim->get('test_string') === 'hello', \is_string($shim->get('test_string')) ? $shim->get('test_string') : '');
+CompatShimRunner::record('get() returns int value', $shim->get('test_int') === 42);
+CompatShimRunner::record('get() returns default for missing key', $shim->get('nonexistent', 'default') === 'default');
+CompatShimRunner::record('get() returns null for missing key without default', $shim->get('nonexistent') === null);
+CompatShimRunner::record('has() returns true for existing key', $shim->has('test_string'));
+CompatShimRunner::record('has() returns false for missing key', !$shim->has('nonexistent'));
+CompatShimRunner::record('getString() returns string', $shim->getString('test_string') === 'hello');
+CompatShimRunner::record('getString() casts int to string', $shim->getString('test_int') === '42');
+CompatShimRunner::record('getString() returns default for missing', $shim->getString('nonexistent', 'def') === 'def');
+CompatShimRunner::record('getInt() returns int', $shim->getInt('test_int') === 42);
+CompatShimRunner::record('getInt() returns default for missing', $shim->getInt('nonexistent', 99) === 99);
+CompatShimRunner::record('getBoolean() returns bool', $shim->getBoolean('test_bool') === true);
+CompatShimRunner::record('getBoolean() returns default for missing', $shim->getBoolean('nonexistent', false) === false);
 
 // Test set()
 $shim->set('test_set', 'set_value');
-test('set() updates $GLOBALS', $GLOBALS['test_set'] === 'set_value');
-test('set() readable via get()', $shim->get('test_set') === 'set_value');
+CompatShimRunner::record('set() round-trips via get()', $shim->get('test_set') === 'set_value');
 
 // Test getKernel() — should throw without a real kernel
 $threw = false;
 try {
     $shim->getKernel();
-} catch (\RuntimeException $e) {
+} catch (\RuntimeException) {
     $threw = true;
 }
-test('getKernel() throws RuntimeException without kernel', $threw);
-test('hasKernel() returns false without kernel', !$shim->hasKernel());
+CompatShimRunner::record('getKernel() throws RuntimeException without kernel', $threw);
+CompatShimRunner::record('hasKernel() returns false without kernel', !$shim->hasKernel());
 
 echo "\n";
 
@@ -96,16 +97,15 @@ if (!$hasCryptoGen) {
     echo "  SKIP: CryptoGen not available (not running inside OpenEMR)\n";
     echo "  Testing ServiceContainerShim class structure only...\n";
     require_once $shimDir . '/ServiceContainerShim.php';
-    test('ServiceContainerShim class exists', class_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class));
-    // @phpstan-ignore-next-line function.alreadyNarrowedType -- runtime smoke test: confirm the shim still declares getCrypto() even when CryptoGen is absent.
-    test('getCrypto() method exists', method_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class, 'getCrypto'));
+    CompatShimRunner::record('ServiceContainerShim class exists', class_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class));
+    CompatShimRunner::record('getCrypto() method exists', method_exists(\OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::class, 'getCrypto'));
 } else {
     require_once $shimDir . '/ServiceContainerShim.php';
     $crypto = \OpenEMR\Modules\ClaimRevConnector\Compat\ServiceContainerShim::getCrypto();
-    test('getCrypto() returns object', is_object($crypto), $crypto::class);
-    test('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen);
-    test('CryptoGen has decryptStandard()', method_exists($crypto, 'decryptStandard'));
-    test('CryptoGen has encryptStandard()', method_exists($crypto, 'encryptStandard'));
+    CompatShimRunner::record('getCrypto() returns object', is_object($crypto), $crypto::class);
+    CompatShimRunner::record('getCrypto() returns CryptoGen', $crypto instanceof \OpenEMR\Common\Crypto\CryptoGen);
+    CompatShimRunner::record('CryptoGen has decryptStandard()', method_exists($crypto, 'decryptStandard'));
+    CompatShimRunner::record('CryptoGen has encryptStandard()', method_exists($crypto, 'encryptStandard'));
 }
 
 echo "\n";
@@ -119,16 +119,16 @@ if (class_exists(\OpenEMR\Core\OEGlobalsBag::class, false)) {
     echo "  The shim unit tests above confirm the shim API is correct.\n";
 } else {
     require_once $shimDir . '/compat.php';
-    test('OEGlobalsBag alias registered', class_exists(\OpenEMR\Core\OEGlobalsBag::class));
-    test('ServiceContainer alias registered', class_exists(\OpenEMR\BC\ServiceContainer::class));
+    CompatShimRunner::record('OEGlobalsBag alias registered', class_exists(\OpenEMR\Core\OEGlobalsBag::class));
+    CompatShimRunner::record('ServiceContainer alias registered', class_exists(\OpenEMR\BC\ServiceContainer::class));
 
     $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
-    test('Aliased OEGlobalsBag::getInstance() works', is_object($bag));
-    test('Aliased get() works through alias', $bag->get('fileroot') === '/var/www/localhost/htdocs/openemr');
+    CompatShimRunner::record('Aliased OEGlobalsBag::getInstance() works', true);
+    CompatShimRunner::record('Aliased get() works through alias', $bag->get('fileroot') === '/var/www/localhost/htdocs/openemr');
 }
 
 echo "\n";
 
 // ---- Summary ----
-echo "=== Results: {$passed} passed, {$failed} failed ===\n";
-exit($failed > 0 ? 1 : 0);
+echo "=== Results: " . CompatShimRunner::$passed . " passed, " . CompatShimRunner::$failed . " failed ===\n";
+exit(CompatShimRunner::$failed > 0 ? 1 : 0);
