@@ -12,8 +12,6 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
-use OpenEMR\Modules\ClaimRevConnector\ClaimSearch;
-use OpenEMR\Modules\ClaimRevConnector\ClaimSearchModel;
 use OpenEMR\Modules\ClaimRevConnector\Dto\ClaimSearchResult;
 
 class ClaimsPage
@@ -24,44 +22,8 @@ class ClaimsPage
      */
     public static function searchClaims(array $postData): array
     {
-        $pageIndex = isset($postData['pageIndex']) ? (int)$postData['pageIndex'] : 0;
-
-        $model = new ClaimSearchModel();
-        $model->patientFirstName = $postData['patFirstName'] ?? '';
-        $model->patientLastName = $postData['patLastName'] ?? '';
-        $model->patientGender = $postData['patientGender'] ?? '';
-        $model->patientBirthDate = !empty($postData['patientBirthDate']) ? $postData['patientBirthDate'] : null;
-        $model->receivedDateStart = !empty($postData['startDate']) ? $postData['startDate'] : null;
-        $model->receivedDateEnd = !empty($postData['endDate']) ? $postData['endDate'] : null;
-        $model->serviceDateStart = !empty($postData['serviceDateStart']) ? $postData['serviceDateStart'] : null;
-        $model->serviceDateEnd = !empty($postData['serviceDateEnd']) ? $postData['serviceDateEnd'] : null;
-        $model->payerName = $postData['payerName'] ?? '';
-        $model->payerNumber = $postData['payerNumber'] ?? '';
-        $model->payerPaidAmtStart = !empty($postData['payerPaidAmtStart']) ? (float)$postData['payerPaidAmtStart'] : null;
-        $model->payerPaidAmtEnd = !empty($postData['payerPaidAmtEnd']) ? (float)$postData['payerPaidAmtEnd'] : null;
-        $model->traceNumber = $postData['traceNumber'] ?? '';
-        $model->patientControlNumber = $postData['patientControlNumber'] ?? '';
-        $model->payerControlNumber = $postData['payerControlNumber'] ?? '';
-        $model->billingProviderNpi = $postData['billingProviderNpi'] ?? '';
-        $model->errorMessage = $postData['errorMessage'] ?? '';
-
-        $statusId = $postData['statusId'] ?? '';
-        if ($statusId !== '') {
-            $model->statusIds = [(int)$statusId];
-        }
-
-        $model->pagingSearch->pageIndex = $pageIndex;
-        $model->pagingSearch->pageSize = 50;
-
-        $sortField = $postData['sortField'] ?? '';
-        $sortDir = $postData['sortDirection'] ?? '';
-        if ($sortField !== '') {
-            $model->sorting = [[
-                'fieldName' => $sortField,
-                'sortDirection' => $sortDir === 'desc' ? -1 : 1,
-                'priority' => 1,
-            ]];
-        }
+        $pageIndex = TypeCoerce::asInt($postData['pageIndex'] ?? 0);
+        $model = self::buildSearchModel($postData, $pageIndex, 50);
 
         $raw = ClaimSearch::search($model);
         if ($raw === false) {
@@ -90,32 +52,63 @@ class ClaimsPage
      */
     public static function exportCsv(array $postData): array
     {
-        $model = new ClaimSearchModel();
-        $model->patientFirstName = $postData['patFirstName'] ?? '';
-        $model->patientLastName = $postData['patLastName'] ?? '';
-        $model->patientGender = $postData['patientGender'] ?? '';
-        $model->patientBirthDate = !empty($postData['patientBirthDate']) ? $postData['patientBirthDate'] : null;
-        $model->receivedDateStart = !empty($postData['startDate']) ? $postData['startDate'] : null;
-        $model->receivedDateEnd = !empty($postData['endDate']) ? $postData['endDate'] : null;
-        $model->serviceDateStart = !empty($postData['serviceDateStart']) ? $postData['serviceDateStart'] : null;
-        $model->serviceDateEnd = !empty($postData['serviceDateEnd']) ? $postData['serviceDateEnd'] : null;
-        $model->payerName = $postData['payerName'] ?? '';
-        $model->payerNumber = $postData['payerNumber'] ?? '';
-        $model->payerPaidAmtStart = !empty($postData['payerPaidAmtStart']) ? (float)$postData['payerPaidAmtStart'] : null;
-        $model->payerPaidAmtEnd = !empty($postData['payerPaidAmtEnd']) ? (float)$postData['payerPaidAmtEnd'] : null;
-        $model->traceNumber = $postData['traceNumber'] ?? '';
-        $model->patientControlNumber = $postData['patientControlNumber'] ?? '';
-        $model->payerControlNumber = $postData['payerControlNumber'] ?? '';
-        $model->billingProviderNpi = $postData['billingProviderNpi'] ?? '';
-        $model->errorMessage = $postData['errorMessage'] ?? '';
+        $model = self::buildSearchModel($postData, 0, 0);
+        $api = ClaimRevApi::makeFromGlobals();
+        return $api->searchClaimsCsv($model);
+    }
 
-        $statusId = $postData['statusId'] ?? '';
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function getClaimStatuses(): array
+    {
+        try {
+            $api = ClaimRevApi::makeFromGlobals();
+            $statuses = $api->getClaimStatuses();
+            return is_array($statuses) ? array_values($statuses) : [];
+        } catch (ClaimRevException) {
+            return [];
+        }
+    }
+
+    /**
+     * Build a ClaimSearchModel from POST data, applying paging and sort.
+     *
+     * @param array<string, mixed> $postData
+     */
+    private static function buildSearchModel(array $postData, int $pageIndex, int $pageSize): ClaimSearchModel
+    {
+        $model = new ClaimSearchModel();
+        $model->patientFirstName = TypeCoerce::asString($postData['patFirstName'] ?? '');
+        $model->patientLastName = TypeCoerce::asString($postData['patLastName'] ?? '');
+        $model->patientGender = TypeCoerce::asString($postData['patientGender'] ?? '');
+        $model->patientBirthDate = self::nonEmptyString($postData['patientBirthDate'] ?? null);
+        $model->receivedDateStart = self::nonEmptyString($postData['startDate'] ?? null);
+        $model->receivedDateEnd = self::nonEmptyString($postData['endDate'] ?? null);
+        $model->serviceDateStart = self::nonEmptyString($postData['serviceDateStart'] ?? null);
+        $model->serviceDateEnd = self::nonEmptyString($postData['serviceDateEnd'] ?? null);
+        $model->payerName = TypeCoerce::asString($postData['payerName'] ?? '');
+        $model->payerNumber = TypeCoerce::asString($postData['payerNumber'] ?? '');
+        $model->payerPaidAmtStart = self::nonEmptyFloat($postData['payerPaidAmtStart'] ?? null);
+        $model->payerPaidAmtEnd = self::nonEmptyFloat($postData['payerPaidAmtEnd'] ?? null);
+        $model->traceNumber = TypeCoerce::asString($postData['traceNumber'] ?? '');
+        $model->patientControlNumber = TypeCoerce::asString($postData['patientControlNumber'] ?? '');
+        $model->payerControlNumber = TypeCoerce::asString($postData['payerControlNumber'] ?? '');
+        $model->billingProviderNpi = TypeCoerce::asString($postData['billingProviderNpi'] ?? '');
+        $model->errorMessage = TypeCoerce::asString($postData['errorMessage'] ?? '');
+
+        $statusId = TypeCoerce::asString($postData['statusId'] ?? '');
         if ($statusId !== '') {
-            $model->statusIds = [(int)$statusId];
+            $model->statusIds = [(int) $statusId];
         }
 
-        $sortField = $postData['sortField'] ?? '';
-        $sortDir = $postData['sortDirection'] ?? '';
+        $model->pagingSearch->pageIndex = $pageIndex;
+        if ($pageSize > 0) {
+            $model->pagingSearch->pageSize = $pageSize;
+        }
+
+        $sortField = TypeCoerce::asString($postData['sortField'] ?? '');
+        $sortDir = TypeCoerce::asString($postData['sortDirection'] ?? '');
         if ($sortField !== '') {
             $model->sorting = [[
                 'fieldName' => $sortField,
@@ -124,17 +117,25 @@ class ClaimsPage
             ]];
         }
 
-        $api = ClaimRevApi::makeFromGlobals();
-        return $api->searchClaimsCsv($model);
+        return $model;
     }
 
-    public static function getClaimStatuses()
+    private static function nonEmptyString(mixed $v): ?string
     {
-        try {
-            $api = ClaimRevApi::makeFromGlobals();
-            return $api->getClaimStatuses();
-        } catch (ClaimRevException) {
-            return [];
+        if (is_string($v) && $v !== '') {
+            return $v;
         }
+        return null;
+    }
+
+    private static function nonEmptyFloat(mixed $v): ?float
+    {
+        if (is_string($v) && $v !== '' && is_numeric($v)) {
+            return (float) $v;
+        }
+        if (is_int($v) || is_float($v)) {
+            return (float) $v;
+        }
+        return null;
     }
 }

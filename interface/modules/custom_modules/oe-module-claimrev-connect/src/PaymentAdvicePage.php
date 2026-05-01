@@ -12,28 +12,55 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
+/**
+ * @phpstan-type PaymentInfoShape array{
+ *     patientFirstName?: string,
+ *     patientLastName?: string,
+ *     patientControlNumber?: string,
+ *     claimStatusCode?: string,
+ *     totalClaimAmount?: float,
+ *     claimPaymentAmount?: float,
+ *     patientResponsibility?: float,
+ *     isWorked?: bool
+ * }
+ * @phpstan-type CheckInfoShape array{
+ *     checkNumber?: string,
+ *     checkDate?: string,
+ *     paymentMethodCode?: string,
+ *     paymentAmount?: float
+ * }
+ * @phpstan-type PaymentAdviceShape array{
+ *     paymentAdviceId?: string,
+ *     receivedDate?: string,
+ *     payerName?: string,
+ *     payerNumber?: string,
+ *     eraClassification?: string,
+ *     paymentInfo?: PaymentInfoShape,
+ *     checkInformation?: CheckInfoShape
+ * }
+ */
 class PaymentAdvicePage
 {
     /**
      * Build a search model from POST data and execute the search.
      *
-     * @param array<string, mixed> $postData
-     * @return array<string, mixed>
+     * @param array{receivedDateStart?: string, receivedDateEnd?: string, serviceDateStart?: string, serviceDateEnd?: string, patientFirstName?: string, patientLastName?: string, payerNumber?: string, patientControlNumber?: string, checkNumber?: string, isWorked?: string, sortField?: string, sortDirection?: string, pageIndex?: int} $postData
+     * @return array{results: list<PaymentAdviceShape>, totalRecords: int}
      */
     public static function searchPaymentInfo(array $postData): array
     {
-        $pageIndex = isset($postData['pageIndex']) ? (int) $postData['pageIndex'] : 0;
+        $pageIndex = $postData['pageIndex'] ?? 0;
 
         $model = new PaymentAdviceSearchModel();
-        $model->receivedDateStart = !empty($postData['receivedDateStart']) ? $postData['receivedDateStart'] : null;
-        $model->receivedDateEnd = !empty($postData['receivedDateEnd']) ? $postData['receivedDateEnd'] : null;
-        $model->serviceDateStart = !empty($postData['serviceDateStart']) ? $postData['serviceDateStart'] : null;
-        $model->serviceDateEnd = !empty($postData['serviceDateEnd']) ? $postData['serviceDateEnd'] : null;
-        $model->patientFirstName = !empty($postData['patientFirstName']) ? $postData['patientFirstName'] : null;
-        $model->patientLastName = !empty($postData['patientLastName']) ? $postData['patientLastName'] : null;
-        $model->payerNumber = !empty($postData['payerNumber']) ? $postData['payerNumber'] : null;
-        $model->patientControlNumber = !empty($postData['patientControlNumber']) ? $postData['patientControlNumber'] : null;
-        $model->checkNumber = !empty($postData['checkNumber']) ? $postData['checkNumber'] : null;
+        $model->receivedDateStart = ($postData['receivedDateStart'] ?? '') !== '' ? $postData['receivedDateStart'] : null;
+        $model->receivedDateEnd = ($postData['receivedDateEnd'] ?? '') !== '' ? $postData['receivedDateEnd'] : null;
+        $model->serviceDateStart = ($postData['serviceDateStart'] ?? '') !== '' ? $postData['serviceDateStart'] : null;
+        $model->serviceDateEnd = ($postData['serviceDateEnd'] ?? '') !== '' ? $postData['serviceDateEnd'] : null;
+        $model->patientFirstName = ($postData['patientFirstName'] ?? '') !== '' ? $postData['patientFirstName'] : null;
+        $model->patientLastName = ($postData['patientLastName'] ?? '') !== '' ? $postData['patientLastName'] : null;
+        $model->payerNumber = ($postData['payerNumber'] ?? '') !== '' ? $postData['payerNumber'] : null;
+        $model->patientControlNumber = ($postData['patientControlNumber'] ?? '') !== '' ? $postData['patientControlNumber'] : null;
+        $model->checkNumber = ($postData['checkNumber'] ?? '') !== '' ? $postData['checkNumber'] : null;
 
         $isWorked = $postData['isWorked'] ?? '';
         if ($isWorked !== '') {
@@ -46,7 +73,23 @@ class PaymentAdvicePage
         $model->pagingSearch->sortDirection = $postData['sortDirection'] ?? '';
 
         $api = ClaimRevApi::makeFromGlobals();
-        return $api->searchPaymentInfo($model);
+        $raw = $api->searchPaymentInfo($model);
+
+        $results = [];
+        $rawResults = $raw['results'] ?? null;
+        if (is_array($rawResults)) {
+            foreach ($rawResults as $entry) {
+                if (is_array($entry)) {
+                    /** @var PaymentAdviceShape $entry */
+                    $results[] = $entry;
+                }
+            }
+        }
+
+        return [
+            'results' => $results,
+            'totalRecords' => TypeCoerce::asInt($raw['totalRecords'] ?? 0),
+        ];
     }
 
     /**

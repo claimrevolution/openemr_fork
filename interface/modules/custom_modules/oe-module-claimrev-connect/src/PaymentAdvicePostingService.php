@@ -110,7 +110,7 @@ class PaymentAdvicePostingService
 
         // Find the session
         // The reference may be stored with a prefix like "ePay - " by arPostSession
-        $session = sqlQuery(
+        $session = QueryUtils::querySingleRow(
             "SELECT s.session_id, s.check_date, s.pay_total, s.created_time, u.username " .
             "FROM ar_session s " .
             "LEFT JOIN users u ON u.id = s.user_id " .
@@ -118,12 +118,12 @@ class PaymentAdvicePostingService
             ['%' . $reference]
         );
 
-        if (empty($session)) {
+        if ($session === [] || $session === false) {
             return $result;
         }
 
         $result['found'] = true;
-        $result['session_id'] = (int) $session['session_id'];
+        $result['session_id'] = TypeCoerce::asInt($session['session_id'] ?? 0);
         $result['check_date'] = $session['check_date'] ?? '';
         $result['pay_total'] = (float) ($session['pay_total'] ?? 0);
         $result['post_user'] = $session['username'] ?? '';
@@ -240,28 +240,28 @@ class PaymentAdvicePostingService
         }
 
         // Verify encounter exists
-        $ferow = sqlQuery(
+        $ferow = QueryUtils::querySingleRow(
             "SELECT e.pid, e.encounter, e.date, e.last_level_closed, p.fname, p.lname FROM form_encounter AS e " .
             "JOIN patient_data AS p ON p.pid = e.pid " .
             "WHERE e.pid = ? AND e.encounter = ?",
             [$pid, $encounter]
         );
 
-        if (empty($ferow)) {
+        if ($ferow === [] || $ferow === false) {
             $result['errors'][] = 'Encounter not found in OpenEMR: pid=' . $pid . ' encounter=' . $encounter;
             return $result;
         }
 
         // Claim status
-        $csc = $paymentInfo['claimStatusCode'] ?? '';
+        $csc = TypeCoerce::asString($paymentInfo['claimStatusCode'] ?? '');
 
         // Check for secondary/tertiary posted before primary
-        $lastLevelClosed = (int) ($ferow['last_level_closed'] ?? 0);
-        if (in_array($csc, ['2', '20']) && $lastLevelClosed < 1) {
+        $lastLevelClosed = TypeCoerce::asInt($ferow['last_level_closed'] ?? 0);
+        if (in_array($csc, ['2', '20'], true) && $lastLevelClosed < 1) {
             $result['warnings'][] = 'Primary insurance has not been posted yet. Posting secondary first may result in incorrect adjustments.';
             $result['requiresApproval'] = true;
             $result['approvalReason'] = 'secondary_before_primary';
-        } elseif (in_array($csc, ['3', '21']) && $lastLevelClosed < 2) {
+        } elseif (in_array($csc, ['3', '21'], true) && $lastLevelClosed < 2) {
             $result['warnings'][] = 'Secondary insurance has not been posted yet. Posting tertiary first may result in incorrect adjustments.';
             $result['requiresApproval'] = true;
             $result['approvalReason'] = 'tertiary_before_secondary';
@@ -306,8 +306,9 @@ class PaymentAdvicePostingService
             }
             // Append additional modifiers if present
             foreach (['modifier2', 'modifier3', 'modifier4'] as $modKey) {
-                if (!empty($svc[$modKey])) {
-                    $codekey .= ':' . $svc[$modKey];
+                $modVal = TypeCoerce::asString($svc[$modKey] ?? '');
+                if ($modVal !== '') {
+                    $codekey .= ':' . $modVal;
                 }
             }
 
@@ -364,7 +365,7 @@ class PaymentAdvicePostingService
             $result['totalAdjusted'] += $totalAdj;
         }
 
-        $result['canPost'] = empty($result['errors']);
+        $result['canPost'] = $result['errors'] === [];
         return $result;
     }
 
@@ -388,7 +389,7 @@ class PaymentAdvicePostingService
             ];
         }
 
-        if (!$approved && !empty($preview['requiresApproval'])) {
+        if (!$approved && ($preview['requiresApproval'] ?? false)) {
             return [
                 'success' => false,
                 'session_id' => null,
@@ -499,11 +500,11 @@ class PaymentAdvicePostingService
             $codetype = '';
             if ($svc['matched']) {
                 // Try to determine code type from billing
-                $billingRow = sqlQuery(
+                $billingRow = QueryUtils::querySingleRow(
                     "SELECT code_type FROM billing WHERE pid = ? AND encounter = ? AND code = ? AND activity = 1 LIMIT 1",
                     [$pid, $encounter, $svc['code']]
                 );
-                $codetype = $billingRow['code_type'] ?? '';
+                $codetype = TypeCoerce::asString($billingRow['code_type'] ?? '');
             }
 
             // Post payment for this service line
@@ -565,7 +566,7 @@ class PaymentAdvicePostingService
 
         // Update claim level and check for secondary
         $levelDone = $payerType;
-        sqlStatement(
+        QueryUtils::sqlStatementThrowException(
             "UPDATE form_encounter SET last_level_closed = ? WHERE pid = ? AND encounter = ?",
             [$levelDone, $pid, $encounter]
         );
