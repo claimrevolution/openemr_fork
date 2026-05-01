@@ -12,15 +12,23 @@
 
     namespace OpenEMR\Modules\ClaimRevConnector;
 
-    use OpenEMR\Modules\ClaimRevConnector\ValueMapping;
+    use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type AppointmentForEligibility array{pc_pid: int, appointmentDate: string, facilityId: int, providerId: int}
+ * @phpstan-type InsuranceRow array{payer_responsibility: string}
+ * @phpstan-type EligibilityResultRow array{status: string, last_update: string, response_json: ?string, eligibility_json: ?string, individual_json: ?string, response_message: ?string}
+ */
 class EligibilityData
 {
     public function __construct()
     {
     }
 
-    public static function getPatientIdFromAppointment($eid)
+    /**
+     * @return AppointmentForEligibility|null
+     */
+    public static function getPatientIdFromAppointment(string $eid): ?array
     {
         $sql = "SELECT
                 pc_pid
@@ -30,43 +38,65 @@ class EligibilityData
                 from openemr_postcalendar_events
                 WHERE pc_eid = ?
             LIMIT 1";
-        $sqlarr = [$eid];
-        $result = sqlStatement($sql, $sqlarr);
-        if (sqlNumRows($result) == 1) {
-            foreach ($result as $row) {
-                //return $row["pc_pid"];
-                return $row;
-            }
+        $rows = QueryUtils::fetchRecords($sql, [$eid]);
+        if ($rows === []) {
+            return null;
         }
-        return null;
+        $row = $rows[0];
+        return [
+            'pc_pid' => TypeCoerce::asInt($row['pc_pid'] ?? 0),
+            'appointmentDate' => TypeCoerce::asString($row['appointmentDate'] ?? ''),
+            'facilityId' => TypeCoerce::asInt($row['facilityId'] ?? 0),
+            'providerId' => TypeCoerce::asInt($row['providerId'] ?? 0),
+        ];
     }
-    public static function removeEligibilityCheck($pid, $payer_responsibility)
-    {
-        $sql = "DELETE FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? ";
-        $sqlarr = [$pid,$payer_responsibility];
-        $result = sqlStatement($sql, $sqlarr);
-    }
-    public static function getEligibilityCheckByStatus($status)
-    {
-        $sql = "SELECT * FROM mod_claimrev_eligibility WHERE status = ?";
-        $sqlarr = [$status];
 
-        $result = sqlStatement($sql, $sqlarr);
-        return $result;
-    }
-    public static function getEligibilityResults($status, $minutes)
+    public static function removeEligibilityCheck(int $pid, string $payer_responsibility): void
     {
-        $sql = "SELECT * FROM mod_claimrev_eligibility WHERE status = ? AND TIMESTAMPDIFF(MINUTE,last_checked,NOW()) >= ?";
-        $sqlarr = [$status,$minutes];
-        $result = sqlStatement($sql, $sqlarr);
-        return $result;
+        QueryUtils::sqlStatementThrowException(
+            "DELETE FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? ",
+            [$pid, $payer_responsibility]
+        );
     }
-    public static function getEligibilityResult($pid, $payer_responsibility)
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function getEligibilityCheckByStatus(string $status): array
+    {
+        return QueryUtils::fetchRecords(
+            "SELECT * FROM mod_claimrev_eligibility WHERE status = ?",
+            [$status]
+        );
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function getEligibilityResults(string $status, int $minutes): array
+    {
+        return QueryUtils::fetchRecords(
+            "SELECT * FROM mod_claimrev_eligibility WHERE status = ? AND TIMESTAMPDIFF(MINUTE,last_checked,NOW()) >= ?",
+            [$status, $minutes]
+        );
+    }
+
+    /**
+     * @return list<EligibilityResultRow>
+     */
+    public static function getEligibilityResult(int $pid, string $payer_responsibility): array
     {
         $pr = ValueMapping::mapPayerResponsibility($payer_responsibility);
         $sql = "SELECT status, coalesce(last_checked,create_date) as last_update,response_json,eligibility_json,individual_json,response_message  FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? LIMIT 1";
-        $res = sqlStatement($sql, [$pid,$pr]);
-        return $res;
+        $rows = QueryUtils::fetchRecords($sql, [$pid, $pr]);
+        return array_map(static fn(array $r): array => [
+            'status' => TypeCoerce::asString($r['status'] ?? ''),
+            'last_update' => TypeCoerce::asString($r['last_update'] ?? ''),
+            'response_json' => isset($r['response_json']) ? TypeCoerce::asString($r['response_json']) : null,
+            'eligibility_json' => isset($r['eligibility_json']) ? TypeCoerce::asString($r['eligibility_json']) : null,
+            'individual_json' => isset($r['individual_json']) ? TypeCoerce::asString($r['individual_json']) : null,
+            'response_message' => isset($r['response_message']) ? TypeCoerce::asString($r['response_message']) : null,
+        ], $rows);
     }
 
     /**
@@ -277,20 +307,27 @@ class EligibilityData
     /**
      * Get the eligibility record ID and raw271 for a patient + payer responsibility.
      *
-     * @return array{id: int|string, raw271: string}|null
+     * @return array{id: int, raw271: string}|null
      */
-    public static function getRaw271($pid, $payerResponsibility)
+    public static function getRaw271(string $pid, string $payerResponsibility): ?array
     {
         $pr = ValueMapping::mapPayerResponsibility($payerResponsibility);
         $sql = "SELECT id, raw271 FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? AND raw271 IS NOT NULL AND raw271 != '' LIMIT 1";
-        $res = sqlStatement($sql, [$pid, $pr]);
-        foreach ($res as $row) {
-            return $row;
+        $rows = QueryUtils::fetchRecords($sql, [$pid, $pr]);
+        if ($rows === []) {
+            return null;
         }
-        return null;
+        $row = $rows[0];
+        return [
+            'id' => TypeCoerce::asInt($row['id'] ?? 0),
+            'raw271' => TypeCoerce::asString($row['raw271'] ?? ''),
+        ];
     }
 
-    public static function getInsuranceData($pid = 0, $pr = "")
+    /**
+     * @return list<InsuranceRow>
+     */
+    public static function getInsuranceData(int $pid = 0, string $pr = ""): array
     {
         $query = "SELECT
 			i.type as payer_responsibility
@@ -298,12 +335,13 @@ class EligibilityData
             WHERE i.pid = ? ";
         $ary = [$pid];
 
-        if ($pr != "") {
+        if ($pr !== '') {
             $query .= " AND i.type = ?";
-            array_push($ary, $pr);
+            $ary[] = $pr;
         }
-        $res = sqlStatement($query, $ary);
-
-        return $res;
+        $rows = QueryUtils::fetchRecords($query, $ary);
+        return array_map(static fn(array $r): array => [
+            'payer_responsibility' => TypeCoerce::asString($r['payer_responsibility'] ?? ''),
+        ], $rows);
     }
 }
