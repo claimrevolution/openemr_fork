@@ -20,6 +20,7 @@ use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdviceMockService;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePostingService;
@@ -39,19 +40,47 @@ $portalUrl = $globalConfig->getPortalUrl();
 $testModeAllowed = $globalConfig->isTestModeEnabled();
 $csrfToken = CsrfHelper::collectCsrfToken('payment_advice');
 
+$sortFieldRaw = ModuleInput::postString('sortField');
+$sortDirectionRaw = ModuleInput::postString('sortDirection');
+$receivedDateStart = ModuleInput::postString('receivedDateStart');
+$receivedDateEnd = ModuleInput::postString('receivedDateEnd');
+$patientFirstName = ModuleInput::postString('patientFirstName');
+$patientLastName = ModuleInput::postString('patientLastName');
+$checkNumber = ModuleInput::postString('checkNumber');
+$isWorkedFilter = ModuleInput::postString('isWorked');
+$serviceDateStart = ModuleInput::postString('serviceDateStart');
+$serviceDateEnd = ModuleInput::postString('serviceDateEnd');
+$payerNumber = ModuleInput::postString('payerNumber');
+$patientControlNumber = ModuleInput::postString('patientControlNumber');
+$paymentSearchFilters = [
+    'sortField' => $sortFieldRaw,
+    'sortDirection' => $sortDirectionRaw,
+    'receivedDateStart' => $receivedDateStart,
+    'receivedDateEnd' => $receivedDateEnd,
+    'patientFirstName' => $patientFirstName,
+    'patientLastName' => $patientLastName,
+    'checkNumber' => $checkNumber,
+    'isWorked' => $isWorkedFilter,
+    'serviceDateStart' => $serviceDateStart,
+    'serviceDateEnd' => $serviceDateEnd,
+    'payerNumber' => $payerNumber,
+    'patientControlNumber' => $patientControlNumber,
+    'pageIndex' => ModuleInput::postInt('pageIndex'),
+];
+
 $datas = [];
 $totalRecords = 0;
-$pageIndex = isset($_POST['pageIndex']) ? (int) $_POST['pageIndex'] : 0;
+$pageIndex = ModuleInput::postInt('pageIndex');
 $pageSize = 50;
 $errorMessage = null;
-$testMode = $testModeAllowed && !empty($_POST['testMode']);
+$testMode = $testModeAllowed && ModuleInput::postExists('testMode');
 
-if (!empty($_POST) && isset($_POST['SubmitButton'])) {
+if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
     try {
         if ($testMode) {
-            $result = PaymentAdviceMockService::generateMockResults($_POST);
+            $result = PaymentAdviceMockService::generateMockResults($paymentSearchFilters);
         } else {
-            $result = PaymentAdvicePage::searchPaymentInfo($_POST);
+            $result = PaymentAdvicePage::searchPaymentInfo($paymentSearchFilters);
         }
         $datas = $result['results'] ?? [];
         $totalRecords = $result['totalRecords'] ?? 0;
@@ -110,9 +139,9 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
         <div class="container-fluid">
             <?php require '../templates/navbar.php'; ?>
             <form method="post" action="payment_advice.php" id="paymentSearchForm">
-                <input type="hidden" name="sortField" id="sortField" value="<?php echo isset($_POST['sortField']) ? attr($_POST['sortField']) : ''; ?>"/>
-                <input type="hidden" name="sortDirection" id="sortDirection" value="<?php echo isset($_POST['sortDirection']) ? attr($_POST['sortDirection']) : ''; ?>"/>
-                <input type="hidden" name="pageIndex" id="pageIndex" value="<?php echo attr($pageIndex); ?>"/>
+                <input type="hidden" name="sortField" id="sortField" value="<?php echo attr($sortFieldRaw); ?>"/>
+                <input type="hidden" name="sortDirection" id="sortDirection" value="<?php echo attr($sortDirectionRaw); ?>"/>
+                <input type="hidden" name="pageIndex" id="pageIndex" value="<?php echo attr((string) $pageIndex); ?>"/>
                 <div class="card mt-3">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <?php echo xlt("Search Payment Advice"); ?>
@@ -124,30 +153,30 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         <div class="form-row">
                             <div class="form-group col-md-2">
                                 <label for="receivedDateStart"><?php echo xlt("Received Date Start"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="receivedDateStart" name="receivedDateStart" value="<?php echo isset($_POST['receivedDateStart']) ? attr($_POST['receivedDateStart']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="receivedDateStart" name="receivedDateStart" value="<?php echo attr($receivedDateStart); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="receivedDateEnd"><?php echo xlt("Received Date End"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="receivedDateEnd" name="receivedDateEnd" value="<?php echo isset($_POST['receivedDateEnd']) ? attr($_POST['receivedDateEnd']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="receivedDateEnd" name="receivedDateEnd" value="<?php echo attr($receivedDateEnd); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patientFirstName"><?php echo xlt("Patient First"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patientFirstName" name="patientFirstName" value="<?php echo isset($_POST['patientFirstName']) ? attr($_POST['patientFirstName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patientFirstName" name="patientFirstName" value="<?php echo attr($patientFirstName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patientLastName"><?php echo xlt("Patient Last"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patientLastName" name="patientLastName" value="<?php echo isset($_POST['patientLastName']) ? attr($_POST['patientLastName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patientLastName" name="patientLastName" value="<?php echo attr($patientLastName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="checkNumber"><?php echo xlt("Check Number"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="checkNumber" name="checkNumber" value="<?php echo isset($_POST['checkNumber']) ? attr($_POST['checkNumber']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="checkNumber" name="checkNumber" value="<?php echo attr($checkNumber); ?>"/>
                             </div>
                             <div class="form-group col-md-1">
                                 <label for="isWorked"><?php echo xlt("Worked"); ?></label>
                                 <select class="form-control form-control-sm" id="isWorked" name="isWorked">
                                     <option value=""><?php echo xlt("All"); ?></option>
-                                    <option value="0" <?php echo (isset($_POST['isWorked']) && $_POST['isWorked'] === '0') ? 'selected' : ''; ?>><?php echo xlt("No"); ?></option>
-                                    <option value="1" <?php echo (isset($_POST['isWorked']) && $_POST['isWorked'] === '1') ? 'selected' : ''; ?>><?php echo xlt("Yes"); ?></option>
+                                    <option value="0" <?php echo $isWorkedFilter === '0' ? 'selected' : ''; ?>><?php echo xlt("No"); ?></option>
+                                    <option value="1" <?php echo $isWorkedFilter === '1' ? 'selected' : ''; ?>><?php echo xlt("Yes"); ?></option>
                                 </select>
                             </div>
                             <div class="form-group col-md-1 d-flex align-items-end">
@@ -168,19 +197,19 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                             <div class="form-row">
                                 <div class="form-group col-md-2">
                                     <label for="serviceDateStart"><?php echo xlt("Service Date Start"); ?></label>
-                                    <input type="date" class="form-control form-control-sm" id="serviceDateStart" name="serviceDateStart" value="<?php echo isset($_POST['serviceDateStart']) ? attr($_POST['serviceDateStart']) : ''; ?>"/>
+                                    <input type="date" class="form-control form-control-sm" id="serviceDateStart" name="serviceDateStart" value="<?php echo attr($serviceDateStart); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="serviceDateEnd"><?php echo xlt("Service Date End"); ?></label>
-                                    <input type="date" class="form-control form-control-sm" id="serviceDateEnd" name="serviceDateEnd" value="<?php echo isset($_POST['serviceDateEnd']) ? attr($_POST['serviceDateEnd']) : ''; ?>"/>
+                                    <input type="date" class="form-control form-control-sm" id="serviceDateEnd" name="serviceDateEnd" value="<?php echo attr($serviceDateEnd); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="payerNumber"><?php echo xlt("Payer Number"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="payerNumber" name="payerNumber" value="<?php echo isset($_POST['payerNumber']) ? attr($_POST['payerNumber']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="payerNumber" name="payerNumber" value="<?php echo attr($payerNumber); ?>"/>
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="patientControlNumber"><?php echo xlt("Patient Control #"); ?></label>
-                                    <input type="text" class="form-control form-control-sm" id="patientControlNumber" name="patientControlNumber" value="<?php echo isset($_POST['patientControlNumber']) ? attr($_POST['patientControlNumber']) : ''; ?>"/>
+                                    <input type="text" class="form-control form-control-sm" id="patientControlNumber" name="patientControlNumber" value="<?php echo attr($patientControlNumber); ?>"/>
                                 </div>
                             </div>
                         </div>
@@ -197,9 +226,9 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
 
         <?php if ($errorMessage !== null) { ?>
             <div class="alert alert-danger mt-3"><?php echo text($errorMessage); ?></div>
-        <?php } elseif (!empty($_POST) && isset($_POST['SubmitButton']) && empty($datas)) { ?>
+        <?php } elseif (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton') && $datas === []) { ?>
             <div class="mt-3"><?php echo xlt("No results found"); ?></div>
-        <?php } elseif (!empty($datas)) { ?>
+        <?php } elseif ($datas !== []) { ?>
             <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
                 <small class="text-muted">
                     <?php echo text($totalRecords); ?> <?php echo xlt("results"); ?>
