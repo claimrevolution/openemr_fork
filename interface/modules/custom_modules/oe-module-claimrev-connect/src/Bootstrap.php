@@ -301,21 +301,9 @@ class Bootstrap
         $menuItem->url = "/interface/modules/custom_modules/oe-module-claimrev-connect/public/index.php";
         $menuItem->children = [];
 
-        /**
-         * This defines the Access Control List properties that are required to use this module.
-         * Several examples are provided
-         */
-        $menuItem->acl_req = [];
-
-        /**
-         * If you would like to restrict this menu to only logged in users who have access to see all user data
-         */
-        //$menuItem->acl_req = ["admin", "users"];
-
-        /**
-         * If you would like to restrict this menu to logged in users who can access patient demographic information
-         */
-        //$menuItem->acl_req = ["users", "demo"];
+        // Match the ACL enforced on every page under public/ so users without
+        // billing access don't see a menu entry that immediately 403s on click.
+        $menuItem->acl_req = ["acct", "bill"];
 
 
         /**
