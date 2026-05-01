@@ -154,7 +154,7 @@ $path = str_replace("public", "templates", __DIR__);
             $appointmentRows[] = $row;
         }
 
-        if (empty($appointmentRows)) {
+        if ($appointmentRows === []) {
             echo "<div class='mt-3'>" . xlt("No appointments found for the selected date range.") . "</div>";
         } else {
             ?>

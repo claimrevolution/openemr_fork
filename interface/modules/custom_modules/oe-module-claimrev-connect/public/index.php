@@ -64,7 +64,7 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                 <div class="col-md-3">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-value text-primary"><?php echo text($claims['inFlight']); ?></div>
+                            <div class="kpi-value text-primary"><?php echo text((string) $claims['inFlight']); ?></div>
                             <div class="kpi-label"><?php echo xlt("Claims In Flight"); ?></div>
                             <div class="kpi-sub"><?php echo xlt("Billed, awaiting response"); ?></div>
                         </div>
@@ -73,7 +73,7 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                 <div class="col-md-3">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-value text-warning"><?php echo text($claims['pendingEras']); ?></div>
+                            <div class="kpi-value text-warning"><?php echo text((string) $claims['pendingEras']); ?></div>
                             <div class="kpi-label"><?php echo xlt("Pending ERAs"); ?></div>
                             <div class="kpi-sub"><?php echo xlt("ERA received, not posted"); ?></div>
                         </div>
@@ -82,7 +82,7 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                 <div class="col-md-3">
                     <div class="card kpi-card">
                         <div class="card-body">
-                            <div class="kpi-value text-danger"><?php echo text($claims['rejected']); ?></div>
+                            <div class="kpi-value text-danger"><?php echo text((string) $claims['rejected']); ?></div>
                             <div class="kpi-label"><?php echo xlt("Rejected / Denied"); ?></div>
                             <div class="kpi-sub"><?php echo xlt("Last 90 days"); ?></div>
                         </div>
@@ -92,7 +92,7 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                     <div class="card kpi-card">
                         <div class="card-body">
                             <div class="kpi-value <?php echo $claims['cleanClaimRate'] >= 95 ? 'text-success' : ($claims['cleanClaimRate'] >= 90 ? 'text-warning' : 'text-danger'); ?>">
-                                <?php echo text($claims['cleanClaimRate']); ?>%
+                                <?php echo text((string) $claims['cleanClaimRate']); ?>%
                             </div>
                             <div class="kpi-label"><?php echo xlt("Clean Claim Rate"); ?></div>
                             <div class="kpi-sub"><?php echo xlt("90-day first-pass acceptance"); ?></div>
@@ -117,7 +117,7 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                     <div class="card kpi-card">
                         <div class="card-body">
                             <div class="kpi-value <?php echo $ar['avgDaysInAr'] <= 35 ? 'text-success' : ($ar['avgDaysInAr'] <= 50 ? 'text-warning' : 'text-danger'); ?>">
-                                <?php echo text($ar['avgDaysInAr']); ?>
+                                <?php echo text((string) $ar['avgDaysInAr']); ?>
                             </div>
                             <div class="kpi-label"><?php echo xlt("Avg Days in AR"); ?></div>
                             <div class="kpi-sub"><?php echo xlt("Target: under 35"); ?></div>
@@ -152,15 +152,15 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                             <div class="card kpi-card">
                                 <div class="card-body">
                                     <div class="kpi-value <?php echo $denials['denialRate'] <= 5 ? 'text-success' : ($denials['denialRate'] <= 10 ? 'text-warning' : 'text-danger'); ?>">
-                                        <?php echo text($denials['denialRate']); ?>%
+                                        <?php echo text((string) $denials['denialRate']); ?>%
                                     </div>
                                     <div class="kpi-label"><?php echo xlt("Denial Rate"); ?></div>
-                                    <div class="kpi-sub"><?php echo text($denials['totalDenied']); ?> / <?php echo text($denials['totalProcessed']); ?></div>
+                                    <div class="kpi-sub"><?php echo text((string) $denials['totalDenied']); ?> / <?php echo text((string) $denials['totalProcessed']); ?></div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-8">
-                            <?php if (!empty($denials['topReasons'])) { ?>
+                            <?php if ($denials['topReasons'] !== []) { ?>
                             <div class="card" style="min-height: 110px;">
                                 <div class="card-body p-2">
                                     <table class="table table-sm table-borderless top-reasons mb-0">
@@ -168,7 +168,7 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                                         <?php foreach ($denials['topReasons'] as $r) { ?>
                                         <tr>
                                             <td class="text-truncate" style="max-width:250px;" title="<?php echo attr($r['reason']); ?>"><?php echo text($r['reason']); ?></td>
-                                            <td class="text-right"><?php echo text($r['count']); ?></td>
+                                            <td class="text-right"><?php echo text((string) $r['count']); ?></td>
                                         </tr>
                                         <?php } ?>
                                     </table>
@@ -192,14 +192,14 @@ $supportEmail = is_string($contactArr['supportEmail'] ?? null) ? $contactArr['su
                                 <div class="card-body">
                                     <div class="kpi-value text-danger">$<?php echo text(number_format($patientAr['totalPatientAr'], 0)); ?></div>
                                     <div class="kpi-label"><?php echo xlt("Patient AR"); ?></div>
-                                    <div class="kpi-sub"><?php echo text($patientAr['encountersWithBalance']); ?> <?php echo xlt("encounters"); ?></div>
+                                    <div class="kpi-sub"><?php echo text((string) $patientAr['encountersWithBalance']); ?> <?php echo xlt("encounters"); ?></div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card kpi-card">
                                 <div class="card-body">
-                                    <div class="kpi-value text-warning"><?php echo text($patientAr['neverSentStatements']); ?></div>
+                                    <div class="kpi-value text-warning"><?php echo text((string) $patientAr['neverSentStatements']); ?></div>
                                     <div class="kpi-label"><?php echo xlt("Need Statements"); ?></div>
                                     <div class="kpi-sub"><?php echo xlt("Never sent"); ?></div>
                                 </div>

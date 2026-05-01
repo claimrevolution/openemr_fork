@@ -387,7 +387,7 @@ $searchFilters = [
                         // ERA icon
                         $eraIcon = '';
                         $eraIconClass = '';
-                        if ($paymentAdviceStatusId > 0 || !empty($eraClassification)) {
+                        if ($paymentAdviceStatusId > 0 || $eraClassification !== '') {
                             if (stripos($eraClassification, 'denied') !== false) {
                                 $eraIcon = 'fa-times-circle';
                                 $eraIconClass = 'text-era-denied';
@@ -425,7 +425,7 @@ $searchFilters = [
                         $objectId = $data->objectId ?? '';
                         $claimTypeId = $data->claimTypeId ?? 1;
                         $editorRoute = '';
-                        if (!empty($objectId)) {
+                        if ($objectId !== '') {
                             $editorRoute = match ($claimTypeId) {
                                 2 => '/claimeditor/institutionaleditor/',
                                 3 => '/claimeditor/dentaleditor/',
@@ -446,8 +446,8 @@ $searchFilters = [
                                     <span class="status-icon <?php echo attr($payerIconClass); ?>" title="<?php echo xla("Payer"); ?>: <?php echo attr($payerAcceptance); ?>">
                                         <i class="fa <?php echo attr($payerIcon); ?>"></i>
                                     </span>
-                                    <?php if (!empty($eraIcon)) { ?>
-                                        <span class="status-icon <?php echo attr($eraIconClass); ?>" title="<?php echo xla("ERA"); ?>: <?php echo attr(!empty($eraClassification) ? $eraClassification : $paymentAdvice); ?>">
+                                    <?php if ($eraIcon !== '') { ?>
+                                        <span class="status-icon <?php echo attr($eraIconClass); ?>" title="<?php echo xla("ERA"); ?>: <?php echo attr($eraClassification !== '' ? $eraClassification : $paymentAdvice); ?>">
                                             <i class="fa <?php echo attr($eraIcon); ?>"></i>
                                         </span>
                                     <?php } ?>
@@ -465,19 +465,19 @@ $searchFilters = [
                             </td>
                             <td>
                                 <?php echo text($data->payerName ?? ''); ?>
-                                <?php if (!empty($data->payerNumber)) { ?>
+                                <?php if (($data->payerNumber ?? null) !== null && $data->payerNumber !== '') { ?>
                                     <br/><small class="text-muted">#<?php echo text($data->payerNumber); ?></small>
                                 <?php } ?>
                             </td>
                             <td>
                                 <?php echo text($data->providerLastName ?? ''); ?>, <?php echo text($data->providerFirstName ?? ''); ?>
-                                <?php if (!empty($data->providerNpi)) { ?>
+                                <?php if (($data->providerNpi ?? null) !== null && $data->providerNpi !== '') { ?>
                                     <br/><small class="text-muted"><?php echo xlt("NPI"); ?>: <?php echo text($data->providerNpi); ?></small>
                                 <?php } ?>
                             </td>
                             <td>
                                 <?php echo text(substr($data->serviceDate ?? '', 0, 10)); ?>
-                                <?php if (!empty($data->serviceDateEnd)) { ?>
+                                <?php if (($data->serviceDateEnd ?? null) !== null && $data->serviceDateEnd !== '') { ?>
                                     <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($data->serviceDateEnd ?? '', 0, 10)); ?></small>
                                 <?php } ?>
                             </td>
@@ -528,7 +528,7 @@ $searchFilters = [
                                             <i class="fa fa-redo"></i>
                                         </button>
                                     <?php } ?>
-                                    <?php if (!empty($objectId) && !empty($editorRoute)) { ?>
+                                    <?php if ($objectId !== '' && $editorRoute !== '') { ?>
                                         <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-outline-primary" title="<?php echo xla("Edit in Portal"); ?>">
                                             <i class="fa fa-external-link-alt"></i>
                                         </a>
@@ -599,7 +599,7 @@ $searchFilters = [
                                             </div>
                                         <?php } ?>
                                         <div class="mt-3">
-                                            <?php if (!empty($objectId) && !empty($editorRoute)) { ?>
+                                            <?php if ($objectId !== '' && $editorRoute !== '') { ?>
                                                 <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     <i class="fa fa-external-link-alt"></i> <?php echo xlt("Edit in Portal"); ?>
                                                 </a>

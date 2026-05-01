@@ -52,9 +52,6 @@ class PrintProperty
         self::displayProperty($title, $strDate);
     }
 
-    /**
-     * @param iterable<\stdClass>|null $validations
-     */
     public static function printValidation(string $title, ?iterable $validations): void
     {
         if ($validations === null) {
@@ -68,10 +65,13 @@ class PrintProperty
                             echo xlt($title);
                         echo("</h6>");
         foreach ($validations as $validation) {
-            self::displayProperty("Is Valid Request", $validation->validRequestIndicator ?? '');
-            self::displayProperty("Reject Reason", $validation->rejectReasonCode ?? '');
-            self::displayProperty("Description", $validation->description ?? '');
-            self::displayProperty("Follow-up Action", $validation->followUpActionCode ?? '');
+            if (!is_object($validation)) {
+                continue;
+            }
+            self::displayProperty("Is Valid Request", property_exists($validation, 'validRequestIndicator') ? $validation->validRequestIndicator : '');
+            self::displayProperty("Reject Reason", property_exists($validation, 'rejectReasonCode') ? $validation->rejectReasonCode : '');
+            self::displayProperty("Description", property_exists($validation, 'description') ? $validation->description : '');
+            self::displayProperty("Follow-up Action", property_exists($validation, 'followUpActionCode') ? $validation->followUpActionCode : '');
         }
 
                     echo("</div>");

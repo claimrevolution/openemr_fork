@@ -58,7 +58,7 @@ $check = ['name' => 'OEGlobalsBag->get("fileroot")', 'pass' => false, 'detail' =
 try {
     $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
     $fileroot = $bag->get('fileroot');
-    $check['pass'] = !empty($fileroot) && is_dir($fileroot);
+    $check['pass'] = $fileroot !== '' && is_dir($fileroot);
     $check['detail'] = $fileroot ?: '(empty)';
 } catch (\RuntimeException | \LogicException $e) {
     $check['detail'] = $e->getMessage();
