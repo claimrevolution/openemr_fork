@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Typed wrapper around filter_input() for $_POST/$_GET/$_SERVER access.
  *
@@ -15,6 +13,8 @@ declare(strict_types=1);
  * @copyright Copyright (c) 2026 Brad Sharp <brad.sharp@claimrev.com>
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
+
+declare(strict_types=1);
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
