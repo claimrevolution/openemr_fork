@@ -1173,12 +1173,12 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
 
             function openEncounterTab(pid, encounter) {
                 top.restoreSession();
-                top.RTop.location = '<?php echo $GLOBALS['webroot']; ?>/interface/patient_file/summary/demographics.php?set_pid=' + encodeURIComponent(pid) + '&set_encounterid=' + encodeURIComponent(encounter);
+                top.RTop.location = '<?php echo attr(\OpenEMR\Core\OEGlobalsBag::getInstance()->getString('webroot')); ?>/interface/patient_file/summary/demographics.php?set_pid=' + encodeURIComponent(pid) + '&set_encounterid=' + encodeURIComponent(encounter);
             }
 
             function openLedgerTab(pid) {
                 top.restoreSession();
-                var url = '<?php echo $GLOBALS['webroot']; ?>/interface/reports/pat_ledger.php?form=1&patient_id=' + encodeURIComponent(pid);
+                var url = '<?php echo attr(\OpenEMR\Core\OEGlobalsBag::getInstance()->getString('webroot')); ?>/interface/reports/pat_ledger.php?form=1&patient_id=' + encodeURIComponent(pid);
                 top.navigateTab(url, 'ledger', function() {
                     top.activateTabByName('ledger', true);
                 });
