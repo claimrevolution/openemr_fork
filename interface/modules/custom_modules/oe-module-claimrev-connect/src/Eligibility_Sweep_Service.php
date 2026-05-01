@@ -17,23 +17,29 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+use OpenEMR\BC\ServiceContainer;
+use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\AppointmentsPage;
 use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
+use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
 
 function start_eligibility_sweep(): void
 {
     $globals = OEGlobalsBag::getInstance();
+    $logger = ServiceContainer::getLogger();
 
     // Check if sweep is enabled
-    $enabled = $globals->get(GlobalConfig::CONFIG_ENABLE_SWEEP) ?? '';
-    if (empty($enabled)) {
+    $enabled = TypeCoerce::asString($globals->get(GlobalConfig::CONFIG_ENABLE_SWEEP) ?? '');
+    if ($enabled === '') {
         return;
     }
 
     // Check if today is a configured sweep day
-    $sweepDaysConfigRaw = $globals->get(GlobalConfig::CONFIG_SWEEP_DAYS) ?? '1,4';
-    $sweepDaysConfig = is_string($sweepDaysConfigRaw) ? $sweepDaysConfigRaw : '1,4';
+    $sweepDaysConfig = TypeCoerce::asString($globals->get(GlobalConfig::CONFIG_SWEEP_DAYS) ?? '1,4');
+    if ($sweepDaysConfig === '') {
+        $sweepDaysConfig = '1,4';
+    }
     $sweepDays = array_map(intval(...), array_filter(explode(',', $sweepDaysConfig)));
     $todayDow = (int) date('w'); // 0=Sun, 1=Mon, ..., 6=Sat
 
@@ -42,7 +48,7 @@ function start_eligibility_sweep(): void
     }
 
     // Calculate the date range
-    $lookahead = (int) ($globals->get(GlobalConfig::CONFIG_SWEEP_LOOKAHEAD) ?? 7);
+    $lookahead = TypeCoerce::asInt($globals->get(GlobalConfig::CONFIG_SWEEP_LOOKAHEAD) ?? 7, 7);
     if ($lookahead < 1) {
         $lookahead = 7;
     }
@@ -50,7 +56,7 @@ function start_eligibility_sweep(): void
     $endDate = date('Y-m-d', strtotime('+' . $lookahead . ' days'));
 
     // Get the stale age threshold (in days)
-    $staleAge = (int) ($globals->get(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY) ?? 30);
+    $staleAge = TypeCoerce::asInt($globals->get(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY) ?? 30, 30);
     if ($staleAge < 1) {
         $staleAge = 30;
     }
@@ -78,18 +84,26 @@ function start_eligibility_sweep(): void
                 )
                 AND (elig.status IS NULL OR elig.status NOT IN ('waiting', 'creating'))";
 
-        $results = sqlStatement($sql, [$startDate, $endDate, $staleAge]);
+        $rows = QueryUtils::fetchRecords($sql, [$startDate, $endDate, $staleAge]);
 
         $count = 0;
-        while ($row = sqlFetchArray($results)) {
-            AppointmentsPage::runEligibilityForAppointment($row['pc_eid']);
+        foreach ($rows as $row) {
+            $pcEid = TypeCoerce::asString($row['pc_eid'] ?? '');
+            if ($pcEid === '') {
+                continue;
+            }
+            AppointmentsPage::runEligibilityForAppointment($pcEid);
             $count++;
         }
 
         if ($count > 0) {
-            error_log("ClaimRev Eligibility Sweep: queued {$count} appointment(s) for eligibility check ({$startDate} to {$endDate})");
+            $logger->info('ClaimRev Eligibility Sweep queued appointments', [
+                'count' => $count,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+            ]);
         }
-    } catch (\Throwable $e) {
-        error_log("ClaimRev Eligibility Sweep error: " . $e->getMessage());
+    } catch (\Exception $e) {
+        $logger->error('ClaimRev Eligibility Sweep error', ['exception' => $e]);
     }
 }

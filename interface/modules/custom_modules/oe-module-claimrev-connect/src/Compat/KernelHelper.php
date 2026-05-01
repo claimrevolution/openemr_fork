@@ -31,7 +31,11 @@ class KernelHelper
         if (method_exists($bag, 'getKernel')) {
             return $bag->getKernel();
         }
-        return $GLOBALS['kernel'];
+        $kernel = $bag->get('kernel');
+        if (!is_object($kernel)) {
+            throw new \RuntimeException('OpenEMR Kernel not initialized');
+        }
+        return $kernel;
     }
 
     /**

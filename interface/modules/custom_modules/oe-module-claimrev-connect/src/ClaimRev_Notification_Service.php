@@ -16,11 +16,13 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+use OpenEMR\Common\Database\QueryUtils;
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApi;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
 use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
 
-require_once($GLOBALS['fileroot'] . "/library/pnotes.inc.php");
+require_once(OEGlobalsBag::getInstance()->getString('fileroot') . "/library/pnotes.inc.php");
 
 /**
  * Convert HTML to readable plain text, preserving paragraph breaks,
@@ -60,8 +62,8 @@ function htmlToPlainText(string $html): string
 
 function start_claimrev_notifications(): void
 {
-    $enabled = $GLOBALS[GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS] ?? '1';
-    if (!$enabled) {
+    $enabledRaw = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS) ?? '1';
+    if ($enabledRaw === false || $enabledRaw === '' || $enabledRaw === '0' || $enabledRaw === 0) {
         return;
     }
 
@@ -81,11 +83,12 @@ function start_claimrev_notifications(): void
         return;
     }
 
-    $recipientSettingRaw = $GLOBALS[GlobalConfig::CONFIG_NOTIFICATION_RECIPIENT] ?? 'admin';
-    $recipientSetting = is_string($recipientSettingRaw) && $recipientSettingRaw !== '' ? $recipientSettingRaw : 'admin';
-    $recipients = array_map(trim(...), explode(';', $recipientSetting));
-    $recipients = array_filter($recipients);
-    if (empty($recipients)) {
+    $recipientSetting = OEGlobalsBag::getInstance()->getString(GlobalConfig::CONFIG_NOTIFICATION_RECIPIENT, 'admin');
+    if ($recipientSetting === '') {
+        $recipientSetting = 'admin';
+    }
+    $recipients = array_filter(array_map(trim(...), explode(';', $recipientSetting)));
+    if ($recipients === []) {
         $recipients = ['admin'];
     }
 
@@ -96,11 +99,11 @@ function start_claimrev_notifications(): void
         }
 
         // Check if we already processed this notification
-        $existing = sqlQuery(
+        $existing = QueryUtils::querySingleRow(
             "SELECT id FROM mod_claimrev_notifications WHERE portal_notification_id = ?",
             [$portalId]
         );
-        if ($existing) {
+        if ($existing !== [] && $existing !== false) {
             continue;
         }
 

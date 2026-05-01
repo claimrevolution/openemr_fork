@@ -19,6 +19,7 @@
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
+use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Events\Appointments\CalendarUserGetEventsFilter;
 use OpenEMR\Events\Core\StyleFilterEvent;
 
@@ -36,13 +37,14 @@ class CalendarEligibilityIndicator
         $pids = [];
         foreach (array_keys($eventsByDay) as $key) {
             foreach ($eventsByDay[$key] as $calEvent) {
-                if (!empty($calEvent['pid'])) {
-                    $pids[(int) $calEvent['pid']] = true;
+                $pid = TypeCoerce::asInt($calEvent['pid'] ?? 0);
+                if ($pid !== 0) {
+                    $pids[$pid] = true;
                 }
             }
         }
 
-        if (empty($pids)) {
+        if ($pids === []) {
             return $event;
         }
 
@@ -53,17 +55,17 @@ class CalendarEligibilityIndicator
         foreach (array_keys($eventsByDay) as $key) {
             $eventCount = count($eventsByDay[$key]);
             for ($i = 0; $i < $eventCount; $i++) {
-                $pid = $eventsByDay[$key][$i]['pid'] ?? null;
-                if (empty($pid)) {
+                $pid = TypeCoerce::asInt($eventsByDay[$key][$i]['pid'] ?? 0);
+                if ($pid === 0) {
                     continue;
                 }
 
-                $eligClass = $this->determineEligClass($eligMap[(int) $pid] ?? null);
+                $eligClass = $this->determineEligClass($eligMap[$pid] ?? null);
                 if ($eligClass === '') {
                     continue;
                 }
 
-                $existingClass = $eventsByDay[$key][$i]['eventViewClass'] ?? '';
+                $existingClass = TypeCoerce::asString($eventsByDay[$key][$i]['eventViewClass'] ?? '');
                 $eventsByDay[$key][$i]['eventViewClass'] = trim($existingClass . ' ' . $eligClass);
             }
         }
@@ -89,7 +91,7 @@ class CalendarEligibilityIndicator
      */
     private function loadEligibilityMap(array $pids): array
     {
-        if (empty($pids)) {
+        if ($pids === []) {
             return [];
         }
 
@@ -100,11 +102,16 @@ class CalendarEligibilityIndicator
                 WHERE pid IN ({$placeholders})
                 AND payer_responsibility = 'P'";
 
-        $result = sqlStatement($sql, $pids);
+        $rows = QueryUtils::fetchRecords($sql, $pids);
 
         $map = [];
-        while ($row = sqlFetchArray($result)) {
-            $map[(int) $row['pid']] = $row;
+        foreach ($rows as $row) {
+            $pid = TypeCoerce::asInt($row['pid'] ?? 0);
+            $map[$pid] = [
+                'status' => isset($row['status']) ? TypeCoerce::asString($row['status']) : null,
+                'individual_json' => isset($row['individual_json']) ? TypeCoerce::asString($row['individual_json']) : null,
+                'last_date' => isset($row['last_date']) ? TypeCoerce::asString($row['last_date']) : null,
+            ];
         }
 
         return $map;

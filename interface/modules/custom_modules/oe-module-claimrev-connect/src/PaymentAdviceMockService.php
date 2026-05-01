@@ -125,12 +125,12 @@ class PaymentAdviceMockService
             [$pid, $encounter]
         );
 
-        if (empty($billingRows)) {
+        if ($billingRows === []) {
             return null;
         }
 
         // Get insurance info
-        $insRow = sqlQuery(
+        $insRow = QueryUtils::querySingleRow(
             "SELECT ic.name AS payer_name, ic.cms_id AS payer_number " .
             "FROM insurance_data id " .
             "JOIN insurance_companies ic ON ic.id = id.provider " .

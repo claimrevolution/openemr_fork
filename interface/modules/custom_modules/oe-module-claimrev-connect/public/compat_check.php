@@ -37,7 +37,7 @@ try {
         $isShim = str_contains($rc->getFileName(), 'Compat');
         $check['detail'] = $isShim ? 'Using ClaimRev shim (7.x mode)' : 'Using native OpenEMR class (8.x)';
     }
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -48,7 +48,7 @@ try {
     $bag = \OpenEMR\Core\OEGlobalsBag::getInstance();
     $check['pass'] = is_object($bag);
     $check['detail'] = $bag::class;
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -60,7 +60,7 @@ try {
     $fileroot = $bag->get('fileroot');
     $check['pass'] = !empty($fileroot) && is_dir($fileroot);
     $check['detail'] = $fileroot ?: '(empty)';
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -72,7 +72,7 @@ try {
     $kernel = $bag->getKernel();
     $check['pass'] = $kernel instanceof \OpenEMR\Core\Kernel;
     $check['detail'] = $kernel::class;
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -87,7 +87,7 @@ try {
         $isShim = str_contains($rc->getFileName(), 'Compat');
         $check['detail'] = $isShim ? 'Using ClaimRev shim (7.x mode)' : 'Using native OpenEMR class (8.x)';
     }
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -98,7 +98,7 @@ try {
     $crypto = \OpenEMR\BC\ServiceContainer::getCrypto();
     $check['pass'] = is_object($crypto) && method_exists($crypto, 'decryptStandard');
     $check['detail'] = $crypto::class;
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -109,7 +109,7 @@ try {
     $gc = new \OpenEMR\Modules\ClaimRevConnector\GlobalConfig($GLOBALS);
     $check['pass'] = true;
     $check['detail'] = 'Configured: ' . ($gc->isConfigured() ? 'Yes' : 'No');
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -121,7 +121,7 @@ try {
     $bootstrap = new \OpenEMR\Modules\ClaimRevConnector\Bootstrap($kernel->getEventDispatcher());
     $check['pass'] = true;
     $check['detail'] = 'Version ' . \OpenEMR\Modules\ClaimRevConnector\Bootstrap::MODULE_VERSION;
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;
@@ -133,7 +133,7 @@ try {
     @include($fileroot . '/version.php');
     $ver = ($v_major ?? '?') . '.' . ($v_minor ?? '?') . '.' . ($v_patch ?? '?') . ($v_tag ?? '');
     $check['detail'] = $ver;
-} catch (Throwable $e) {
+} catch (\Exception $e) {
     $check['detail'] = $e->getMessage();
 }
 $checks[] = $check;

@@ -33,7 +33,7 @@ class EligibilityObjectCreator
         $useFacility = OEGlobalsBag::getInstance()->get('oe_claimrev_config_use_facility_for_eligibility');
         $serviceTypeCodes = OEGlobalsBag::getInstance()->get('oe_claimrev_config_service_type_codes');
         $accountNumber = "";
-        if (empty($productsToRun)) {
+        if ($productsToRun === []) {
             $productsToRun = [1];
         }
 

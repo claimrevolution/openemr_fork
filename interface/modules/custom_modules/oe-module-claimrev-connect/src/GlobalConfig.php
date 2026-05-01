@@ -174,7 +174,8 @@ class GlobalConfig
 
     public function isTestModeEnabled(): bool
     {
-        return !empty($this->getGlobalSetting(self::CONFIG_ENABLE_TEST_MODE));
+        $value = $this->getGlobalSetting(self::CONFIG_ENABLE_TEST_MODE);
+        return $value !== null && $value !== '' && $value !== '0' && $value !== false;
     }
 
     public function getAutoSendFiles()
