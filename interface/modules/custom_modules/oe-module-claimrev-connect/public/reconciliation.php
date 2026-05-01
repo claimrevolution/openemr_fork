@@ -18,9 +18,11 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\Compat\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\Compat\KernelHelper;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\ReconciliationService;
 
 $tab = "reconciliation";
@@ -35,18 +37,34 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 $bootstrap = new Bootstrap(KernelHelper::getEventDispatcher());
 $portalUrl = $bootstrap->getGlobalConfig()->getPortalUrl();
 $csrfToken = CsrfHelper::collectCsrfToken('claims');
-$webRoot = $GLOBALS['webroot'];
+$webRoot = OEGlobalsBag::getInstance()->getString('webroot');
+
+$dateStart = ModuleInput::postString('dateStart');
+$dateEnd = ModuleInput::postString('dateEnd');
+$statusFilter = ModuleInput::postString('statusFilter', 'billed');
+$patientLastName = ModuleInput::postString('patientLastName');
+$payerName = ModuleInput::postString('payerName');
+$discrepancyOnly = ModuleInput::postExists('discrepancyOnly');
+$searchFilters = [
+    'dateStart' => $dateStart,
+    'dateEnd' => $dateEnd,
+    'statusFilter' => $statusFilter,
+    'patientLastName' => $patientLastName,
+    'payerName' => $payerName,
+    'discrepancyOnly' => $discrepancyOnly ? '1' : '',
+    'pageIndex' => ModuleInput::postInt('pageIndex'),
+];
 
 $encounters = [];
 $totalRecords = 0;
-$pageIndex = isset($_POST['pageIndex']) ? (int) $_POST['pageIndex'] : 0;
+$pageIndex = ModuleInput::postInt('pageIndex');
 $pageSize = 50;
 $claimRevLookupFailed = false;
 $searched = false;
 
-if (!empty($_POST) && isset($_POST['SubmitButton'])) {
+if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
     $searched = true;
-    $result = ReconciliationService::reconcile($_POST);
+    $result = ReconciliationService::reconcile($searchFilters);
     $encounters = $result['encounters'];
     $totalRecords = $result['totalRecords'];
     $claimRevLookupFailed = $result['claimRevLookupFailed'];
@@ -99,7 +117,7 @@ foreach ($encounters as $enc) {
         <div class="container-fluid">
             <?php require '../templates/navbar.php'; ?>
             <form method="post" action="reconciliation.php" id="reconSearchForm">
-                <input type="hidden" name="pageIndex" id="pageIndex" value="<?php echo attr($pageIndex); ?>"/>
+                <input type="hidden" name="pageIndex" id="pageIndex" value="<?php echo attr((string) $pageIndex); ?>"/>
                 <div class="card mt-3">
                     <div class="card-header">
                         <?php echo xlt("Reconcile OpenEMR Encounters with ClaimRev"); ?>
@@ -108,33 +126,33 @@ foreach ($encounters as $enc) {
                         <div class="form-row">
                             <div class="form-group col-md-2">
                                 <label for="dateStart"><?php echo xlt("Service Date Start"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo isset($_POST['dateStart']) ? attr($_POST['dateStart']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateStart" name="dateStart" value="<?php echo attr($dateStart); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="dateEnd"><?php echo xlt("Service Date End"); ?></label>
-                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo isset($_POST['dateEnd']) ? attr($_POST['dateEnd']) : ''; ?>"/>
+                                <input type="date" class="form-control form-control-sm" id="dateEnd" name="dateEnd" value="<?php echo attr($dateEnd); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="statusFilter"><?php echo xlt("OE Claim Status"); ?></label>
                                 <select class="form-control form-control-sm" id="statusFilter" name="statusFilter">
-                                    <option value="billed" <?php echo (($_POST['statusFilter'] ?? '') === 'billed') ? 'selected' : ''; ?>><?php echo xlt("Billed / Crossover"); ?></option>
-                                    <option value="denied" <?php echo (($_POST['statusFilter'] ?? '') === 'denied') ? 'selected' : ''; ?>><?php echo xlt("Denied"); ?></option>
-                                    <option value="all_billed" <?php echo (($_POST['statusFilter'] ?? '') === 'all_billed') ? 'selected' : ''; ?>><?php echo xlt("All (Billed+Denied)"); ?></option>
+                                    <option value="billed" <?php echo $statusFilter === 'billed' ? 'selected' : ''; ?>><?php echo xlt("Billed / Crossover"); ?></option>
+                                    <option value="denied" <?php echo $statusFilter === 'denied' ? 'selected' : ''; ?>><?php echo xlt("Denied"); ?></option>
+                                    <option value="all_billed" <?php echo $statusFilter === 'all_billed' ? 'selected' : ''; ?>><?php echo xlt("All (Billed+Denied)"); ?></option>
                                 </select>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="patientLastName"><?php echo xlt("Patient Last"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="patientLastName" name="patientLastName" value="<?php echo isset($_POST['patientLastName']) ? attr($_POST['patientLastName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="patientLastName" name="patientLastName" value="<?php echo attr($patientLastName); ?>"/>
                             </div>
                             <div class="form-group col-md-2">
                                 <label for="payerName"><?php echo xlt("Payer"); ?></label>
-                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo isset($_POST['payerName']) ? attr($_POST['payerName']) : ''; ?>"/>
+                                <input type="text" class="form-control form-control-sm" id="payerName" name="payerName" value="<?php echo attr($payerName); ?>"/>
                             </div>
                             <div class="form-group col-md-2 d-flex align-items-end">
                                 <div class="w-100">
                                     <button type="submit" name="SubmitButton" class="btn btn-primary btn-sm btn-block"><?php echo xlt("Reconcile"); ?></button>
                                     <div class="custom-control custom-checkbox mt-1 text-center">
-                                        <input type="checkbox" class="custom-control-input" id="discrepancyOnly" name="discrepancyOnly" value="1" <?php echo !empty($_POST['discrepancyOnly']) ? 'checked' : ''; ?>/>
+                                        <input type="checkbox" class="custom-control-input" id="discrepancyOnly" name="discrepancyOnly" value="1" <?php echo $discrepancyOnly ? 'checked' : ''; ?>/>
                                         <label class="custom-control-label small text-muted" for="discrepancyOnly"><?php echo xlt("Discrepancies Only"); ?></label>
                                     </div>
                                 </div>
@@ -151,44 +169,44 @@ foreach ($encounters as $enc) {
             </div>
         <?php } ?>
 
-        <?php if ($searched && empty($encounters)) { ?>
+        <?php if ($searched && $encounters === []) { ?>
             <div class="mt-3"><?php echo xlt("No matching encounters found."); ?></div>
-        <?php } elseif (!empty($encounters)) { ?>
+        <?php } elseif ($encounters !== []) { ?>
 
             <!-- Summary cards -->
             <div class="d-flex summary-cards mt-3 mb-2" style="gap: 10px;">
                 <div class="card">
                     <div class="card-body">
-                        <h5><?php echo text($totalRecords); ?></h5>
+                        <h5><?php echo text((string) $totalRecords); ?></h5>
                         <small><?php echo xlt("Total"); ?></small>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="text-success"><?php echo text($matchedCount); ?></h5>
+                        <h5 class="text-success"><?php echo text((string) $matchedCount); ?></h5>
                         <small><?php echo xlt("In ClaimRev"); ?></small>
                     </div>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="text-muted"><?php echo text($notInCrCount); ?></h5>
+                        <h5 class="text-muted"><?php echo text((string) $notInCrCount); ?></h5>
                         <small><?php echo xlt("Not in CR"); ?></small>
                     </div>
                 </div>
                 <div class="card border-danger">
                     <div class="card-body">
-                        <h5 class="text-danger"><?php echo text($discrepancyCount); ?></h5>
+                        <h5 class="text-danger"><?php echo text((string) $discrepancyCount); ?></h5>
                         <small><?php echo xlt("Discrepancies"); ?></small>
                     </div>
                 </div>
                 <?php if ($totalPages > 1) { ?>
                 <div class="ml-auto d-flex align-items-center">
-                    <small class="text-muted mr-2"><?php echo xlt("Page"); ?> <?php echo text($pageIndex + 1); ?>/<?php echo text($totalPages); ?></small>
+                    <small class="text-muted mr-2"><?php echo xlt("Page"); ?> <?php echo text((string) ($pageIndex + 1)); ?>/<?php echo text((string) $totalPages); ?></small>
                     <?php if ($pageIndex > 0) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary mr-1" onclick="goToPage(<?php echo attr($pageIndex - 1); ?>)">&laquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mr-1" onclick="goToPage(<?php echo attr((string) ($pageIndex - 1)); ?>)">&laquo;</button>
                     <?php } ?>
                     <?php if ($pageIndex < $totalPages - 1) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex + 1); ?>)">&raquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex + 1)); ?>)">&raquo;</button>
                     <?php } ?>
                 </div>
                 <?php } ?>
@@ -233,11 +251,11 @@ foreach ($encounters as $enc) {
                         $crBadgeClass = 'badge-secondary';
                         $crStatusId = $enc['crStatusId'];
                         $crPayerAcc = $enc['crPayerAcceptanceStatusId'];
-    if (in_array($crStatusId, [10, 16, 17]) || $crPayerAcc === 3) {
+    if (in_array($crStatusId, [10, 16, 17], true) || $crPayerAcc === 3) {
         $crBadgeClass = 'badge-danger';
     } elseif ($crPayerAcc === 4) {
         $crBadgeClass = 'badge-success';
-    } elseif (in_array($crStatusId, [7, 8, 9, 18])) {
+    } elseif (in_array($crStatusId, [7, 8, 9, 18], true)) {
         $crBadgeClass = 'badge-primary';
     }
 
@@ -254,9 +272,9 @@ foreach ($encounters as $enc) {
         };
     }
 
-                        $isRejectedInCr = in_array($crStatusId, [10, 16, 17]) || $crPayerAcc === 3;
+                        $isRejectedInCr = in_array($crStatusId, [10, 16, 17], true) || $crPayerAcc === 3;
     ?>
-                    <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr($idx); ?>)">
+                    <tr class="<?php echo attr($rowClass); ?>" onclick="toggleDetail(<?php echo attr((string) $idx); ?>)">
                         <td>
                             <?php echo text($enc['patientName']); ?>
                             <br/><small class="text-muted"><?php echo text($enc['patientDob']); ?></small>
@@ -308,23 +326,23 @@ foreach ($encounters as $enc) {
                         <td onclick="event.stopPropagation();">
                             <div class="btn-group btn-group-sm">
                                 <button type="button" class="btn btn-outline-info btn-sm" title="<?php echo xla("Open Encounter"); ?>"
-                                    onclick="openEncounterTab(<?php echo attr($enc['pid']); ?>, <?php echo attr($enc['encounter']); ?>)">
+                                    onclick="openEncounterTab(<?php echo attr((string) $enc['pid']); ?>, <?php echo attr((string) $enc['encounter']); ?>)">
                                     <i class="fa fa-folder-open"></i>
                                 </button>
                                 <?php if ($enc['crFound'] && $isRejectedInCr && $enc['oeStatus'] !== 7) { ?>
                                     <button type="button" class="btn btn-outline-danger btn-sm sync-status-btn"
-                                        data-idx="<?php echo attr($idx); ?>"
+                                        data-idx="<?php echo attr((string) $idx); ?>"
                                         data-pcn="<?php echo attr($enc['pcn']); ?>"
-                                        data-statusid="<?php echo attr($crStatusId); ?>"
+                                        data-statusid="<?php echo attr((string) $crStatusId); ?>"
                                         data-statusname="<?php echo attr($enc['crStatusName']); ?>"
-                                        data-payeracceptance="<?php echo attr($crPayerAcc); ?>"
+                                        data-payeracceptance="<?php echo attr((string) $crPayerAcc); ?>"
                                         title="<?php echo xla("Sync rejected status to OpenEMR"); ?>">
                                         <i class="fa fa-sync-alt"></i>
                                     </button>
                                 <?php } ?>
-                                <?php if (in_array($enc['oeStatus'], [2, 7])) { ?>
+                                <?php if (in_array($enc['oeStatus'], [2, 7], true)) { ?>
                                     <button type="button" class="btn btn-outline-warning btn-sm requeue-btn"
-                                        data-idx="<?php echo attr($idx); ?>"
+                                        data-idx="<?php echo attr((string) $idx); ?>"
                                         data-pcn="<?php echo attr($enc['pcn']); ?>"
                                         title="<?php echo xla("Requeue for billing"); ?>">
                                         <i class="fa fa-redo"></i>
@@ -338,7 +356,7 @@ foreach ($encounters as $enc) {
                             </div>
                         </td>
                     </tr>
-                    <tr class="recon-detail-row" id="detail-<?php echo attr($idx); ?>">
+                    <tr class="recon-detail-row" id="detail-<?php echo attr((string) $idx); ?>">
                         <td colspan="11" style="background-color: rgba(0,0,0,.02); padding: 15px 25px;">
                             <div class="row">
                                 <div class="col-md-3">
@@ -396,10 +414,10 @@ foreach ($encounters as $enc) {
             <?php if ($totalPages > 1) { ?>
                 <div class="d-flex justify-content-center mb-3">
                     <?php if ($pageIndex > 0) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" onclick="goToPage(<?php echo attr($pageIndex - 1); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mr-2" onclick="goToPage(<?php echo attr((string) ($pageIndex - 1)); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
                     <?php } ?>
                     <?php if ($pageIndex < $totalPages - 1) { ?>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex + 1); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex + 1)); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
                     <?php } ?>
                 </div>
             <?php } ?>
@@ -411,7 +429,7 @@ foreach ($encounters as $enc) {
 
             function openEncounterTab(pid, encounter) {
                 top.restoreSession();
-                top.RTop.location = '<?php echo $GLOBALS['webroot']; ?>/interface/patient_file/summary/demographics.php?set_pid=' + encodeURIComponent(pid) + '&set_encounterid=' + encodeURIComponent(encounter);
+                top.RTop.location = '<?php echo attr($webRoot); ?>/interface/patient_file/summary/demographics.php?set_pid=' + encodeURIComponent(pid) + '&set_encounterid=' + encodeURIComponent(encounter);
             }
 
             function toggleDetail(idx) {
