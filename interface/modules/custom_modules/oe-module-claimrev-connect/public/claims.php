@@ -126,6 +126,7 @@ $searchFilters = [
         <div class="container-fluid">
             <?php require '../templates/navbar.php'; ?>
             <form method="post" action="claims.php" id="claimSearchForm">
+                <input type="hidden" name="csrf_token" value="<?php echo attr($csrfToken); ?>"/>
                 <input type="hidden" name="sortField" id="sortField" value="<?php echo attr($sortFieldRaw); ?>"/>
                 <input type="hidden" name="sortDirection" id="sortDirection" value="<?php echo attr($sortDirectionRaw); ?>"/>
                 <div class="card mt-3">

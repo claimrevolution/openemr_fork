@@ -166,10 +166,12 @@ class ClaimRevModuleSetup
             }
 
             if (preg_match('/^#IfNotRow\s+(\S+)\s+(\S+)\s+(.+)/', $line, $matches)) {
-                $safeTbl = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[1]);
-                $safeCol = preg_replace('/[^a-zA-Z0-9_]/', '', $matches[2]);
+                // Whitelist against actual schema; both helpers return the
+                // identifier already wrapped in backticks and throw on miss.
+                $tbl = QueryUtils::escapeTableName($matches[1]);
+                $col = QueryUtils::escapeColumnName($matches[2], [$matches[1]]);
                 $row = QueryUtils::fetchSingleValue(
-                    "SELECT 1 AS x FROM `$safeTbl` WHERE `$safeCol` = ?",
+                    "SELECT 1 AS x FROM $tbl WHERE $col = ?",
                     'x',
                     [trim($matches[3])]
                 );
