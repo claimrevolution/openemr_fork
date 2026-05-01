@@ -160,29 +160,35 @@ foreach ($insurance as $row) {
 
                     // Extract per-product claimRevResultIds for AI chat
                     $responseData = json_decode((string) ($check['response_json'] ?? ''), true);
-                    $productResultIds = $responseData['_productResultIds'] ?? [];
+                    $productResultIdsRaw = is_array($responseData) ? ($responseData['_productResultIds'] ?? []) : [];
+                    $productResultIds = is_array($productResultIdsRaw) ? $productResultIdsRaw : [];
                     // Fallback: use the top-level claimRevResultId if no per-product map
-                    $claimRevResultId = $responseData['claimRevResultId'] ?? '';
-            if (empty($productResultIds) && !empty($claimRevResultId)) {
+                    $claimRevResultIdRaw = is_array($responseData) ? ($responseData['claimRevResultId'] ?? '') : '';
+                    $claimRevResultId = is_string($claimRevResultIdRaw) ? $claimRevResultIdRaw : '';
+            if ($productResultIds === [] && $claimRevResultId !== '') {
                 $productResultIds = [1 => $claimRevResultId]; // assume eligibility
             }
-                    $hasAnyChatId = !empty($productResultIds);
+                    $hasAnyChatId = $productResultIds !== [];
                     // Extract payer code from first eligibility or coverage discovery result
                     $chatPayerCode = '';
             if (is_array($responseData)) {
-                $mappedIndividuals = $responseData['mappedData']['individuals'] ?? [];
-                $firstInd = !empty($mappedIndividuals) ? $mappedIndividuals[array_key_first($mappedIndividuals)] : [];
-                $eligArr = $firstInd['eligibility'] ?? [];
-                $firstElig = !empty($eligArr) ? $eligArr[array_key_first($eligArr)] : [];
-                $chatPayerCode = $firstElig['payerInfo']['payerCode'] ?? '';
+                $mappedRaw = $responseData['mappedData'] ?? null;
+                $mappedIndividuals = (is_array($mappedRaw) && isset($mappedRaw['individuals']) && is_array($mappedRaw['individuals'])) ? $mappedRaw['individuals'] : [];
+                $firstInd = $mappedIndividuals !== [] ? $mappedIndividuals[array_key_first($mappedIndividuals)] : [];
+                $eligArr = is_array($firstInd) && isset($firstInd['eligibility']) && is_array($firstInd['eligibility']) ? $firstInd['eligibility'] : [];
+                $firstElig = $eligArr !== [] ? $eligArr[array_key_first($eligArr)] : [];
+                if (is_array($firstElig) && isset($firstElig['payerInfo']) && is_array($firstElig['payerInfo']) && isset($firstElig['payerInfo']['payerCode']) && is_string($firstElig['payerInfo']['payerCode'])) {
+                    $chatPayerCode = $firstElig['payerInfo']['payerCode'];
+                }
             }
 
-                    $hasEligibility = property_exists($individual, 'eligibility') && !empty($individual->eligibility);
-                    $hasDemographics = property_exists($individual, 'demographicInfo') && $individual->demographicInfo !== null;
-                    $hasCoverageDiscoveryResults = property_exists($individual, 'coverageDiscovery') && !empty($individual->coverageDiscovery);
-                    $insuranceFinderStatus = property_exists($individual, 'insuranceFinderStatus') ? ($individual->insuranceFinderStatus ?? '') : '';
-                    $hasCoverageDiscovery = $hasCoverageDiscoveryResults || !empty($insuranceFinderStatus);
-                    $hasMbi = property_exists($individual, 'mbiFinderResults') && $individual->mbiFinderResults !== null;
+                    $hasEligibility = is_object($individual) && property_exists($individual, 'eligibility') && is_iterable($individual->eligibility);
+                    $hasDemographics = is_object($individual) && property_exists($individual, 'demographicInfo') && $individual->demographicInfo !== null;
+                    $hasCoverageDiscoveryResults = is_object($individual) && property_exists($individual, 'coverageDiscovery') && is_iterable($individual->coverageDiscovery);
+                    $insuranceFinderStatusRaw = is_object($individual) && property_exists($individual, 'insuranceFinderStatus') ? $individual->insuranceFinderStatus : '';
+                    $insuranceFinderStatus = is_string($insuranceFinderStatusRaw) ? $insuranceFinderStatusRaw : '';
+                    $hasCoverageDiscovery = $hasCoverageDiscoveryResults || $insuranceFinderStatus !== '';
+                    $hasMbi = is_object($individual) && property_exists($individual, 'mbiFinderResults') && $individual->mbiFinderResults !== null;
 
             if (!$hasEligibility && !$hasDemographics && !$hasCoverageDiscovery && !$hasMbi) {
                 echo xlt("No results returned for selected products");
