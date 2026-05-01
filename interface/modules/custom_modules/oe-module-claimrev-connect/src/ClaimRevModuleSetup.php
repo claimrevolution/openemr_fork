@@ -98,6 +98,30 @@ class ClaimRevModuleSetup
         self::updateBackGroundServiceSetRequireOnce("X12_SFTP", $require_once);
     }
 
+    /**
+     * Set the core 'auto_sftp_claims_to_x12_partner' global to '1' and
+     * activate the X12_SFTP background service — but only if those values
+     * have never been touched. Respects an explicit '0' that an admin
+     * deliberately set, and does nothing if they're already '1'.
+     *
+     * Intended to be called once at module enable time (and from setup
+     * when the admin opts into auto-send), not on every request.
+     */
+    public static function ensureCoreSftpEnabled(): void
+    {
+        // Single atomic UPDATE per row so we don't race a concurrent admin
+        // edit. The WHERE clause is what makes this safe to call repeatedly.
+        QueryUtils::sqlStatementThrowException(
+            "UPDATE globals SET gl_value = '1' "
+            . "WHERE gl_name = 'auto_sftp_claims_to_x12_partner' "
+            . "AND (gl_value IS NULL OR gl_value = '')"
+        );
+        QueryUtils::sqlStatementThrowException(
+            "UPDATE background_services SET active = 1, execute_interval = 1 "
+            . "WHERE name = 'X12_SFTP' AND active = 0"
+        );
+    }
+
     public static function reactivateSftpService(): void
     {
         $require_once = "/library/billing_sftp_service.php";
