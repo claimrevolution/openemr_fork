@@ -137,8 +137,8 @@ if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
                             }
                             return '';
                         };
-                        foreach ($datas as $data) {
-                            ?>
+                foreach ($datas as $data) {
+                    ?>
                             <tr>
                                 <td scope="row"><?php echo text(substr($eraStr($data, 'receivedDate'), 0, 10)); ?></td>
                                 <td scope="row"><?php echo text($eraStr($data, 'payerName')); ?></td>

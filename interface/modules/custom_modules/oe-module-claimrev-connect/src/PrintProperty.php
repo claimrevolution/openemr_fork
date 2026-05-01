@@ -18,7 +18,7 @@ class PrintProperty
 {
     public static function displayProperty(string $title, mixed $propertyValue, string $qualifier = "", string $ending = "", string $style = ""): void
     {
-        if ($propertyValue === null || $propertyValue === '' || $propertyValue === false) {
+        if (in_array($propertyValue, [null, '', false], true)) {
             return;
         }
 
