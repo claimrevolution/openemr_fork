@@ -10,6 +10,7 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityObjectCreator;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
@@ -21,6 +22,7 @@ if ($pid === null) {
     exit;
 }
 $insurance = EligibilityData::getInsuranceData($pid);
+$eligibilityCsrfToken = CsrfHelper::collectCsrfToken('eligibility');
 
 //check if form was submitted
 if (ModuleInput::postExists('checkElig')) {
@@ -385,7 +387,8 @@ function checkNow(responsibility) {
     // Gather product selections for this responsibility tab
     var formData = {
         pid: <?php echo js_escape($pid); ?>,
-        responsibility: responsibility
+        responsibility: responsibility,
+        csrf_token: <?php echo js_escape($eligibilityCsrfToken); ?>
     };
 
     var suffix = responsibility;
@@ -446,7 +449,11 @@ function syncNativeEligibility(pid, payerResponsibility, btn) {
     $.ajax({
         url: '../../modules/custom_modules/oe-module-claimrev-connect/public/eligibility_sync_native.php',
         type: 'POST',
-        data: { pid: pid, payer_responsibility: payerResponsibility },
+        data: {
+            pid: pid,
+            payer_responsibility: payerResponsibility,
+            csrf_token: <?php echo js_escape($eligibilityCsrfToken); ?>
+        },
         dataType: 'json',
         success: function(response) {
             if (response.success) {

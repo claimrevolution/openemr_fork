@@ -16,6 +16,7 @@
     use OpenEMR\Common\Acl\AclMain;
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\AppointmentsPage;
+    use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
     use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
     use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
@@ -25,6 +26,8 @@
 if (!AclMain::aclCheckCore('acct', 'bill')) {
     AccessDeniedHelper::denyWithTemplate("ACL check failed for acct/bill: ClaimRev Connect - Appointments", xl("ClaimRev Connect - Appointments"));
 }
+
+$csrfToken = CsrfHelper::collectCsrfToken('eligibility');
 
 // Handle bulk eligibility queue (Run & Go) — read raw $_POST['eids'] array via filter_input_array.
 $bulkEids = filter_input(INPUT_POST, 'eids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
@@ -366,7 +369,7 @@ $path = str_replace("public", "templates", __DIR__);
                 $.ajax({
                     url: 'appointment_check_now.php',
                     type: 'POST',
-                    data: { eid: eid },
+                    data: { eid: eid, csrf_token: <?php echo js_escape($csrfToken); ?> },
                     dataType: 'json',
                     success: function(response) {
                         if (spinner) spinner.classList.add('d-none');
@@ -437,7 +440,7 @@ $path = str_replace("public", "templates", __DIR__);
                     $.ajax({
                         url: 'appointment_check_now.php',
                         type: 'POST',
-                        data: { eid: eid },
+                        data: { eid: eid, csrf_token: <?php echo js_escape($csrfToken); ?> },
                         dataType: 'json',
                         success: function(response) {
                             if (rowSpinner) rowSpinner.classList.add('d-none');

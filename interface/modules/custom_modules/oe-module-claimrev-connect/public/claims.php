@@ -662,7 +662,8 @@ $searchFilters = [
                 $btn.prop('disabled', true);
                 $.post('claim_mark_worked.php', {
                     objectId: objectId,
-                    isWorked: newWorked ? '1' : '0'
+                    isWorked: newWorked ? '1' : '0',
+                    csrf_token: csrfToken
                 }, function(response) {
                     if (response.success) {
                         $btn.data('worked', newWorked ? '1' : '0');

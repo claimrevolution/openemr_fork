@@ -19,7 +19,10 @@
 /** @var array<int, string> $chatProductResultIds */
 /** @var string $chatPayerCode */
 
+use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
+
 $chatId = 'cr-chat-' . attr($chatPrKey);
+$chatCsrfToken = CsrfHelper::collectCsrfToken('eligibility');
 
 // Product labels
 $productLabels = [
@@ -180,7 +183,8 @@ foreach ($chatProductResultIds as $rid) {
             data: {
                 sharpRevenueObjectId: objectId,
                 question: question,
-                payerCode: payerCode
+                payerCode: payerCode,
+                csrf_token: <?php echo js_escape($chatCsrfToken); ?>
             },
             dataType: 'json',
             success: function(response) {
