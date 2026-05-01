@@ -19,6 +19,8 @@
 /** @var array<int, string> $chatProductResultIds */
 /** @var string $chatPayerCode */
 
+declare(strict_types=1);
+
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 
 $chatId = 'cr-chat-' . attr($chatPrKey);

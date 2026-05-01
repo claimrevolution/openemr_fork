@@ -12,6 +12,8 @@
 
 /** @var \stdClass $benefit */
 
+declare(strict_types=1);
+
 $identifiers = property_exists($benefit, 'identifiers') && is_iterable($benefit->identifiers) ? $benefit->identifiers : null;
 if ($identifiers === null) {
     return;
