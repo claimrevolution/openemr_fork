@@ -117,7 +117,8 @@ $checks[] = $check;
 // 8. Bootstrap instantiation
 $check = ['name' => 'Bootstrap instantiation', 'pass' => false, 'detail' => ''];
 try {
-    $bootstrap = new \OpenEMR\Modules\ClaimRevConnector\Bootstrap($GLOBALS['kernel']->getEventDispatcher());
+    $kernel = \OpenEMR\Core\OEGlobalsBag::getInstance()->getKernel();
+    $bootstrap = new \OpenEMR\Modules\ClaimRevConnector\Bootstrap($kernel->getEventDispatcher());
     $check['pass'] = true;
     $check['detail'] = 'Version ' . \OpenEMR\Modules\ClaimRevConnector\Bootstrap::MODULE_VERSION;
 } catch (Throwable $e) {
@@ -128,7 +129,8 @@ $checks[] = $check;
 // 9. OpenEMR version
 $check = ['name' => 'OpenEMR version', 'pass' => true, 'detail' => ''];
 try {
-    @include($GLOBALS['fileroot'] . '/version.php');
+    $fileroot = \OpenEMR\Core\OEGlobalsBag::getInstance()->getString('fileroot');
+    @include($fileroot . '/version.php');
     $ver = ($v_major ?? '?') . '.' . ($v_minor ?? '?') . '.' . ($v_patch ?? '?') . ($v_tag ?? '');
     $check['detail'] = $ver;
 } catch (Throwable $e) {
