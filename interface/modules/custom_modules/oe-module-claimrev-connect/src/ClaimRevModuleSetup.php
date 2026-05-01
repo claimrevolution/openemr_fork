@@ -126,11 +126,15 @@ class ClaimRevModuleSetup
      * Reset any ClaimRev background services that are stuck in running state.
      * If running = 1 and next_run is more than 10 minutes in the past,
      * the service is stuck (PHP crash, OOM kill, etc.) and needs to be freed.
+     *
+     * Excludes ClaimRev_Watchdog itself: the watchdog calls this method, so a
+     * watchdog run that exceeds 10 minutes would otherwise clear its own
+     * running flag mid-execution and allow a second watchdog to start.
      */
     public static function resetStuckServices(): void
     {
         QueryUtils::sqlStatementThrowException(
-            "UPDATE background_services SET running = 0 WHERE running = 1 AND next_run < (NOW() - INTERVAL 10 MINUTE) AND name LIKE '%ClaimRev%'"
+            "UPDATE background_services SET running = 0 WHERE running = 1 AND next_run < (NOW() - INTERVAL 10 MINUTE) AND name LIKE '%ClaimRev%' AND name != 'ClaimRev_Watchdog'"
         );
     }
 
