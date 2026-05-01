@@ -26,12 +26,12 @@ class PaymentAdviceMockService
      * Queries recent billed encounters with billing line items and builds
      * fake ClaimPaymentAggregation responses that mirror the ClaimRev API format.
      *
-     * @param array<string, mixed> $filters Search filters from the form
-     * @return array{results: list<array<string, mixed>>, totalRecords: int}
+     * @param array{patientFirstName?: string, patientLastName?: string, patientControlNumber?: string, receivedDateStart?: string, receivedDateEnd?: string, pageIndex?: int} $filters
+     * @return array{results: list<\OpenEMR\Modules\ClaimRevConnector\PaymentAdviceShape>, totalRecords: int}
      */
     public static function generateMockResults(array $filters): array
     {
-        $pageIndex = isset($filters['pageIndex']) ? (int) $filters['pageIndex'] : 0;
+        $pageIndex = $filters['pageIndex'] ?? 0;
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
 
@@ -39,16 +39,18 @@ class PaymentAdviceMockService
         $where = ["b.billed = 1", "b.activity = 1"];
         $params = [];
 
-        if (!empty($filters['patientFirstName'])) {
+        $patientFirstName = $filters['patientFirstName'] ?? '';
+        if ($patientFirstName !== '') {
             $where[] = "p.fname LIKE ?";
-            $params[] = '%' . $filters['patientFirstName'] . '%';
+            $params[] = '%' . $patientFirstName . '%';
         }
-        if (!empty($filters['patientLastName'])) {
+        $patientLastName = $filters['patientLastName'] ?? '';
+        if ($patientLastName !== '') {
             $where[] = "p.lname LIKE ?";
-            $params[] = '%' . $filters['patientLastName'] . '%';
+            $params[] = '%' . $patientLastName . '%';
         }
-        if (!empty($filters['patientControlNumber'])) {
-            $pcn = is_string($filters['patientControlNumber']) ? $filters['patientControlNumber'] : '';
+        $pcn = $filters['patientControlNumber'] ?? '';
+        if ($pcn !== '') {
             $parts = preg_split('/[\s\-]/', $pcn);
             if (is_array($parts) && count($parts) >= 2) {
                 $where[] = "e.pid = ?";
@@ -57,13 +59,15 @@ class PaymentAdviceMockService
                 $params[] = (int) $parts[1];
             }
         }
-        if (!empty($filters['receivedDateStart'])) {
+        $receivedDateStart = $filters['receivedDateStart'] ?? '';
+        if ($receivedDateStart !== '') {
             $where[] = "e.date >= ?";
-            $params[] = $filters['receivedDateStart'] . ' 00:00:00';
+            $params[] = $receivedDateStart . ' 00:00:00';
         }
-        if (!empty($filters['receivedDateEnd'])) {
+        $receivedDateEnd = $filters['receivedDateEnd'] ?? '';
+        if ($receivedDateEnd !== '') {
             $where[] = "e.date <= ?";
-            $params[] = $filters['receivedDateEnd'] . ' 23:59:59';
+            $params[] = $receivedDateEnd . ' 23:59:59';
         }
 
         $whereClause = implode(' AND ', $where);
@@ -74,8 +78,7 @@ class PaymentAdviceMockService
             "JOIN patient_data p ON p.pid = e.pid " .
             "JOIN billing b ON b.pid = e.pid AND b.encounter = e.encounter " .
             "WHERE {$whereClause}";
-        $countRow = QueryUtils::fetchSingleValue($countSql, 'cnt', $params);
-        $totalRecords = (int) $countRow;
+        $totalRecords = TypeCoerce::asInt(QueryUtils::fetchSingleValue($countSql, 'cnt', $params));
 
         // Get distinct encounters with patient info
         $sql = "SELECT DISTINCT e.pid, e.encounter, e.date, e.facility_id, " .
