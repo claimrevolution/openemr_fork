@@ -18,6 +18,34 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type ReconcileRow array{
+ *     pid: int,
+ *     encounter: int,
+ *     pcn: string,
+ *     encounterDate: string,
+ *     patientName: string,
+ *     patientDob: string,
+ *     payerName: string,
+ *     payerNumber: string,
+ *     totalCharges: float,
+ *     billTime: string,
+ *     oeStatus: int,
+ *     oeStatusLabel: string,
+ *     oeProcessFile: string,
+ *     crFound: bool,
+ *     crStatusName: string,
+ *     crStatusId: int,
+ *     crPayerAcceptance: string,
+ *     crPayerAcceptanceStatusId: int,
+ *     crEraClassification: string,
+ *     crPayerPaidAmount: float,
+ *     crObjectId: string,
+ *     crIsWorked: bool,
+ *     discrepancy: string,
+ *     discrepancyLevel: string
+ * }
+ */
 class ReconciliationService
 {
     /**
@@ -36,16 +64,16 @@ class ReconciliationService
     /**
      * Reconcile OpenEMR encounters with ClaimRev.
      *
-     * @param array<string, mixed> $filters Search filters from the form
-     * @return array{encounters: list<array<string, mixed>>, totalRecords: int, claimRevLookupFailed: bool}
+     * @param array{statusFilter?: string, dateStart?: string, dateEnd?: string, patientFirstName?: string, patientLastName?: string, payerName?: string, discrepancyOnly?: string, pageIndex?: int} $filters
+     * @return array{encounters: list<ReconcileRow>, totalRecords: int, claimRevLookupFailed: bool}
      */
     public static function reconcile(array $filters): array
     {
-        $pageIndex = isset($filters['pageIndex']) ? (int) $filters['pageIndex'] : 0;
+        $pageIndex = $filters['pageIndex'] ?? 0;
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
         $statusFilter = $filters['statusFilter'] ?? 'billed';
-        $discrepancyOnly = !empty($filters['discrepancyOnly']);
+        $discrepancyOnly = ($filters['discrepancyOnly'] ?? '') !== '';
 
         // Build WHERE clause for OpenEMR encounters
         $where = [];
@@ -61,32 +89,37 @@ class ReconciliationService
         }
 
         // Date filters
-        if (!empty($filters['dateStart'])) {
+        $dateStart = $filters['dateStart'] ?? '';
+        if ($dateStart !== '') {
             $where[] = "e.date >= ?";
-            $params[] = $filters['dateStart'] . ' 00:00:00';
+            $params[] = $dateStart . ' 00:00:00';
         }
-        if (!empty($filters['dateEnd'])) {
+        $dateEnd = $filters['dateEnd'] ?? '';
+        if ($dateEnd !== '') {
             $where[] = "e.date <= ?";
-            $params[] = $filters['dateEnd'] . ' 23:59:59';
+            $params[] = $dateEnd . ' 23:59:59';
         }
 
         // Patient filters
-        if (!empty($filters['patientFirstName'])) {
+        $patientFirstName = $filters['patientFirstName'] ?? '';
+        if ($patientFirstName !== '') {
             $where[] = "p.fname LIKE ?";
-            $params[] = '%' . $filters['patientFirstName'] . '%';
+            $params[] = '%' . $patientFirstName . '%';
         }
-        if (!empty($filters['patientLastName'])) {
+        $patientLastName = $filters['patientLastName'] ?? '';
+        if ($patientLastName !== '') {
             $where[] = "p.lname LIKE ?";
-            $params[] = '%' . $filters['patientLastName'] . '%';
+            $params[] = '%' . $patientLastName . '%';
         }
 
         // Payer filter
-        if (!empty($filters['payerName'])) {
+        $payerName = $filters['payerName'] ?? '';
+        if ($payerName !== '') {
             $where[] = "ic.name LIKE ?";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerName . '%';
         }
 
-        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
 
         // Count total matching encounters
         $countSql = "SELECT COUNT(*) AS cnt " .
@@ -98,7 +131,7 @@ class ReconciliationService
             "LEFT JOIN insurance_data id ON id.pid = e.pid AND id.type = 'primary' AND id.date <= e.date " .
             "LEFT JOIN insurance_companies ic ON ic.id = id.provider " .
             $whereClause;
-        $totalRecords = (int) QueryUtils::fetchSingleValue($countSql, 'cnt', $params);
+        $totalRecords = TypeCoerce::asInt(QueryUtils::fetchSingleValue($countSql, 'cnt', $params));
 
         // Get encounters with claim status
         $sql = "SELECT e.pid, e.encounter, e.date AS encounter_date, " .
@@ -120,7 +153,7 @@ class ReconciliationService
             "LIMIT {$pageSize} OFFSET {$offset}";
         $rows = QueryUtils::fetchRecords($sql, $params);
 
-        if (empty($rows)) {
+        if ($rows === []) {
             return ['encounters' => [], 'totalRecords' => $totalRecords, 'claimRevLookupFailed' => false];
         }
 
@@ -128,24 +161,26 @@ class ReconciliationService
         $pcnMap = []; // pcn => row index
         $encounters = [];
         foreach ($rows as $idx => $row) {
-            $pcn = $row['pid'] . '-' . $row['encounter'];
-            $oeStatus = (int) $row['claim_status'];
+            $pid = TypeCoerce::asInt($row['pid'] ?? 0);
+            $encounter = TypeCoerce::asInt($row['encounter'] ?? 0);
+            $pcn = $pid . '-' . $encounter;
+            $oeStatus = TypeCoerce::asInt($row['claim_status'] ?? 0);
 
             $encounters[$idx] = [
-                'pid' => (int) $row['pid'],
-                'encounter' => (int) $row['encounter'],
+                'pid' => $pid,
+                'encounter' => $encounter,
                 'pcn' => $pcn,
-                'encounterDate' => substr((string) $row['encounter_date'], 0, 10),
-                'patientName' => ($row['lname'] ?? '') . ', ' . ($row['fname'] ?? ''),
-                'patientDob' => substr((string) ($row['DOB'] ?? ''), 0, 10),
-                'payerName' => $row['payer_name'] ?? '',
-                'payerNumber' => $row['payer_number'] ?? '',
-                'totalCharges' => (float) $row['total_charges'],
-                'billTime' => $row['bill_time'] ?? '',
+                'encounterDate' => substr(TypeCoerce::asString($row['encounter_date'] ?? ''), 0, 10),
+                'patientName' => TypeCoerce::asString($row['lname'] ?? '') . ', ' . TypeCoerce::asString($row['fname'] ?? ''),
+                'patientDob' => substr(TypeCoerce::asString($row['DOB'] ?? ''), 0, 10),
+                'payerName' => TypeCoerce::asString($row['payer_name'] ?? ''),
+                'payerNumber' => TypeCoerce::asString($row['payer_number'] ?? ''),
+                'totalCharges' => TypeCoerce::asFloat($row['total_charges'] ?? 0),
+                'billTime' => TypeCoerce::asString($row['bill_time'] ?? ''),
                 // OpenEMR status
                 'oeStatus' => $oeStatus,
                 'oeStatusLabel' => self::OE_STATUS_LABELS[$oeStatus] ?? 'Unknown (' . $oeStatus . ')',
-                'oeProcessFile' => $row['process_file'] ?? '',
+                'oeProcessFile' => TypeCoerce::asString($row['process_file'] ?? ''),
                 // ClaimRev status (populated below)
                 'crFound' => false,
                 'crStatusName' => '',
@@ -171,21 +206,21 @@ class ReconciliationService
             $crResults = self::lookupClaimRev($pcns);
 
             foreach ($crResults as $crClaim) {
-                $crPcn = $crClaim['patientControlNumber'] ?? '';
+                $crPcn = TypeCoerce::asString($crClaim['patientControlNumber'] ?? '');
                 if ($crPcn === '' || !isset($pcnMap[$crPcn])) {
                     continue;
                 }
 
                 $idx = $pcnMap[$crPcn];
                 $encounters[$idx]['crFound'] = true;
-                $encounters[$idx]['crStatusName'] = $crClaim['statusName'] ?? '';
-                $encounters[$idx]['crStatusId'] = (int) ($crClaim['statusId'] ?? 0);
-                $encounters[$idx]['crPayerAcceptance'] = $crClaim['payerAcceptanceStatusName'] ?? '';
-                $encounters[$idx]['crPayerAcceptanceStatusId'] = (int) ($crClaim['payerAcceptanceStatusId'] ?? 0);
-                $encounters[$idx]['crEraClassification'] = $crClaim['eraClassification'] ?? '';
-                $encounters[$idx]['crPayerPaidAmount'] = (float) ($crClaim['payerPaidAmount'] ?? 0);
-                $encounters[$idx]['crObjectId'] = $crClaim['objectId'] ?? '';
-                $encounters[$idx]['crIsWorked'] = $crClaim['isWorked'] ?? false;
+                $encounters[$idx]['crStatusName'] = TypeCoerce::asString($crClaim['statusName'] ?? '');
+                $encounters[$idx]['crStatusId'] = TypeCoerce::asInt($crClaim['statusId'] ?? 0);
+                $encounters[$idx]['crPayerAcceptance'] = TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? '');
+                $encounters[$idx]['crPayerAcceptanceStatusId'] = TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0);
+                $encounters[$idx]['crEraClassification'] = TypeCoerce::asString($crClaim['eraClassification'] ?? '');
+                $encounters[$idx]['crPayerPaidAmount'] = TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0);
+                $encounters[$idx]['crObjectId'] = TypeCoerce::asString($crClaim['objectId'] ?? '');
+                $encounters[$idx]['crIsWorked'] = TypeCoerce::asBool($crClaim['isWorked'] ?? false);
 
                 // Sync to local tracking tables
                 $enc = $encounters[$idx];
@@ -208,7 +243,9 @@ class ReconciliationService
 
         // Filter to discrepancies only if requested
         if ($discrepancyOnly) {
-            $encounters = array_values(array_filter($encounters, fn($enc) => $enc['discrepancy'] !== ''));
+            $encounters = array_values(array_filter($encounters, fn(array $enc): bool => $enc['discrepancy'] !== ''));
+        } else {
+            $encounters = array_values($encounters);
         }
 
         return [
@@ -226,7 +263,7 @@ class ReconciliationService
      */
     private static function lookupClaimRev(array $pcns): array
     {
-        if (empty($pcns)) {
+        if ($pcns === []) {
             return [];
         }
 
@@ -244,7 +281,7 @@ class ReconciliationService
     /**
      * Determine if there's a discrepancy between OE and ClaimRev status.
      *
-     * @param array<string, mixed> $enc Merged encounter data
+     * @param ReconcileRow $enc Merged encounter data
      * @return string Discrepancy description (empty if none)
      */
     private static function computeDiscrepancy(array $enc): string
@@ -253,8 +290,7 @@ class ReconciliationService
         $crFound = $enc['crFound'];
         $crStatusId = $enc['crStatusId'];
         $crPayerAcceptanceStatusId = $enc['crPayerAcceptanceStatusId'];
-        $crEraRaw = $enc['crEraClassification'];
-        $crEra = is_string($crEraRaw) ? $crEraRaw : '';
+        $crEra = $enc['crEraClassification'];
 
         // Billed in OE but not found in ClaimRev
         if ($oeStatus === 2 && !$crFound) {
@@ -267,7 +303,7 @@ class ReconciliationService
         }
 
         // ClaimRev says rejected but OE still shows billed
-        $crRejected = in_array($crStatusId, [10, 16, 17]) || $crPayerAcceptanceStatusId === 3;
+        $crRejected = in_array($crStatusId, [10, 16, 17], true) || $crPayerAcceptanceStatusId === 3;
         if ($crRejected && $oeStatus === 2) {
             $enc['discrepancyLevel'] = 'danger';
             return 'Rejected in ClaimRev but still Billed in OpenEMR';
@@ -280,23 +316,23 @@ class ReconciliationService
         }
 
         // Has ERA/payment but not posted to OE
-        if (!empty($crEra) && stripos($crEra, 'paid') !== false) {
+        if ($crEra !== '' && stripos($crEra, 'paid') !== false) {
             // Check if payment has been posted
             $pid = $enc['pid'];
             $encounter = $enc['encounter'];
-            $count = QueryUtils::fetchSingleValue(
+            $count = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
                 "SELECT COUNT(*) AS cnt FROM ar_activity WHERE pid = ? AND encounter = ? AND deleted IS NULL AND pay_amount > 0",
                 'cnt',
                 [$pid, $encounter]
-            );
-            if ((int) $count === 0) {
+            ));
+            if ($count === 0) {
                 $enc['discrepancyLevel'] = 'warning';
                 return 'ERA shows paid but no payment posted in OpenEMR';
             }
         }
 
         // ERA denied but OE not marked denied
-        if (!empty($crEra) && stripos($crEra, 'denied') !== false && $oeStatus !== 7) {
+        if ($crEra !== '' && stripos($crEra, 'denied') !== false && $oeStatus !== 7) {
             $enc['discrepancyLevel'] = 'warning';
             return 'ERA shows denied but OpenEMR not marked as denied';
         }
