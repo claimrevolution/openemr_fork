@@ -20,7 +20,6 @@ namespace OpenEMR\Modules\ClaimRevConnector;
  * Note the below use statements are importing classes from the OpenEMR core codebase
  */
 use OpenEMR\BC\ServiceContainer;
-use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Common\Twig\TwigContainer;
 use OpenEMR\Core\Kernel;
 use OpenEMR\Core\OEGlobalsBag;
@@ -96,26 +95,6 @@ class Bootstrap
 
         // we only add the rest of our event listeners and configuration if we have been fully setup and configured
         if ($this->globalsConfig->isConfigured()) {
-            // Ensure the core SFTP global is enabled so claims flow through
-            // the x12_remote_tracker table where our background service picks them up.
-            // Without this, users must manually check "Automatically SFTP Claims To X12 Partner"
-            // in Globals for ClaimRev to work.
-            if ($this->globalsConfig->getGlobalSetting(GlobalConfig::CONFIG_AUTO_SEND_CLAIM_FILES)) {
-                OEGlobalsBag::getInstance()->set('auto_sftp_claims_to_x12_partner', true);
-                // Persist to the database and activate the X12_SFTP background service
-                // so claims flow through the x12_remote_tracker table.
-                $glValue = QueryUtils::fetchSingleValue(
-                    "SELECT gl_value FROM globals WHERE gl_name = 'auto_sftp_claims_to_x12_partner'",
-                    'gl_value',
-                    []
-                );
-                if ($glValue === null || (string) $glValue === '' || (string) $glValue === '0') {
-                    QueryUtils::sqlStatementThrowException("UPDATE globals SET gl_value = '1' WHERE gl_name = 'auto_sftp_claims_to_x12_partner'");
-                    // Activate the X12_SFTP background service (same as what edit_globals.php does)
-                    QueryUtils::sqlStatementThrowException("UPDATE background_services SET active = 1, execute_interval = 1 WHERE name = 'X12_SFTP'");
-                }
-            }
-
             $this->registerTemplateEvents();
             $this->subscribeToApiEvents();
             $this->registerDemographicsEvents();
