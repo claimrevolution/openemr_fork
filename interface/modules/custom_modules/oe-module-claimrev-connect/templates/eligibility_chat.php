@@ -15,6 +15,10 @@
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
+/** @var string $chatPrKey */
+/** @var array<int, string> $chatProductResultIds */
+/** @var string $chatPayerCode */
+
 $chatId = 'cr-chat-' . attr($chatPrKey);
 
 // Product labels
@@ -28,7 +32,7 @@ $productLabels = [
 // Default to first available product
 $defaultObjectId = '';
 foreach ($chatProductResultIds as $rid) {
-    if (!empty($rid)) {
+    if ($rid !== '') {
         $defaultObjectId = $rid;
         break;
     }
@@ -48,7 +52,7 @@ foreach ($chatProductResultIds as $rid) {
                 <div class="ml-auto mr-2">
                     <select class="form-control form-control-sm cr-chat-context" id="<?php echo attr($chatId); ?>-context" data-chat="<?php echo attr($chatId); ?>">
                         <?php foreach ($chatProductResultIds as $prodId => $resultId) {
-                            if (empty($resultId)) {
+                            if ($resultId === '') {
                                 continue;
                             }
                             $label = $productLabels[$prodId] ?? ('Product ' . $prodId);
