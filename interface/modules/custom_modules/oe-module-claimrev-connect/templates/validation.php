@@ -17,9 +17,7 @@ use OpenEMR\Modules\ClaimRevConnector\PrintProperty;
 /** @var \stdClass $data */
 /** @var \stdClass $eligibilityData */
 
-$asValidations = static function (mixed $v): ?iterable {
-    return is_iterable($v) ? $v : null;
-};
+$asValidations = static fn(mixed $v): ?iterable => is_iterable($v) ? $v : null;
 
 if (property_exists($data, 'requestValidations')) {
     PrintProperty::printValidation("Primary Validations", $asValidations($data->requestValidations));

@@ -66,7 +66,7 @@ $str = static function (object $o, string $prop): string {
                                     <?php
         }
         echo text($periodCount); ?> <?php echo text($timePeriodDesc);
-        if ($frequencyCode !== '' && $frequencyCodeDesc !== '') { ?>
+if ($frequencyCode !== '' && $frequencyCodeDesc !== '') { ?>
                                                 <span> <?php echo text($frequencyCodeDesc); ?></span> <span><?php echo text($patternTimeCodeDesc); ?> </span>
         <?php } ?>
                                     </li>

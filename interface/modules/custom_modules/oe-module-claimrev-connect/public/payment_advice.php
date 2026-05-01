@@ -18,10 +18,10 @@ require_once "../../../../globals.php";
 use OpenEMR\Common\Acl\AccessDeniedHelper;
 use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Core\Header;
+use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\Bootstrap;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevApiException;
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
-use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdviceMockService;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
@@ -366,9 +366,9 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                         <td><?php echo text($patientLast); ?>, <?php echo text($patientFirst); ?></td>
                         <td><?php echo text($pcn); ?></td>
                         <td><?php echo text($checkNumber); ?></td>
-                        <td class="text-right"><?php echo text(number_format((float) $totalClaimAmount, 2)); ?></td>
-                        <td class="text-right"><?php echo text(number_format((float) $claimPaymentAmount, 2)); ?></td>
-                        <td class="text-right"><?php echo text(number_format((float) $patientResponsibility, 2)); ?></td>
+                        <td class="text-right"><?php echo text(number_format($totalClaimAmount, 2)); ?></td>
+                        <td class="text-right"><?php echo text(number_format($claimPaymentAmount, 2)); ?></td>
+                        <td class="text-right"><?php echo text(number_format($patientResponsibility, 2)); ?></td>
                         <td>
                             <?php if ($eraClassification !== '') { ?>
                                 <span class="badge <?php echo attr($eraClassBadge); ?> badge-claim-status"><?php echo text($eraClassLabel); ?></span>

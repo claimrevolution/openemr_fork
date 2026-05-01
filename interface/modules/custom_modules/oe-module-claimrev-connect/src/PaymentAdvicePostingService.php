@@ -60,7 +60,7 @@ class PaymentAdvicePostingService
      *
      * The PCN is emitted by the ClaimRev integration as "{pid}-{encounter}"
      * (or "{pid} {encounter}"); both pid and encounter must be positive
-     * integers. Returns null on any unparseable input so the caller can
+     * integers. Returns null on any unparsable input so the caller can
      * surface a single error path rather than separate "couldn't parse"
      * and "got 0/0" cases.
      *

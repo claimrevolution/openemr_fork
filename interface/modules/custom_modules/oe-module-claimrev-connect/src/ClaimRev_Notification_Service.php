@@ -65,7 +65,7 @@ function htmlToPlainText(string $html): string
 function start_claimrev_notifications(): void
 {
     $enabledRaw = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS) ?? '1';
-    if ($enabledRaw === false || $enabledRaw === '' || $enabledRaw === '0' || $enabledRaw === 0) {
+    if (in_array($enabledRaw, [false, '', '0', 0], true)) {
         return;
     }
 

@@ -15,7 +15,6 @@ declare(strict_types=1);
 require_once "../../../../globals.php";
 
 use OpenEMR\Common\Acl\AclMain;
-use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
@@ -68,7 +67,7 @@ try {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . attr($fileName) . '"');
     file_put_contents('php://output', $fileText);
-} catch (\RuntimeException | \LogicException $t) {
+} catch (\RuntimeException | \LogicException) {
     http_response_code(500);
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Failed to export CSV']);
