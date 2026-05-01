@@ -12,34 +12,35 @@
 
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityObjectCreator;
+use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 
 /** @var int|null $pid */
 
-if ($pid == null) {
+if ($pid === null) {
     echo xlt("Error retrieving patient.");
     exit;
 }
 $insurance = EligibilityData::getInsuranceData($pid);
 
 //check if form was submitted
-if (isset($_POST['checkElig'])) {
-    $pr = $_POST['responsibility'];
+if (ModuleInput::postExists('checkElig')) {
+    $pr = ModuleInput::postString('responsibility');
 
     // Collect selected products
     $selectedProducts = [];
-    if (!empty($_POST['product_1'])) {
+    if (ModuleInput::postString('product_1') !== '') {
         $selectedProducts[] = 1;
     }
-    if (!empty($_POST['product_3'])) {
+    if (ModuleInput::postString('product_3') !== '') {
         $selectedProducts[] = 3;
     }
-    if (!empty($_POST['product_2'])) {
+    if (ModuleInput::postString('product_2') !== '') {
         $selectedProducts[] = 2;
     }
-    if (!empty($_POST['product_5'])) {
+    if (ModuleInput::postString('product_5') !== '') {
         $selectedProducts[] = 5;
     }
-    if (empty($selectedProducts)) {
+    if ($selectedProducts === []) {
         $selectedProducts = [1]; // default to eligibility
     }
 
