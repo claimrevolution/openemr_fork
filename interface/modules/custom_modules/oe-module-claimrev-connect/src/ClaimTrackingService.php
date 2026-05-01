@@ -17,6 +17,36 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\Common\Database\QueryUtils;
 
+/**
+ * @phpstan-type ClaimWorkRow array{
+ *     pid: int,
+ *     encounter: int,
+ *     payerType: int,
+ *     pcn: string,
+ *     encounterDate: string,
+ *     patientName: string,
+ *     patientDob: string,
+ *     payerName: string,
+ *     payerNumber: string,
+ *     totalCharges: float,
+ *     billTime: string,
+ *     oeStatus: int,
+ *     oeStatusLabel: string,
+ *     trackingId: ?int,
+ *     crObjectId: string,
+ *     crStatusId: int,
+ *     crStatusName: string,
+ *     payerAcceptanceStatusId: int,
+ *     payerAcceptanceName: string,
+ *     eraClassification: string,
+ *     payerPaidAmount: float,
+ *     isWorked: bool,
+ *     arSessionId: ?int,
+ *     lastStatusCheck: string,
+ *     lastSynced: string
+ * }
+ * @phpstan-type ClaimDashboardStats array{total: int, needingAttention: int, rejected: int, denied: int, stale: int, paid: int, paidNotPosted: int}
+ */
 class ClaimTrackingService
 {
     // Event types
@@ -202,12 +232,12 @@ class ClaimTrackingService
     /**
      * Get work queue: claims needing attention.
      *
-     * @param array<string, mixed> $filters Search/filter params
-     * @return array{claims: list<array<string, mixed>>, totalRecords: int}
+     * @param array{statusFilter?: string, dateStart?: string, dateEnd?: string, patientLastName?: string, payerName?: string, pageIndex?: int} $filters
+     * @return array{claims: list<ClaimWorkRow>, totalRecords: int}
      */
     public static function getWorkQueue(array $filters): array
     {
-        $pageIndex = isset($filters['pageIndex']) ? (int) $filters['pageIndex'] : 0;
+        $pageIndex = $filters['pageIndex'] ?? 0;
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
         $statusFilter = $filters['statusFilter'] ?? 'all';
@@ -247,32 +277,36 @@ class ClaimTrackingService
         }
 
         // Date filter
-        if (!empty($filters['dateStart'])) {
+        $dateStart = $filters['dateStart'] ?? '';
+        if ($dateStart !== '') {
             $where[] = "e.date >= ?";
-            $params[] = $filters['dateStart'] . ' 00:00:00';
+            $params[] = $dateStart . ' 00:00:00';
         }
-        if (!empty($filters['dateEnd'])) {
+        $dateEnd = $filters['dateEnd'] ?? '';
+        if ($dateEnd !== '') {
             $where[] = "e.date <= ?";
-            $params[] = $filters['dateEnd'] . ' 23:59:59';
+            $params[] = $dateEnd . ' 23:59:59';
         }
 
         // Patient filter
-        if (!empty($filters['patientLastName'])) {
+        $patientLastName = $filters['patientLastName'] ?? '';
+        if ($patientLastName !== '') {
             $where[] = "p.lname LIKE ?";
-            $params[] = '%' . $filters['patientLastName'] . '%';
+            $params[] = '%' . $patientLastName . '%';
         }
 
         // Payer filter
-        if (!empty($filters['payerName'])) {
+        $payerName = $filters['payerName'] ?? '';
+        if ($payerName !== '') {
             $where[] = "ic.name LIKE ?";
-            $params[] = '%' . $filters['payerName'] . '%';
+            $params[] = '%' . $payerName . '%';
         }
 
-        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
 
         // Count
         $countSql = "SELECT COUNT(*) AS cnt " . $baseJoin . $whereClause;
-        $totalRecords = (int) QueryUtils::fetchSingleValue($countSql, 'cnt', $params);
+        $totalRecords = TypeCoerce::asInt(QueryUtils::fetchSingleValue($countSql, 'cnt', $params));
 
         // Fetch
         $sql = "SELECT e.pid, e.encounter, e.date AS encounter_date, " .
@@ -290,40 +324,45 @@ class ClaimTrackingService
             "LIMIT {$pageSize} OFFSET {$offset}";
         $rows = QueryUtils::fetchRecords($sql, $params);
 
+        $oeLabels = [
+            0 => 'Not Billed', 1 => 'Unbilled', 2 => 'Billed',
+            3 => 'Processed', 6 => 'Crossover', 7 => 'Denied',
+        ];
+
         $claims = [];
         foreach ($rows as $row) {
-            $oeStatus = (int) $row['oe_status'];
-            $oeLabels = [
-                0 => 'Not Billed', 1 => 'Unbilled', 2 => 'Billed',
-                3 => 'Processed', 6 => 'Crossover', 7 => 'Denied',
-            ];
+            $pid = TypeCoerce::asInt($row['pid'] ?? 0);
+            $encounter = TypeCoerce::asInt($row['encounter'] ?? 0);
+            $oeStatus = TypeCoerce::asInt($row['oe_status'] ?? 0);
+            $trackingId = TypeCoerce::asNullableInt($row['tracking_id'] ?? null);
+            $arSessionId = TypeCoerce::asNullableInt($row['ar_session_id'] ?? null);
 
             $claims[] = [
-                'pid' => (int) $row['pid'],
-                'encounter' => (int) $row['encounter'],
-                'payerType' => (int) $row['payer_type'],
-                'pcn' => $row['pid'] . '-' . $row['encounter'],
-                'encounterDate' => substr((string) $row['encounter_date'], 0, 10),
-                'patientName' => ($row['lname'] ?? '') . ', ' . ($row['fname'] ?? ''),
-                'patientDob' => substr((string) ($row['DOB'] ?? ''), 0, 10),
-                'payerName' => $row['payer_name'] ?? '',
-                'payerNumber' => $row['payer_number'] ?? '',
-                'totalCharges' => (float) $row['total_charges'],
-                'billTime' => $row['bill_time'] ?? '',
+                'pid' => $pid,
+                'encounter' => $encounter,
+                'payerType' => TypeCoerce::asInt($row['payer_type'] ?? 0),
+                'pcn' => $pid . '-' . $encounter,
+                'encounterDate' => substr(TypeCoerce::asString($row['encounter_date'] ?? ''), 0, 10),
+                'patientName' => TypeCoerce::asString($row['lname'] ?? '') . ', ' . TypeCoerce::asString($row['fname'] ?? ''),
+                'patientDob' => substr(TypeCoerce::asString($row['DOB'] ?? ''), 0, 10),
+                'payerName' => TypeCoerce::asString($row['payer_name'] ?? ''),
+                'payerNumber' => TypeCoerce::asString($row['payer_number'] ?? ''),
+                'totalCharges' => TypeCoerce::asFloat($row['total_charges'] ?? 0),
+                'billTime' => TypeCoerce::asString($row['bill_time'] ?? ''),
                 'oeStatus' => $oeStatus,
                 'oeStatusLabel' => $oeLabels[$oeStatus] ?? 'Unknown (' . $oeStatus . ')',
-                'trackingId' => $row['tracking_id'] ? (int) $row['tracking_id'] : null,
-                'crObjectId' => $row['claimrev_object_id'] ?? '',
-                'crStatusId' => (int) ($row['claimrev_status_id'] ?? 0),
-                'crStatusName' => $row['claimrev_status_name'] ?? '',
-                'payerAcceptanceStatusId' => (int) ($row['payer_acceptance_status_id'] ?? 0),
-                'payerAcceptanceName' => $row['payer_acceptance_status_name'] ?? '',
-                'eraClassification' => $row['era_classification'] ?? '',
-                'payerPaidAmount' => (float) ($row['payer_paid_amount'] ?? 0),
-                'isWorked' => !empty($row['is_worked']),
-                'arSessionId' => $row['ar_session_id'] ? (int) $row['ar_session_id'] : null,
-                'lastStatusCheck' => $row['last_status_check_date'] ?? '',
-                'lastSynced' => $row['last_synced'] ?? '',
+                'trackingId' => ($trackingId !== null && $trackingId !== 0) ? $trackingId : null,
+                'crObjectId' => TypeCoerce::asString($row['claimrev_object_id'] ?? ''),
+                'crStatusId' => TypeCoerce::asInt($row['claimrev_status_id'] ?? 0),
+                'crStatusName' => TypeCoerce::asString($row['claimrev_status_name'] ?? ''),
+                'payerAcceptanceStatusId' => TypeCoerce::asInt($row['payer_acceptance_status_id'] ?? 0),
+                'payerAcceptanceName' => TypeCoerce::asString($row['payer_acceptance_status_name'] ?? ''),
+                'eraClassification' => TypeCoerce::asString($row['era_classification'] ?? ''),
+                'payerPaidAmount' => TypeCoerce::asFloat($row['payer_paid_amount'] ?? 0),
+                'isWorked' => TypeCoerce::asBool($row['is_worked'] ?? false),
+                'arSessionId' => ($arSessionId !== null && $arSessionId !== 0) ? $arSessionId : null,
+                'lastStatusCheck' => TypeCoerce::asString($row['last_status_check_date'] ?? ''),
+                'lastSynced' => TypeCoerce::asString($row['last_synced'] ?? ''),
             ];
         }
 
@@ -333,20 +372,23 @@ class ClaimTrackingService
     /**
      * Get summary statistics for the dashboard.
      *
-     * @return array<string, int>
+     * @param array{dateStart?: string, dateEnd?: string} $filters
+     * @return ClaimDashboardStats
      */
     public static function getDashboardStats(array $filters = []): array
     {
         $dateWhere = '';
         $params = [];
 
-        if (!empty($filters['dateStart'])) {
+        $dateStart = $filters['dateStart'] ?? '';
+        if ($dateStart !== '') {
             $dateWhere .= " AND e.date >= ?";
-            $params[] = $filters['dateStart'] . ' 00:00:00';
+            $params[] = $dateStart . ' 00:00:00';
         }
-        if (!empty($filters['dateEnd'])) {
+        $dateEnd = $filters['dateEnd'] ?? '';
+        if ($dateEnd !== '') {
             $dateWhere .= " AND e.date <= ?";
-            $params[] = $filters['dateEnd'] . ' 23:59:59';
+            $params[] = $dateEnd . ' 23:59:59';
         }
 
         $baseFrom = "FROM form_encounter e " .
@@ -356,43 +398,43 @@ class ClaimTrackingService
             "LEFT JOIN mod_claimrev_claims mc ON mc.pid = e.pid AND mc.encounter = e.encounter AND mc.payer_type = c.payer_type " .
             "WHERE c.status >= 2" . $dateWhere;
 
-        $total = (int) QueryUtils::fetchSingleValue(
+        $total = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt " . $baseFrom,
             'cnt',
             $params
-        );
+        ));
 
-        $rejected = (int) QueryUtils::fetchSingleValue(
+        $rejected = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt " . $baseFrom . " AND (mc.claimrev_status_id IN (10, 16, 17) OR mc.payer_acceptance_status_id = 3)",
             'cnt',
             $params
-        );
+        ));
 
-        $denied = (int) QueryUtils::fetchSingleValue(
+        $denied = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt " . $baseFrom . " AND (mc.era_classification LIKE '%denied%' OR c.status = 7)",
             'cnt',
             $params
-        );
+        ));
 
-        $stale = (int) QueryUtils::fetchSingleValue(
+        $stale = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt " . $baseFrom .
             " AND c.status = 2 AND (mc.era_classification IS NULL OR mc.era_classification = '')" .
             " AND c.bill_time < NOW() - INTERVAL " . self::STALE_THRESHOLD_DAYS . " DAY",
             'cnt',
             $params
-        );
+        ));
 
-        $paid = (int) QueryUtils::fetchSingleValue(
+        $paid = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt " . $baseFrom . " AND mc.era_classification LIKE '%paid%'",
             'cnt',
             $params
-        );
+        ));
 
-        $paidNotPosted = (int) QueryUtils::fetchSingleValue(
+        $paidNotPosted = TypeCoerce::asInt(QueryUtils::fetchSingleValue(
             "SELECT COUNT(*) AS cnt " . $baseFrom . " AND mc.era_classification LIKE '%paid%' AND mc.ar_session_id IS NULL",
             'cnt',
             $params
-        );
+        ));
 
         return [
             'total' => $total,
