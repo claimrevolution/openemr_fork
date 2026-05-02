@@ -41,7 +41,7 @@ class ClaimStatusSyncService
      */
     public static function syncStatus(array $claimData): array
     {
-        $pcn = $claimData['patientControlNumber'] ?? '';
+        $pcn = $claimData['patientControlNumber'];
         $parsed = self::parsePcn($pcn);
         if ($parsed === null) {
             return [
@@ -86,9 +86,9 @@ class ClaimStatusSyncService
         $payerId = TypeCoerce::asInt($claimRow['payer_id'] ?? 0);
         $payerType = TypeCoerce::asInt($claimRow['payer_type'] ?? 0);
 
-        $statusId = (int) ($claimData['statusId'] ?? 0);
-        $payerAcceptanceStatusId = (int) ($claimData['payerAcceptanceStatusId'] ?? 0);
-        $statusName = $claimData['statusName'] ?? '';
+        $statusId = $claimData['statusId'];
+        $payerAcceptanceStatusId = $claimData['payerAcceptanceStatusId'];
+        $statusName = $claimData['statusName'];
         $errorMessage = $claimData['errorMessage'] ?? '';
 
         // Determine if ClaimRev says this claim is rejected/denied
