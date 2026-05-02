@@ -17,6 +17,9 @@ declare(strict_types=1);
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityTransfer;
 
+/**
+ * @phpstan-ignore openemr.noGlobalNsFunctions
+ */
 function start_send_eligibility(): void
 {
     $autoSend = OEGlobalsBag::getInstance()->get('oe_claimrev_send_eligibility') ?? null;

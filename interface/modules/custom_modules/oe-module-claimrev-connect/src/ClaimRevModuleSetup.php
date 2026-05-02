@@ -46,7 +46,7 @@ class ClaimRevModuleSetup
      * - ISA15: P (Production)
      * - Processing format: standard
      */
-    public static function createPartnerRecord(string $idNumber = '', string $senderId = '')
+    public static function createPartnerRecord(string $idNumber = '', string $senderId = ''): void
     {
         $x12Name = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_X12_PARTNER_NAME) ?: 'ClaimRev';
 
@@ -146,7 +146,11 @@ class ClaimRevModuleSetup
             "SELECT * FROM background_services WHERE name = ? LIMIT 1",
             [$name]
         );
-        return $row !== false && $row !== [] ? $row : null;
+        if (!is_array($row) || $row === []) {
+            return null;
+        }
+        /** @var array<string, mixed> $row */
+        return $row;
     }
     /**
      * Reset any ClaimRev background services that are stuck in running state.
@@ -171,7 +175,7 @@ class ClaimRevModuleSetup
      * Supports: CREATE/INSERT/ALTER/UPDATE/DELETE statements,
      * #IfNotRow, #IfNotColumnType, #IfNotTable, #EndIf directives.
      */
-    public static function runMigrations()
+    public static function runMigrations(): void
     {
         $modulePath = dirname(__DIR__);
         $fullname = $modulePath . '/table.sql';
@@ -185,6 +189,9 @@ class ClaimRevModuleSetup
 
         while (!feof($fd)) {
             $line = fgets($fd, 2048);
+            if ($line === false) {
+                break;
+            }
             $line = rtrim($line);
 
             if (preg_match('/^\s*--/', $line) || $line === '') {
@@ -213,7 +220,7 @@ class ClaimRevModuleSetup
                     'COLUMN_TYPE',
                     [$matches[1], $matches[2]]
                 );
-                $skipping = $columnType !== null && stripos((string) $columnType, $matches[3]) !== false;
+                $skipping = $columnType !== null && stripos(TypeCoerce::asString($columnType), $matches[3]) !== false;
                 continue;
             } elseif (preg_match('/^#(EndIf|Endif)/i', $line)) {
                 $skipping = false;
@@ -244,9 +251,15 @@ class ClaimRevModuleSetup
      */
     public static function getBackgroundServices(): array
     {
-        return QueryUtils::fetchRecords(
+        $rows = QueryUtils::fetchRecords(
             "SELECT * FROM background_services WHERE name like '%ClaimRev%' OR name = 'X12_SFTP'"
         );
+        $out = [];
+        foreach ($rows as $row) {
+            /** @var array<string, mixed> $row */
+            $out[] = $row;
+        }
+        return $out;
     }
     public static function createBackGroundServices(): void
     {

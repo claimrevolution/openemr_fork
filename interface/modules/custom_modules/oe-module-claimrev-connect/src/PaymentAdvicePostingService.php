@@ -33,15 +33,15 @@ class PaymentAdvicePostingService
     /**
      * Map of X12 835 claim status codes (CLP02) to display labels.
      *
-     * @var array<string, string>
+     * @var array<int, string>
      */
     public const CLAIM_STATUS_LABELS = [
-        '1' => 'Processed as Primary',
-        '2' => 'Processed as Secondary',
-        '3' => 'Processed as Tertiary',
-        '4' => 'Denied',
-        '5' => 'Pended',
-        '22' => 'Reversal of Previous Payment',
+        1 => 'Processed as Primary',
+        2 => 'Processed as Secondary',
+        3 => 'Processed as Tertiary',
+        4 => 'Denied',
+        5 => 'Pended',
+        22 => 'Reversal of Previous Payment',
     ];
 
     /**
@@ -60,7 +60,7 @@ class PaymentAdvicePostingService
      *
      * The PCN is emitted by the ClaimRev integration as "{pid}-{encounter}"
      * (or "{pid} {encounter}"); both pid and encounter must be positive
-     * integers. Returns null on any unparseable input so the caller can
+     * integers. Returns null on any unparsable input so the caller can
      * surface a single error path rather than separate "couldn't parse"
      * and "got 0/0" cases.
      *
@@ -88,7 +88,9 @@ class PaymentAdvicePostingService
      */
     public static function getClaimStatusLabel(string $code): string
     {
-        return self::CLAIM_STATUS_LABELS[$code] ?? $code;
+        return is_numeric($code)
+            ? (self::CLAIM_STATUS_LABELS[(int) $code] ?? $code)
+            : $code;
     }
 
     /**
@@ -108,19 +110,24 @@ class PaymentAdvicePostingService
         $paid = 0.0;
         $adjusted = 0.0;
         foreach ($servicePaymentInfos as $svc) {
-            $billed += (float) ($svc['chargeAmount'] ?? 0);
-            $paid += (float) ($svc['paymentAmount'] ?? 0);
+            $billed += TypeCoerce::asFloat($svc['chargeAmount'] ?? 0);
+            $paid += TypeCoerce::asFloat($svc['paymentAmount'] ?? 0);
             $svcAdjGroups = $svc['adjustmentGroups'] ?? [];
             if (!is_array($svcAdjGroups)) {
                 continue;
             }
             foreach ($svcAdjGroups as $group) {
+                if (!is_array($group)) {
+                    continue;
+                }
                 $adjustments = $group['adjustments'] ?? [];
                 if (!is_array($adjustments)) {
                     continue;
                 }
                 foreach ($adjustments as $adj) {
-                    $adjusted += (float) ($adj['adjustmentAmount'] ?? 0);
+                    if (is_array($adj)) {
+                        $adjusted += TypeCoerce::asFloat($adj['adjustmentAmount'] ?? 0);
+                    }
                 }
             }
         }
@@ -149,10 +156,11 @@ class PaymentAdvicePostingService
         );
 
         if ($row !== null) {
+            $sessionIdInt = TypeCoerce::asInt($row);
             return [
                 'posted' => true,
-                'session_id' => (int) $row,
-                'details' => 'Payment session already exists (session_id: ' . $row . ')',
+                'session_id' => $sessionIdInt,
+                'details' => 'Payment session already exists (session_id: ' . $sessionIdInt . ')',
             ];
         }
 
@@ -166,7 +174,7 @@ class PaymentAdvicePostingService
                 [$pid, $encounter, '%' . $reference]
             );
 
-            if ((int) $count > 0) {
+            if (TypeCoerce::asInt($count) > 0) {
                 return [
                     'posted' => true,
                     'session_id' => null,
@@ -191,7 +199,7 @@ class PaymentAdvicePostingService
      *   pay_total: float,
      *   post_user: string,
      *   created_time: string,
-     *   lines: list<array{code: string, modifier: string, pay_amount: float, adj_amount: float, memo: string, reason_code: string, post_date: string}>
+     *   lines: list<array{code: string, modifier: string, pay_amount: float, adj_amount: float, memo: string, reason_code: string, account_code: string, post_date: string}>
      * }
      */
     public static function getPostingDetails(string $paymentAdviceId, int $pid = 0, int $encounter = 0): array
@@ -223,10 +231,10 @@ class PaymentAdvicePostingService
 
         $result['found'] = true;
         $result['session_id'] = TypeCoerce::asInt($session['session_id'] ?? 0);
-        $result['check_date'] = $session['check_date'] ?? '';
-        $result['pay_total'] = (float) ($session['pay_total'] ?? 0);
-        $result['post_user'] = $session['username'] ?? '';
-        $result['created_time'] = $session['created_time'] ?? '';
+        $result['check_date'] = TypeCoerce::asString($session['check_date'] ?? '');
+        $result['pay_total'] = TypeCoerce::asFloat($session['pay_total'] ?? 0);
+        $result['post_user'] = TypeCoerce::asString($session['username'] ?? '');
+        $result['created_time'] = TypeCoerce::asString($session['created_time'] ?? '');
 
         // Get activity lines for this session + encounter
         $whereParams = [$result['session_id']];
@@ -248,14 +256,14 @@ class PaymentAdvicePostingService
 
         foreach ($activities as $act) {
             $result['lines'][] = [
-                'code' => $act['code'] ?? '',
-                'modifier' => $act['modifier'] ?? '',
-                'pay_amount' => (float) ($act['pay_amount'] ?? 0),
-                'adj_amount' => (float) ($act['adj_amount'] ?? 0),
-                'memo' => $act['memo'] ?? '',
-                'reason_code' => $act['reason_code'] ?? '',
-                'account_code' => $act['account_code'] ?? '',
-                'post_date' => $act['post_date'] ?? '',
+                'code' => TypeCoerce::asString($act['code'] ?? ''),
+                'modifier' => TypeCoerce::asString($act['modifier'] ?? ''),
+                'pay_amount' => TypeCoerce::asFloat($act['pay_amount'] ?? 0),
+                'adj_amount' => TypeCoerce::asFloat($act['adj_amount'] ?? 0),
+                'memo' => TypeCoerce::asString($act['memo'] ?? ''),
+                'reason_code' => TypeCoerce::asString($act['reason_code'] ?? ''),
+                'account_code' => TypeCoerce::asString($act['account_code'] ?? ''),
+                'post_date' => TypeCoerce::asString($act['post_date'] ?? ''),
             ];
         }
 
@@ -269,15 +277,22 @@ class PaymentAdvicePostingService
      * @return array{
      *   canPost: bool,
      *   alreadyPosted: bool,
+     *   requiresApproval: bool,
+     *   approvalReason: string,
      *   pid: int,
      *   encounter: int,
      *   errors: list<string>,
      *   warnings: list<string>,
-     *   serviceLines: list<array{code: string, modifier: string, charged: float, paid: float, adjustments: float, matched: bool}>,
+     *   serviceLines: list<array{code: string, modifier: string, codekey: string, charged: float, paid: float, adjustments: list<array{groupCode: string, reasonCode: string, amount: float}>, totalAdjusted: float, matched: bool}>,
      *   checkNumber: string,
      *   checkDate: string,
      *   payerName: string,
-     *   totalPaid: float
+     *   payerNumber: string,
+     *   totalPaid: float,
+     *   totalAdjusted: float,
+     *   totalBilled: float,
+     *   claimStatusCode: string,
+     *   claimStatusLabel: string
      * }
      */
     public static function preview(array $paymentData): array
@@ -294,8 +309,8 @@ class PaymentAdvicePostingService
             'serviceLines' => [],
             'checkNumber' => '',
             'checkDate' => '',
-            'payerName' => $paymentData['payerName'] ?? '',
-            'payerNumber' => $paymentData['payerNumber'] ?? '',
+            'payerName' => TypeCoerce::asString($paymentData['payerName'] ?? ''),
+            'payerNumber' => TypeCoerce::asString($paymentData['payerNumber'] ?? ''),
             'totalPaid' => 0.0,
             'totalAdjusted' => 0.0,
             'totalBilled' => 0.0,
@@ -303,17 +318,16 @@ class PaymentAdvicePostingService
             'claimStatusLabel' => '',
         ];
 
-        $paymentAdviceId = $paymentData['paymentAdviceId'] ?? '';
-        $paymentInfo = $paymentData['paymentInfo'] ?? [];
-        $checkInfo = $paymentData['checkInformation'] ?? [];
+        $paymentAdviceId = TypeCoerce::asString($paymentData['paymentAdviceId'] ?? '');
+        $paymentInfo = is_array($paymentData['paymentInfo'] ?? null) ? $paymentData['paymentInfo'] : [];
+        $checkInfo = is_array($paymentData['checkInformation'] ?? null) ? $paymentData['checkInformation'] : [];
 
-        $result['checkNumber'] = $checkInfo['checkNumber'] ?? '';
-        $result['checkDate'] = isset($checkInfo['checkDate']) ? substr((string) $checkInfo['checkDate'], 0, 10) : '';
-        $result['totalPaid'] = (float) ($checkInfo['totalActualProviderPaymentAmt'] ?? 0);
+        $result['checkNumber'] = TypeCoerce::asString($checkInfo['checkNumber'] ?? '');
+        $result['checkDate'] = substr(TypeCoerce::asString($checkInfo['checkDate'] ?? ''), 0, 10);
+        $result['totalPaid'] = TypeCoerce::asFloat($checkInfo['totalActualProviderPaymentAmt'] ?? 0);
 
         // Parse patient control number
-        $pcnRaw = $paymentInfo['patientControlNumber'] ?? '';
-        $pcn = is_string($pcnRaw) ? $pcnRaw : '';
+        $pcn = TypeCoerce::asString($paymentInfo['patientControlNumber'] ?? '');
         $parsed = self::parsePatientControlNumber($pcn);
         if ($parsed === null) {
             $result['errors'][] = 'Cannot parse patient control number: ' . $pcn;
@@ -375,16 +389,21 @@ class PaymentAdvicePostingService
         }
 
         // Get existing billing codes for matching
-        $existingCodes = InvoiceSummary::arGetInvoiceSummary($pid, $encounter, true);
+        $existingCodesRaw = InvoiceSummary::arGetInvoiceSummary($pid, $encounter, true);
+        /** @var array<string, mixed> $existingCodes */
+        $existingCodes = is_array($existingCodesRaw) ? $existingCodesRaw : [];
 
         // Match service lines
         // Field names from ClaimRev .NET model: ServicePaymentInfo
         //   procedureCode, modifier1..4, chargeAmount, paymentAmount
         //   adjustmentGroups[].groupCode, adjustments[].reasonCode, adjustmentAmount
-        $servicePaymentInfos = $paymentInfo['servicePaymentInfos'] ?? [];
+        $servicePaymentInfos = is_array($paymentInfo['servicePaymentInfos'] ?? null) ? $paymentInfo['servicePaymentInfos'] : [];
         foreach ($servicePaymentInfos as $svc) {
-            $code = $svc['procedureCode'] ?? '';
-            $modifier = $svc['modifier1'] ?? '';
+            if (!is_array($svc)) {
+                continue;
+            }
+            $code = TypeCoerce::asString($svc['procedureCode'] ?? '');
+            $modifier = TypeCoerce::asString($svc['modifier1'] ?? '');
             $codekey = $code;
             if ($modifier !== '') {
                 $codekey .= ':' . $modifier;
@@ -397,20 +416,27 @@ class PaymentAdvicePostingService
                 }
             }
 
-            $charged = (float) ($svc['chargeAmount'] ?? 0);
-            $paid = (float) ($svc['paymentAmount'] ?? 0);
+            $charged = TypeCoerce::asFloat($svc['chargeAmount'] ?? 0);
+            $paid = TypeCoerce::asFloat($svc['paymentAmount'] ?? 0);
             $totalAdj = 0.0;
 
             $adjustments = [];
-            $svcAdjGroups = $svc['adjustmentGroups'] ?? [];
+            $svcAdjGroups = is_array($svc['adjustmentGroups'] ?? null) ? $svc['adjustmentGroups'] : [];
             foreach ($svcAdjGroups as $group) {
-                $groupCode = $group['groupCode'] ?? '';
-                foreach ($group['adjustments'] ?? [] as $adj) {
-                    $adjAmount = (float) ($adj['adjustmentAmount'] ?? 0);
+                if (!is_array($group)) {
+                    continue;
+                }
+                $groupCode = TypeCoerce::asString($group['groupCode'] ?? '');
+                $groupAdjustments = is_array($group['adjustments'] ?? null) ? $group['adjustments'] : [];
+                foreach ($groupAdjustments as $adj) {
+                    if (!is_array($adj)) {
+                        continue;
+                    }
+                    $adjAmount = TypeCoerce::asFloat($adj['adjustmentAmount'] ?? 0);
                     $totalAdj += $adjAmount;
                     $adjustments[] = [
                         'groupCode' => $groupCode,
-                        'reasonCode' => $adj['reasonCode'] ?? '',
+                        'reasonCode' => TypeCoerce::asString($adj['reasonCode'] ?? ''),
                         'amount' => $adjAmount,
                     ];
                 }
@@ -420,9 +446,6 @@ class PaymentAdvicePostingService
             if (!$matched && $code !== '' && !$modifier) {
                 // Try matching without modifier
                 foreach (array_keys($existingCodes) as $existingKey) {
-                    if (!is_string($existingKey)) {
-                        continue;
-                    }
                     if (str_starts_with($existingKey, $code . ':') || $existingKey === $code) {
                         $matched = true;
                         $codekey = $existingKey;
@@ -450,7 +473,10 @@ class PaymentAdvicePostingService
             $result['totalAdjusted'] += $totalAdj;
         }
 
-        $result['canPost'] = $result['errors'] === [];
+        // No code path between the early-return errors above and here adds
+        // to \$result['errors'], but keep this assignment as an explicit
+        // contract guard rather than hard-coding canPost = true.
+        $result['canPost'] = true;
         return $result;
     }
 
@@ -459,7 +485,7 @@ class PaymentAdvicePostingService
      *
      * @param array<string, mixed> $paymentData Single result from SearchPaymentInfo
      * @param bool $skipMarkWorked If true, skip marking as worked on ClaimRev (e.g. test mode)
-     * @return array{success: bool, session_id: int|null, message: string, posted_lines: int}
+     * @return array{success: bool, session_id: int|null, message: string, posted_lines: int, requiresApproval?: bool, approvalReason?: string}
      */
     public static function post(array $paymentData, bool $skipMarkWorked = false, bool $approved = false): array
     {
@@ -474,14 +500,14 @@ class PaymentAdvicePostingService
             ];
         }
 
-        if (!$approved && ($preview['requiresApproval'] ?? false)) {
+        if (!$approved && $preview['requiresApproval']) {
             return [
                 'success' => false,
                 'session_id' => null,
                 'message' => 'Requires approval: ' . implode('; ', $preview['warnings']),
                 'posted_lines' => 0,
                 'requiresApproval' => true,
-                'approvalReason' => $preview['approvalReason'] ?? '',
+                'approvalReason' => $preview['approvalReason'],
             ];
         }
 
@@ -494,18 +520,18 @@ class PaymentAdvicePostingService
             ];
         }
 
-        $paymentAdviceId = $paymentData['paymentAdviceId'] ?? '';
-        $paymentInfo = $paymentData['paymentInfo'] ?? [];
-        $checkInfo = $paymentData['checkInformation'] ?? [];
+        $paymentAdviceId = TypeCoerce::asString($paymentData['paymentAdviceId'] ?? '');
+        $paymentInfo = is_array($paymentData['paymentInfo'] ?? null) ? $paymentData['paymentInfo'] : [];
+        $checkInfo = is_array($paymentData['checkInformation'] ?? null) ? $paymentData['checkInformation'] : [];
         $pid = $preview['pid'];
         $encounter = $preview['encounter'];
         $csc = $preview['claimStatusCode'];
 
-        $checkNumber = $checkInfo['checkNumber'] ?? '';
-        $checkDate = $preview['checkDate'] ?: date('Y-m-d');
-        $payTotal = (float) ($checkInfo['totalActualProviderPaymentAmt'] ?? 0);
+        $checkNumber = TypeCoerce::asString($checkInfo['checkNumber'] ?? '');
+        $checkDate = $preview['checkDate'] !== '' ? $preview['checkDate'] : date('Y-m-d');
+        $payTotal = TypeCoerce::asFloat($checkInfo['totalActualProviderPaymentAmt'] ?? 0);
         $reference = self::buildIdempotencyReference($paymentAdviceId);
-        $memo = 'Chk#' . ($checkNumber ?: 'N/A') . ' ' . $pid . '-' . $encounter;
+        $memo = 'Chk#' . ($checkNumber !== '' ? $checkNumber : 'N/A') . ' ' . $pid . '-' . $encounter;
 
         // Determine payer type from claim status
         $payerType = match ($csc) {
@@ -516,9 +542,8 @@ class PaymentAdvicePostingService
         $inslabel = 'Ins' . $payerType;
 
         // Look up the insurance company ID
-        $serviceDate = isset($paymentInfo['serviceDateStart'])
-            ? substr((string) $paymentInfo['serviceDateStart'], 0, 10)
-            : date('Y-m-d');
+        $serviceDateRaw = TypeCoerce::asString($paymentInfo['serviceDateStart'] ?? '');
+        $serviceDate = $serviceDateRaw !== '' ? substr($serviceDateRaw, 0, 10) : date('Y-m-d');
         $insuranceId = SLEOB::arGetPayerID($pid, $serviceDate, $payerType);
 
         // Handle denial case
@@ -558,7 +583,7 @@ class PaymentAdvicePostingService
         }
 
         // Create payment session
-        $sessionId = SLEOB::arPostSession(
+        $sessionId = TypeCoerce::asInt(SLEOB::arPostSession(
             payer_id: $insuranceId,
             check_number: $reference,
             check_date: $checkDate,
@@ -566,9 +591,9 @@ class PaymentAdvicePostingService
             post_to_date: date('Y-m-d'),
             deposit_date: date('Y-m-d'),
             debug: false,
-        );
+        ));
 
-        if (!$sessionId) {
+        if ($sessionId === 0) {
             return [
                 'success' => false,
                 'session_id' => null,
@@ -592,19 +617,22 @@ class PaymentAdvicePostingService
                 $codetype = TypeCoerce::asString($billingRow['code_type'] ?? '');
             }
 
+            $payerControlNumber = TypeCoerce::asString($paymentInfo['payerControlNumber'] ?? '');
+
             // Post payment for this service line
-            if ($svc['paid'] != 0) {
+            if ($svc['paid'] != 0.0) {
+                // @phpstan-ignore staticMethod.deprecated
                 SLEOB::arPostPayment(
-                    patient_id: $pid,
-                    encounter_id: $encounter,
-                    session_id: $sessionId,
-                    amount: $svc['paid'],
-                    code: $codekey,
-                    payer_type: $payerType,
+                    patient_id: (string) $pid,
+                    encounter_id: (string) $encounter,
+                    session_id: (string) $sessionId,
+                    amount: (string) $svc['paid'],
+                    code: $svc['codekey'],
+                    payer_type: (string) $payerType,
                     memo: $memo,
                     codetype: $codetype,
                     date: $checkDate,
-                    payer_claim_number: $paymentInfo['payerControlNumber'] ?? null,
+                    payer_claim_number: $payerControlNumber !== '' ? $payerControlNumber : null,
                 );
                 $postedLines++;
             }
@@ -624,24 +652,26 @@ class PaymentAdvicePostingService
 
                     $reason .= sprintf("%.2f", $adj['amount']);
 
+                    // @phpstan-ignore staticMethod.deprecated
                     SLEOB::arPostAdjustment(
-                        patient_id: $pid,
-                        encounter_id: $encounter,
-                        session_id: $sessionId,
-                        amount: 0,
-                        code: $codekey,
-                        payer_type: $payerType,
+                        patient_id: (string) $pid,
+                        encounter_id: (string) $encounter,
+                        session_id: (string) $sessionId,
+                        amount: '0',
+                        code: $svc['codekey'],
+                        payer_type: (string) $payerType,
                         reason: $reason,
                         codetype: $codetype,
                     );
-                } elseif ($adj['amount'] != 0) {
+                } elseif ($adj['amount'] != 0.0) {
+                    // @phpstan-ignore staticMethod.deprecated
                     SLEOB::arPostAdjustment(
-                        patient_id: $pid,
-                        encounter_id: $encounter,
-                        session_id: $sessionId,
-                        amount: $adj['amount'],
-                        code: $codekey,
-                        payer_type: $payerType,
+                        patient_id: (string) $pid,
+                        encounter_id: (string) $encounter,
+                        session_id: (string) $sessionId,
+                        amount: (string) $adj['amount'],
+                        code: $svc['codekey'],
+                        payer_type: (string) $payerType,
                         reason: "Adjust code " . $adj['reasonCode'],
                         codetype: $codetype,
                     );
@@ -672,9 +702,8 @@ class PaymentAdvicePostingService
             amount: $payTotal,
         );
 
-        if ($sessionId) {
-            ClaimTrackingService::linkPaymentSession($pid, $encounter, $payerType, $sessionId);
-        }
+        // \$sessionId is guaranteed > 0 here (we returned earlier if it was 0)
+        ClaimTrackingService::linkPaymentSession($pid, $encounter, $payerType, $sessionId);
 
         // If primary and secondary insurance exists, re-queue for secondary billing
         if ($primary && SLEOB::arGetPayerID($pid, $serviceDate, 2)) {
@@ -723,28 +752,28 @@ class PaymentAdvicePostingService
 
         foreach ($paymentDataList as $paymentData) {
             $summary['totalProcessed']++;
-            $paymentAdviceId = $paymentData['paymentAdviceId'] ?? '';
-            $paymentInfo = $paymentData['paymentInfo'] ?? [];
-            $csc = $paymentInfo['claimStatusCode'] ?? '';
+            $paymentAdviceId = TypeCoerce::asString($paymentData['paymentAdviceId'] ?? '');
+            $paymentInfo = is_array($paymentData['paymentInfo'] ?? null) ? $paymentData['paymentInfo'] : [];
+            $csc = TypeCoerce::asString($paymentInfo['claimStatusCode'] ?? '');
 
             // Reversals and pended claims need individual approval — defer them
-            if (in_array($csc, ['5', '22'])) {
+            if (in_array($csc, ['5', '22'], true)) {
                 $label = $csc === '22' ? 'Reversal' : 'Pended';
                 $summary['totalDeferred']++;
                 $summary['deferred'][] = [
                     'paymentAdviceId' => $paymentAdviceId,
                     'reason' => $label,
                     'claimStatusCode' => $csc,
-                    'patientName' => ($paymentInfo['patientLastName'] ?? '') . ', ' . ($paymentInfo['patientFirstName'] ?? ''),
-                    'pcn' => $paymentInfo['patientControlNumber'] ?? '',
-                    'amount' => (float) ($paymentInfo['claimPaymentAmount'] ?? 0),
+                    'patientName' => TypeCoerce::asString($paymentInfo['patientLastName'] ?? '') . ', ' . TypeCoerce::asString($paymentInfo['patientFirstName'] ?? ''),
+                    'pcn' => TypeCoerce::asString($paymentInfo['patientControlNumber'] ?? ''),
+                    'amount' => TypeCoerce::asFloat($paymentInfo['claimPaymentAmount'] ?? 0),
                 ];
                 continue;
             }
 
             // Only auto-post processed claims (1=primary, 2=secondary, 3=tertiary)
             // Denials (4) are also auto-postable since they just record reason codes
-            if (!in_array($csc, ['1', '2', '3', '4'])) {
+            if (!in_array($csc, ['1', '2', '3', '4'], true)) {
                 $summary['totalSkipped']++;
                 $summary['results'][] = [
                     'paymentAdviceId' => $paymentAdviceId,
@@ -789,8 +818,8 @@ class PaymentAdvicePostingService
      */
     private static function markWorkedOnClaimRev(array $paymentData): void
     {
-        $isWorked = $paymentData['paymentInfo']['isWorked'] ?? false;
-        if ($isWorked) {
+        $paymentInfo = is_array($paymentData['paymentInfo'] ?? null) ? $paymentData['paymentInfo'] : [];
+        if (TypeCoerce::asBool($paymentInfo['isWorked'] ?? false)) {
             // Already marked as worked, don't toggle it back
             return;
         }

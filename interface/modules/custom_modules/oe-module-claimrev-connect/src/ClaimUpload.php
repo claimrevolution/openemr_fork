@@ -34,7 +34,8 @@ class ClaimUpload extends BaseService
     public const TABLE_NAME = 'x12_remote_tracker';
 
 
-    protected static $x12_partner_field_keys = [
+    /** @var array<string, string> */
+    protected static array $x12_partner_field_keys = [
         'x12_sftp_host' => 'X12 SFTP Host',
         'x12_sftp_port' => 'X12 SFTP Port',
         'x12_sftp_login' => 'X12 SFTP Login',
@@ -47,7 +48,8 @@ class ClaimUpload extends BaseService
         P.name, P.id AS x12_partner_id, P.x12_sftp_host, P.x12_sftp_port, P.x12_sftp_login, P.x12_sftp_pass,
         P.x12_sftp_remote_dir, P.x12_sftp_local_dir FROM x12_remote_tracker R";
 
-    protected $validationMessages = [];
+    /** @var list<string> */
+    protected array $validationMessages = [];
 
     public function __construct()
     {

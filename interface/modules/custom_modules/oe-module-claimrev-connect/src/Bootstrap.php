@@ -57,7 +57,7 @@ class Bootstrap
     /**
      * @var string The folder name of the module.  Set dynamically from searching the filesystem.
      */
-    private $moduleDirectoryName;
+    private string $moduleDirectoryName = '';
 
     /**
      * @var \Twig\Environment The twig rendering environment
@@ -86,7 +86,9 @@ class Bootstrap
         $this->moduleDirectoryName = basename(dirname(__DIR__));
 
         // we inject our globals value.
-        $this->globalsConfig = new GlobalConfig($GLOBALS);
+        /** @var array<string, mixed> $globals */
+        $globals = $GLOBALS;
+        $this->globalsConfig = new GlobalConfig($globals);
         $this->logger = $logger ?? ServiceContainer::getLogger();
     }
 
@@ -133,10 +135,10 @@ class Bootstrap
                 $section,
                 $key,
                 new GlobalSetting(
-                    xlt($config['title']),
+                    text($config['title']),
                     $config['type'],
                     $value,
-                    xlt($config['description']),
+                    text($config['description']),
                     true
                 )
             );
@@ -157,15 +159,20 @@ class Bootstrap
             $this->eventDispatcher->addListener(AppointmentSetEvent::EVENT_HANDLE, $this->renderAppointmentSetEvent(...));
         }
     }
-    public function renderAppointmentSetEvent(AppointmentSetEvent $event)
+    public function renderAppointmentSetEvent(AppointmentSetEvent $event): void
     {
-        ClaimRevRteService::createEligibilityFromAppointment($event->eid);
+        $eid = $event->eid;
+        if (!is_int($eid) && !is_string($eid)) {
+            return;
+        }
+        ClaimRevRteService::createEligibilityFromAppointment($eid);
     }
 
-    public function registerCalendarIndicators()
+    public function registerCalendarIndicators(): void
     {
         if ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_CALENDAR_INDICATORS)) {
-            $staleAge = (int) ($this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY) ?: 30);
+            $staleAgeRaw = $this->getGlobalConfig()->getGlobalSetting(GlobalConfig::CONFIG_ENABLE_RESULTS_ELIGIBILITY);
+            $staleAge = is_numeric($staleAgeRaw) && (int) $staleAgeRaw > 0 ? (int) $staleAgeRaw : 30;
             $indicator = new CalendarEligibilityIndicator($staleAge);
             $this->eventDispatcher->addListener(
                 CalendarUserGetEventsFilter::EVENT_NAME,
@@ -299,8 +306,10 @@ class Bootstrap
         $menuItem->global_req = [];
 
         foreach ($menu as $item) {
-            if ($item->menu_id == 'modimg') {
-                $item->children[] = $menuItem;
+            if (is_object($item) && property_exists($item, 'menu_id') && $item->menu_id == 'modimg' && property_exists($item, 'children') && is_array($item->children)) {
+                $children = $item->children;
+                $children[] = $menuItem;
+                $item->children = $children;
                 break;
             }
         }
@@ -352,7 +361,7 @@ class Bootstrap
 
     private function getPublicPath()
     {
-        return self::MODULE_INSTALLATION_PATH . ($this->moduleDirectoryName ?? '') . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR;
+        return self::MODULE_INSTALLATION_PATH . $this->moduleDirectoryName . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR;
     }
 
     private function getAssetPath()

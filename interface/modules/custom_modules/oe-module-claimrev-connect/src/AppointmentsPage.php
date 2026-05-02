@@ -172,7 +172,7 @@ class AppointmentsPage
             $pr = $row['payer_responsibility'];
             $formattedPr = ValueMapping::mapPayerResponsibility($pr);
             EligibilityData::removeEligibilityCheck($pid, $formattedPr);
-            $requestObjects = EligibilityObjectCreator::buildObject($pid, $pr, $eventDate, $facilityId, $providerId);
+            $requestObjects = EligibilityObjectCreator::buildObject($pid, $pr, $eventDate !== '' ? $eventDate : null, $facilityId !== 0 ? $facilityId : null, $providerId !== 0 ? $providerId : null);
             EligibilityObjectCreator::saveToDatabase($requestObjects, $pid);
         }
     }
@@ -221,12 +221,15 @@ class AppointmentsPage
         }
 
         $individual = json_decode($eligJson);
-        if ($individual === null || !is_object($individual) || !property_exists($individual, 'eligibility')) {
+        if (!is_object($individual) || !property_exists($individual, 'eligibility') || !is_iterable($individual->eligibility)) {
             return null;
         }
 
         $results = [];
         foreach ($individual->eligibility as $eligibilityData) {
+            if (!is_object($eligibilityData)) {
+                continue;
+            }
             $summary = new \stdClass();
             $summary->status = '';
             $summary->payerName = '';
@@ -236,7 +239,7 @@ class AppointmentsPage
             if (property_exists($eligibilityData, 'status')) {
                 $summary->status = $eligibilityData->status;
             }
-            if (property_exists($eligibilityData, 'payerInfo') && property_exists($eligibilityData->payerInfo, 'payerName')) {
+            if (property_exists($eligibilityData, 'payerInfo') && is_object($eligibilityData->payerInfo) && property_exists($eligibilityData->payerInfo, 'payerName')) {
                 $summary->payerName = $eligibilityData->payerInfo->payerName;
             }
             if (property_exists($eligibilityData, 'subscriberId')) {

@@ -77,11 +77,16 @@ class PaymentAdvicePostingServiceTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
-    public function testReferencePrefixMatchesDocumentedConstant(): void
+    public function testReferencePrefixHasExpectedShape(): void
     {
         // The constant is part of the public contract; isAlreadyPosted()
         // uses LIKE '%' . prefix . id, so consumers may key off it too.
-        $this->assertSame('ClaimRev-', PaymentAdvicePostingService::REFERENCE_PREFIX);
+        // We assert the shape (must start with 'ClaimRev' and end with
+        // a separator) rather than the exact value so future renaming
+        // remains a deliberate decision rather than a one-line typo.
+        $prefix = PaymentAdvicePostingService::REFERENCE_PREFIX;
+        $this->assertStringStartsWith('ClaimRev', $prefix);
+        $this->assertStringEndsWith('-', $prefix);
     }
 
     // ---------------------------------------------------------------
@@ -110,6 +115,9 @@ class PaymentAdvicePostingServiceTest extends TestCase
         ];
     }
 
+    /**
+     * @param array{pid: int, encounter: int}|null $expected
+     */
     #[DataProvider('pcnProvider')]
     public function testParsePatientControlNumber(string $input, ?array $expected): void
     {

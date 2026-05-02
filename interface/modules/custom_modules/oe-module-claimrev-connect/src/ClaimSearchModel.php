@@ -16,36 +16,48 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 class ClaimSearchModel
 {
-    public $patientFirstName = "";
-    public $patientLastName = "";
-    public $patientGender = "";
-    public $patientBirthDate;
-    public $receivedDateStart;
-    public $receivedDateEnd;
-    public $serviceDateStart;
-    public $serviceDateEnd;
-    public $payerName = "";
-    public $payerNumber = "";
-    public $payerPaidAmtStart;
-    public $payerPaidAmtEnd;
-    public $traceNumber = "";
-    public $traceNumbers = [];
-    public $patientControlNumber = "";
-    public $patientControlNumbers = [];
-    public $payerControlNumber = "";
-    public $payerControlNumbers = [];
-    public $billingProviderNpi = "";
-    public $errorMessage = "";
-    public $statusIds = [];
-    public $accountNumbers = [];
-    public $claimTypeIds = [];
-    public $excludeStatusIds = [];
-    public $paymentAdviceStatusIds = [];
-    public $sorting = [];
-    public $tagIds = [];
-    public $excludeTagIds = [];
-    public $eraClassifications = [];
-    public $pagingSearch;
+    public string $patientFirstName = "";
+    public string $patientLastName = "";
+    public string $patientGender = "";
+    public ?string $patientBirthDate = null;
+    public ?string $receivedDateStart = null;
+    public ?string $receivedDateEnd = null;
+    public ?string $serviceDateStart = null;
+    public ?string $serviceDateEnd = null;
+    public string $payerName = "";
+    public string $payerNumber = "";
+    public ?float $payerPaidAmtStart = null;
+    public ?float $payerPaidAmtEnd = null;
+    public string $traceNumber = "";
+    /** @var list<string> */
+    public array $traceNumbers = [];
+    public string $patientControlNumber = "";
+    /** @var list<string> */
+    public array $patientControlNumbers = [];
+    public string $payerControlNumber = "";
+    /** @var list<string> */
+    public array $payerControlNumbers = [];
+    public string $billingProviderNpi = "";
+    public string $errorMessage = "";
+    /** @var list<int> */
+    public array $statusIds = [];
+    /** @var list<string> */
+    public array $accountNumbers = [];
+    /** @var list<int> */
+    public array $claimTypeIds = [];
+    /** @var list<int> */
+    public array $excludeStatusIds = [];
+    /** @var list<int> */
+    public array $paymentAdviceStatusIds = [];
+    /** @var list<array{fieldName: string, sortDirection: int, priority: int}> */
+    public array $sorting = [];
+    /** @var list<int> */
+    public array $tagIds = [];
+    /** @var list<int> */
+    public array $excludeTagIds = [];
+    /** @var list<string> */
+    public array $eraClassifications = [];
+    public PagingSearchModel $pagingSearch;
 
     public function __construct()
     {

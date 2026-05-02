@@ -46,6 +46,9 @@ require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-modu
 require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRevException.php';
 require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php';
 
+/**
+ * @phpstan-import-type ReconcileRow from ReconciliationService
+ */
 class ReconciliationServiceTest extends TestCase
 {
     /**
@@ -53,11 +56,11 @@ class ReconciliationServiceTest extends TestCase
      * overrides on top. Tests only set the fields they care about.
      *
      * @param array<string, mixed> $overrides
-     * @return array<string, mixed>
+     * @return ReconcileRow
      */
     private static function row(array $overrides = []): array
     {
-        return array_merge([
+        $base = [
             'pid' => 1,
             'encounter' => 1,
             'pcn' => '1-1',
@@ -82,7 +85,10 @@ class ReconciliationServiceTest extends TestCase
             'crIsWorked' => false,
             'discrepancy' => '',
             'discrepancyLevel' => '',
-        ], $overrides);
+        ];
+        /** @var ReconcileRow $row */
+        $row = array_merge($base, $overrides);
+        return $row;
     }
 
     public function testBilledInOpenEmrButNotFoundInClaimRevIsDanger(): void

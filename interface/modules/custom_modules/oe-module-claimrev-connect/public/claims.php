@@ -23,6 +23,7 @@ use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePage;
+use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
 
 $tab = "claims";
 
@@ -167,8 +168,8 @@ $searchFilters = [
                                 <select class="form-control form-control-sm" id="statusId" name="statusId">
                                     <option value=""><?php echo xlt("All"); ?></option>
                                     <?php foreach ($claimStatuses as $status) {
-                                        $statusOptId = (string) ($status['listItemId'] ?? '');
-                                        $statusOptName = (string) ($status['listName'] ?? '');
+                                        $statusOptId = TypeCoerce::asString($status['listItemId'] ?? '');
+                                        $statusOptName = TypeCoerce::asString($status['listName'] ?? '');
                                         if ($statusOptName === '') {
                                             continue;
                                         }
@@ -285,16 +286,17 @@ $searchFilters = [
             $sortIdx = intval($rawIdx === false ? 0 : $rawIdx);
             $currentSort = $validSortFields[$sortIdx];
             $currentDir = $sortDirectionRaw === 'desc' ? 'desc' : 'asc';
-            // Helper to render sort indicator
-            function sortIcon($field, $currentSort, $currentDir)
-            {
+            // Helper closure to render sort indicator (defined inside the
+            // template scope to capture $currentSort/$currentDir without
+            // creating a global function).
+            $sortIcon = static function (string $field) use ($currentSort, $currentDir): string {
                 if ($currentSort !== $field) {
                     return ' <i class="fa fa-sort text-muted"></i>';
                 }
                 return $currentDir === 'desc'
                     ? ' <i class="fa fa-sort-down"></i>'
                     : ' <i class="fa fa-sort-up"></i>';
-            }
+            };
             ?>
                 <div class="mt-3 mb-2 d-flex justify-content-between align-items-center">
                     <span><?php echo text((string) $totalRecords) . " " . xlt("total results"); ?></span>
@@ -310,11 +312,11 @@ $searchFilters = [
                 <thead class="thead-light">
                     <tr>
                         <th scope="col"><?php echo xlt("Status"); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo sortIcon('MainProperties.PatientLastName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo sortIcon('PayerName', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo $sortIcon('MainProperties.PatientLastName'); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo $sortIcon('PayerName'); ?></th>
                         <th scope="col"><?php echo xlt("Provider"); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo sortIcon('MainProperties.StartServiceDate', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('ReceivedDate', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo $sortIcon('MainProperties.StartServiceDate'); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo $sortIcon('ReceivedDate'); ?></th>
                         <th scope="col" class="text-right"><?php echo xlt("Billed"); ?></th>
                         <th scope="col" class="text-right"><?php echo xlt("Paid"); ?></th>
                         <th scope="col"><?php echo xlt("OE Status"); ?></th>
@@ -325,15 +327,15 @@ $searchFilters = [
                     <?php
                     $rowIndex = 0;
                     foreach ($datas as $data) {
-                        $statusName = $data->statusName ?? '';
-                        $statusId = (int)($data->statusId ?? 0);
-                        $payerFileStatusId = (int)($data->payerFileStatusId ?? 0);
-                        $payerFileStatusName = $data->payerFileStatusName ?? '';
-                        $payerAcceptanceStatusId = (int)($data->payerAcceptanceStatusId ?? 0);
-                        $payerAcceptance = $data->payerAcceptanceStatusName ?? '';
-                        $paymentAdviceStatusId = (int)($data->paymentAdviceStatusId ?? 0);
-                        $paymentAdvice = $data->paymentAdviceStatusName ?? '';
-                        $eraClassification = $data->eraClassification ?? '';
+                        $statusName = TypeCoerce::asString($data->statusName ?? '');
+                        $statusId = TypeCoerce::asInt($data->statusId ?? 0);
+                        $payerFileStatusId = TypeCoerce::asInt($data->payerFileStatusId ?? 0);
+                        $payerFileStatusName = TypeCoerce::asString($data->payerFileStatusName ?? '');
+                        $payerAcceptanceStatusId = TypeCoerce::asInt($data->payerAcceptanceStatusId ?? 0);
+                        $payerAcceptance = TypeCoerce::asString($data->payerAcceptanceStatusName ?? '');
+                        $paymentAdviceStatusId = TypeCoerce::asInt($data->paymentAdviceStatusId ?? 0);
+                        $paymentAdvice = TypeCoerce::asString($data->paymentAdviceStatusName ?? '');
+                        $eraClassification = TypeCoerce::asString($data->eraClassification ?? '');
 
                         // Claim status icon (received/processing)
                         if ($statusId === 10) {
@@ -419,13 +421,26 @@ $searchFilters = [
                         }
 
                         // Look up OpenEMR claim status
-                        $pcn = $data->patientControlNumber ?? '';
+                        $pcn = TypeCoerce::asString($data->patientControlNumber ?? '');
                         $oeStatus = PaymentAdvicePage::getOpenEmrClaimStatus($pcn);
                         $isRejected = in_array($statusId, [10, 16, 17]) || $payerAcceptanceStatusId === 3;
 
-                        $isWorked = isset($data->isWorked) && $data->isWorked;
-                        $objectId = $data->objectId ?? '';
-                        $claimTypeId = $data->claimTypeId ?? 1;
+                        $isWorked = TypeCoerce::asBool($data->isWorked ?? false);
+                        $patientLastName = TypeCoerce::asString($data->pLastName ?? '');
+                        $patientFirstName = TypeCoerce::asString($data->pFirstName ?? '');
+                        $birthDate = TypeCoerce::asString($data->birthDate ?? '');
+                        $payerName = TypeCoerce::asString($data->payerName ?? '');
+                        $payerNumberData = TypeCoerce::asString($data->payerNumber ?? '');
+                        $providerLastName = TypeCoerce::asString($data->providerLastName ?? '');
+                        $providerFirstName = TypeCoerce::asString($data->providerFirstName ?? '');
+                        $providerNpiData = TypeCoerce::asString($data->providerNpi ?? '');
+                        $serviceDate = TypeCoerce::asString($data->serviceDate ?? '');
+                        $serviceDateEndData = TypeCoerce::asString($data->serviceDateEnd ?? '');
+                        $receivedDate = TypeCoerce::asString($data->receivedDate ?? '');
+                        $billedAmount = TypeCoerce::asFloat($data->billedAmount ?? 0);
+                        $payerPaidAmount = TypeCoerce::asFloat($data->payerPaidAmount ?? 0);
+                        $objectId = TypeCoerce::asString($data->objectId ?? '');
+                        $claimTypeId = TypeCoerce::asInt($data->claimTypeId ?? 1);
                         $editorRoute = '';
                         if ($objectId !== '') {
                             $editorRoute = match ($claimTypeId) {
@@ -434,7 +449,7 @@ $searchFilters = [
                                 default => '/claimeditor/professionaleditor/',
                             };
                         }
-                        $errorCount = $data->errorCount ?? 0;
+                        $errorCount = TypeCoerce::asInt($data->errorCount ?? 0);
                         ?>
                         <tr class="claim-row <?php echo attr($rowClass); ?>" data-target="#detail-<?php echo attr((string) $rowIndex); ?>">
                             <td>
@@ -462,30 +477,30 @@ $searchFilters = [
                                 <span class="status-label text-muted"><?php echo text($statusName); ?></span>
                             </td>
                             <td>
-                                <?php echo text($data->pLastName ?? ''); ?>, <?php echo text($data->pFirstName ?? ''); ?>
-                                <br/><small class="text-muted"><?php echo xlt("DOB"); ?>: <?php echo text(substr($data->birthDate ?? '', 0, 10)); ?></small>
+                                <?php echo text($patientLastName); ?>, <?php echo text($patientFirstName); ?>
+                                <br/><small class="text-muted"><?php echo xlt("DOB"); ?>: <?php echo text(substr($birthDate, 0, 10)); ?></small>
                             </td>
                             <td>
-                                <?php echo text($data->payerName ?? ''); ?>
-                                <?php if (($data->payerNumber ?? null) !== null && $data->payerNumber !== '') { ?>
-                                    <br/><small class="text-muted">#<?php echo text($data->payerNumber); ?></small>
+                                <?php echo text($payerName); ?>
+                                <?php if ($payerNumberData !== '') { ?>
+                                    <br/><small class="text-muted">#<?php echo text($payerNumberData); ?></small>
                                 <?php } ?>
                             </td>
                             <td>
-                                <?php echo text($data->providerLastName ?? ''); ?>, <?php echo text($data->providerFirstName ?? ''); ?>
-                                <?php if (($data->providerNpi ?? null) !== null && $data->providerNpi !== '') { ?>
-                                    <br/><small class="text-muted"><?php echo xlt("NPI"); ?>: <?php echo text($data->providerNpi); ?></small>
+                                <?php echo text($providerLastName); ?>, <?php echo text($providerFirstName); ?>
+                                <?php if ($providerNpiData !== '') { ?>
+                                    <br/><small class="text-muted"><?php echo xlt("NPI"); ?>: <?php echo text($providerNpiData); ?></small>
                                 <?php } ?>
                             </td>
                             <td>
-                                <?php echo text(substr($data->serviceDate ?? '', 0, 10)); ?>
-                                <?php if (($data->serviceDateEnd ?? null) !== null && $data->serviceDateEnd !== '') { ?>
-                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($data->serviceDateEnd ?? '', 0, 10)); ?></small>
+                                <?php echo text(substr($serviceDate, 0, 10)); ?>
+                                <?php if ($serviceDateEndData !== '') { ?>
+                                    <br/><small class="text-muted"><?php echo xlt("to"); ?> <?php echo text(substr($serviceDateEndData, 0, 10)); ?></small>
                                 <?php } ?>
                             </td>
-                            <td><?php echo text(substr($data->receivedDate ?? '', 0, 10)); ?></td>
-                            <td class="text-right"><?php echo text(number_format((float)($data->billedAmount ?? 0), 2)); ?></td>
-                            <td class="text-right"><?php echo text(number_format((float)($data->payerPaidAmount ?? 0), 2)); ?></td>
+                            <td><?php echo text(substr($receivedDate, 0, 10)); ?></td>
+                            <td class="text-right"><?php echo text(number_format($billedAmount, 2)); ?></td>
+                            <td class="text-right"><?php echo text(number_format($payerPaidAmount, 2)); ?></td>
                             <td class="oe-status-cell" id="oe-status-<?php echo attr((string) $rowIndex); ?>">
                                 <?php if ($oeStatus !== null) {
                                     $oeBadgeClass = match ($oeStatus['status']) {
@@ -530,13 +545,13 @@ $searchFilters = [
                                             <i class="fa fa-redo"></i>
                                         </button>
                                     <?php } ?>
-                                    <?php if ($objectId !== '' && $editorRoute !== '') { ?>
+                                    <?php if ($objectId !== '') { ?>
                                         <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-outline-primary" title="<?php echo xla("Edit in Portal"); ?>">
                                             <i class="fa fa-external-link-alt"></i>
                                         </a>
                                     <?php } ?>
                                     <button type="button" class="btn worked-toggle <?php echo $isWorked ? 'btn-success' : 'btn-outline-secondary'; ?>"
-                                        data-objectid="<?php echo attr((string) $objectId); ?>"
+                                        data-objectid="<?php echo attr($objectId); ?>"
                                         data-worked="<?php echo $isWorked ? '1' : '0'; ?>"
                                         title="<?php echo $isWorked ? xla("Worked - click to unmark") : xla("Not worked - click to mark"); ?>"
                                         onclick="toggleWorked(this);">
@@ -576,7 +591,7 @@ $searchFilters = [
                                     </div>
                                     <div class="col-md-3">
                                         <div class="detail-label"><?php echo xlt("Worked"); ?></div>
-                                        <div class="detail-value worked-detail-<?php echo attr((string) $objectId); ?>">
+                                        <div class="detail-value worked-detail-<?php echo attr($objectId); ?>">
                                             <?php if ($isWorked) { ?>
                                                 <span class="text-success"><i class="fa fa-check-circle"></i> <?php echo xlt("Yes"); ?></span>
                                             <?php } else { ?>
@@ -601,7 +616,7 @@ $searchFilters = [
                                             </div>
                                         <?php } ?>
                                         <div class="mt-3">
-                                            <?php if ($objectId !== '' && $editorRoute !== '') { ?>
+                                            <?php if ($objectId !== '') { ?>
                                                 <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     <i class="fa fa-external-link-alt"></i> <?php echo xlt("Edit in Portal"); ?>
                                                 </a>
@@ -616,7 +631,7 @@ $searchFilters = [
                                     </div>
                                 </div>
                                 <?php if ($errorCount > 0) { ?>
-                                    <div class="mt-3 claim-errors-section" data-claimid="<?php echo attr((string) $objectId); ?>" data-loaded="0">
+                                    <div class="mt-3 claim-errors-section" data-claimid="<?php echo attr($objectId); ?>" data-loaded="0">
                                         <div class="detail-label"><?php echo xlt("Errors"); ?> (<?php echo text((string) $errorCount); ?>)</div>
                                         <div class="claim-errors-content">
                                             <span class="text-muted small"><i class="fa fa-spinner fa-spin"></i> <?php echo xlt("Loading errors..."); ?></span>

@@ -66,8 +66,7 @@ class ClaimsPage
     {
         try {
             $api = ClaimRevApi::makeFromGlobals();
-            $statuses = $api->getClaimStatuses();
-            return is_array($statuses) ? array_values($statuses) : [];
+            return $api->getClaimStatuses();
         } catch (ClaimRevException) {
             return [];
         }

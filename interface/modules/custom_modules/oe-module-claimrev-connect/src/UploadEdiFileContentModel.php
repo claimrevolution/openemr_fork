@@ -16,7 +16,10 @@ declare(strict_types=1);
 
 class UploadEdiFileContentModel
 {
-    public function __construct(public $AccountNumber, public $EdiFileContent, public $FileName)
-    {
+    public function __construct(
+        public string $AccountNumber,
+        public string $EdiFileContent,
+        public string $FileName,
+    ) {
     }
 }
