@@ -100,9 +100,6 @@ if (ModuleInput::postExists('SubmitButton')) {
                         <tbody>
                         <?php
                         foreach ($datas as $data) {
-                            if (!is_array($data)) {
-                                continue;
-                            }
                             $status = TypeCoerce::asString($data['status'] ?? '');
                             $rowId = TypeCoerce::asString($data['id'] ?? '');
                             $isError = str_contains($status, 'error');

@@ -209,39 +209,13 @@ class ReconciliationService
         }
 
         // Build complete ReconcileRow shapes in one pass — assembling the
-        // CR fields up-front keeps PHPStan's typed-shape inference intact
+        // full literal keeps PHPStan's typed-shape inference intact
         // through the computeDiscrepancy() call below.
-        /** @var list<ReconcileRow> $encounters */
         $encounters = [];
         foreach ($oeRows as $oeRow) {
             $crClaim = $crByPcn[$oeRow['pcn']] ?? null;
 
-            $crFields = $crClaim !== null
-                ? [
-                    'crFound' => true,
-                    'crStatusName' => TypeCoerce::asString($crClaim['statusName'] ?? ''),
-                    'crStatusId' => TypeCoerce::asInt($crClaim['statusId'] ?? 0),
-                    'crPayerAcceptance' => TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? ''),
-                    'crPayerAcceptanceStatusId' => TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0),
-                    'crEraClassification' => TypeCoerce::asString($crClaim['eraClassification'] ?? ''),
-                    'crPayerPaidAmount' => TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0),
-                    'crObjectId' => TypeCoerce::asString($crClaim['objectId'] ?? ''),
-                    'crIsWorked' => TypeCoerce::asBool($crClaim['isWorked'] ?? false),
-                ]
-                : [
-                    'crFound' => false,
-                    'crStatusName' => '',
-                    'crStatusId' => 0,
-                    'crPayerAcceptance' => '',
-                    'crPayerAcceptanceStatusId' => 0,
-                    'crEraClassification' => '',
-                    'crPayerPaidAmount' => 0.0,
-                    'crObjectId' => '',
-                    'crIsWorked' => false,
-                ];
-
-            $encWithoutDiscrepancy = $oeRow + $crFields + ['discrepancy' => '', 'discrepancyLevel' => ''];
-            /** @var ReconcileRow $encWithoutDiscrepancy */
+            $row = self::buildReconcileRow($oeRow, $crClaim);
 
             if ($crClaim !== null) {
                 ClaimTrackingService::upsertClaimRecord(
@@ -253,10 +227,10 @@ class ReconciliationService
             }
 
             $oeHasPayments = self::oeEncounterHasPayments($oeRow['pid'], $oeRow['encounter']);
-            $verdict = self::computeDiscrepancy($encWithoutDiscrepancy, $oeHasPayments);
-            $encWithoutDiscrepancy['discrepancy'] = $verdict['description'];
-            $encWithoutDiscrepancy['discrepancyLevel'] = $verdict['level'];
-            $encounters[] = $encWithoutDiscrepancy;
+            $verdict = self::computeDiscrepancy($row, $oeHasPayments);
+            $row['discrepancy'] = $verdict['description'];
+            $row['discrepancyLevel'] = $verdict['level'];
+            $encounters[] = $row;
         }
 
         // Filter to discrepancies only if requested
@@ -266,11 +240,50 @@ class ReconciliationService
             $encounters = array_values($encounters);
         }
 
-        /** @var list<ReconcileRow> $encounters */
         return [
             'encounters' => $encounters,
             'totalRecords' => $discrepancyOnly ? count($encounters) : $totalRecords,
             'claimRevLookupFailed' => $claimRevLookupFailed,
+        ];
+    }
+
+    /**
+     * Build a complete ReconcileRow shape from an OE row plus optional
+     * ClaimRev claim data. Keeping this as one literal expression lets
+     * PHPStan infer the full shape end-to-end (the `+` operator on
+     * partial arrays loses the merged shape).
+     *
+     * @param  array{pid: int, encounter: int, pcn: string, encounterDate: string, patientName: string, patientDob: string, payerName: string, payerNumber: string, totalCharges: float, billTime: string, oeStatus: int, oeStatusLabel: string, oeProcessFile: string} $oeRow
+     * @param  array<string, mixed>|null $crClaim
+     * @return ReconcileRow
+     */
+    private static function buildReconcileRow(array $oeRow, ?array $crClaim): array
+    {
+        return [
+            'pid' => $oeRow['pid'],
+            'encounter' => $oeRow['encounter'],
+            'pcn' => $oeRow['pcn'],
+            'encounterDate' => $oeRow['encounterDate'],
+            'patientName' => $oeRow['patientName'],
+            'patientDob' => $oeRow['patientDob'],
+            'payerName' => $oeRow['payerName'],
+            'payerNumber' => $oeRow['payerNumber'],
+            'totalCharges' => $oeRow['totalCharges'],
+            'billTime' => $oeRow['billTime'],
+            'oeStatus' => $oeRow['oeStatus'],
+            'oeStatusLabel' => $oeRow['oeStatusLabel'],
+            'oeProcessFile' => $oeRow['oeProcessFile'],
+            'crFound' => $crClaim !== null,
+            'crStatusName' => $crClaim !== null ? TypeCoerce::asString($crClaim['statusName'] ?? '') : '',
+            'crStatusId' => $crClaim !== null ? TypeCoerce::asInt($crClaim['statusId'] ?? 0) : 0,
+            'crPayerAcceptance' => $crClaim !== null ? TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? '') : '',
+            'crPayerAcceptanceStatusId' => $crClaim !== null ? TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0) : 0,
+            'crEraClassification' => $crClaim !== null ? TypeCoerce::asString($crClaim['eraClassification'] ?? '') : '',
+            'crPayerPaidAmount' => $crClaim !== null ? TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0) : 0.0,
+            'crObjectId' => $crClaim !== null ? TypeCoerce::asString($crClaim['objectId'] ?? '') : '',
+            'crIsWorked' => $crClaim !== null && TypeCoerce::asBool($crClaim['isWorked'] ?? false),
+            'discrepancy' => '',
+            'discrepancyLevel' => '',
         ];
     }
 
