@@ -108,19 +108,24 @@ class PaymentAdvicePostingService
         $paid = 0.0;
         $adjusted = 0.0;
         foreach ($servicePaymentInfos as $svc) {
-            $billed += (float) ($svc['chargeAmount'] ?? 0);
-            $paid += (float) ($svc['paymentAmount'] ?? 0);
+            $billed += TypeCoerce::asFloat($svc['chargeAmount'] ?? 0);
+            $paid += TypeCoerce::asFloat($svc['paymentAmount'] ?? 0);
             $svcAdjGroups = $svc['adjustmentGroups'] ?? [];
             if (!is_array($svcAdjGroups)) {
                 continue;
             }
             foreach ($svcAdjGroups as $group) {
+                if (!is_array($group)) {
+                    continue;
+                }
                 $adjustments = $group['adjustments'] ?? [];
                 if (!is_array($adjustments)) {
                     continue;
                 }
                 foreach ($adjustments as $adj) {
-                    $adjusted += (float) ($adj['adjustmentAmount'] ?? 0);
+                    if (is_array($adj)) {
+                        $adjusted += TypeCoerce::asFloat($adj['adjustmentAmount'] ?? 0);
+                    }
                 }
             }
         }
@@ -614,10 +619,10 @@ class PaymentAdvicePostingService
                 SLEOB::arPostPayment(
                     patient_id: (string) $pid,
                     encounter_id: (string) $encounter,
-                    session_id: $sessionId,
-                    amount: $svc['paid'],
+                    session_id: (string) $sessionId,
+                    amount: (string) $svc['paid'],
                     code: $svc['codekey'],
-                    payer_type: $payerType,
+                    payer_type: (string) $payerType,
                     memo: $memo,
                     codetype: $codetype,
                     date: $checkDate,
@@ -644,10 +649,10 @@ class PaymentAdvicePostingService
                     SLEOB::arPostAdjustment(
                         patient_id: (string) $pid,
                         encounter_id: (string) $encounter,
-                        session_id: $sessionId,
-                        amount: 0,
+                        session_id: (string) $sessionId,
+                        amount: '0',
                         code: $svc['codekey'],
-                        payer_type: $payerType,
+                        payer_type: (string) $payerType,
                         reason: $reason,
                         codetype: $codetype,
                     );
@@ -655,10 +660,10 @@ class PaymentAdvicePostingService
                     SLEOB::arPostAdjustment(
                         patient_id: (string) $pid,
                         encounter_id: (string) $encounter,
-                        session_id: $sessionId,
-                        amount: $adj['amount'],
+                        session_id: (string) $sessionId,
+                        amount: (string) $adj['amount'],
                         code: $svc['codekey'],
-                        payer_type: $payerType,
+                        payer_type: (string) $payerType,
                         reason: "Adjust code " . $adj['reasonCode'],
                         codetype: $codetype,
                     );
