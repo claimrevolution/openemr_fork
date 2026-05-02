@@ -20,6 +20,9 @@ use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
 use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
 
+/**
+ * @phpstan-ignore openemr.noGlobalNsFunctions
+ */
 function start_claimrev_watchdog(): void
 {
     $enabled = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_ENABLE_WATCHDOG) ?? '1';

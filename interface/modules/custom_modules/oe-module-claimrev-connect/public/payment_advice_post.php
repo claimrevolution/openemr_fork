@@ -41,25 +41,35 @@ $skipMarkWorked = ModuleInput::postExists('testMode');
 
 if ($mode === 'batch') {
     $paymentDataListJson = ModuleInput::postString('paymentDataList');
-    $paymentDataList = json_decode($paymentDataListJson, true);
+    $decodedList = json_decode($paymentDataListJson, true);
 
-    if (!is_array($paymentDataList)) {
+    if (!is_array($decodedList)) {
         http_response_code(400);
         echo json_encode(['error' => 'Invalid payment data list']);
         exit;
+    }
+
+    $paymentDataList = [];
+    foreach ($decodedList as $entry) {
+        if (is_array($entry)) {
+            /** @var array<string, mixed> $entry */
+            $paymentDataList[] = $entry;
+        }
     }
 
     $result = PaymentAdvicePostingService::batchPost($paymentDataList, $skipMarkWorked);
     echo json_encode($result);
 } else {
     $paymentDataJson = ModuleInput::postString('paymentData');
-    $paymentData = json_decode($paymentDataJson, true);
+    $decoded = json_decode($paymentDataJson, true);
 
-    if (!is_array($paymentData)) {
+    if (!is_array($decoded)) {
         http_response_code(400);
         echo json_encode(['error' => 'Invalid payment data']);
         exit;
     }
+    /** @var array<string, mixed> $paymentData */
+    $paymentData = $decoded;
 
     $approved = ModuleInput::postExists('approved');
     $result = PaymentAdvicePostingService::post($paymentData, $skipMarkWorked, $approved);

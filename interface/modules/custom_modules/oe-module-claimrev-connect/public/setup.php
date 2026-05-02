@@ -21,6 +21,7 @@ declare(strict_types=1);
     use OpenEMR\Modules\ClaimRevConnector\ClaimRevModuleSetup;
     use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
     use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
+    use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
 
     $tab = "setup";
 
@@ -181,10 +182,10 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                                     <td><?php echo text((string) ($service["name"] ?? '')); ?> - <?php echo text((string) ($service["title"] ?? '')); ?></td>
                                     <td><?php echo text((string) ($service["active"] ?? '')); ?></td>
                                     <td>
-                                        <?php if ((int) ($service["running"] ?? 0) === 1) { ?>
-                                            <span class="text-danger font-weight-bold"><?php echo text((string) $service["running"]); ?></span>
+                                        <?php if (TypeCoerce::asInt($service["running"] ?? 0) === 1) { ?>
+                                            <span class="text-danger font-weight-bold"><?php echo text(TypeCoerce::asString($service["running"])); ?></span>
                                         <?php } else { ?>
-                                            <?php echo text((string) ($service["running"] ?? '')); ?>
+                                            <?php echo text(TypeCoerce::asString($service["running"] ?? '')); ?>
                                         <?php } ?>
                                     </td>
                                     <td><?php echo text((string) ($service["next_run"] ?? '')); ?></td>
