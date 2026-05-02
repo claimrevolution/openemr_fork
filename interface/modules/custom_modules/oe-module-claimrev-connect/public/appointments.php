@@ -276,11 +276,11 @@ $path = str_replace("public", "templates", __DIR__);
                                     ?>
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-primary btn-check-elig" onclick="checkNowAppointment(<?php echo attr_js($appt['pc_eid']); ?>, this);">
+                                    <button type="button" class="btn btn-primary btn-check-elig" onclick="checkNowAppointment(<?php echo attr_js((string) $appt['pc_eid']); ?>, this);">
                                         <span class="spinner-border spinner-border-sm d-none" role="status"></span>
                                         <?php echo xlt("Check Now"); ?>
                                     </button>
-                                    <button type="submit" name="runEligibility" class="btn btn-outline-secondary btn-check-elig" onclick="document.getElementById('eid').value='<?php echo attr($appt['pc_eid']); ?>';">
+                                    <button type="submit" name="runEligibility" class="btn btn-outline-secondary btn-check-elig" onclick="document.getElementById('eid').value='<?php echo attr((string) $appt['pc_eid']); ?>';">
                                         <?php echo xlt("Queue"); ?>
                                     </button>
                                 </td>
@@ -302,16 +302,16 @@ $path = str_replace("public", "templates", __DIR__);
                                                     continue;
                                                 }
 
-                                                $individualJson = is_string($check["individual_json"] ?? null) ? $check["individual_json"] : '';
-                                                $individual = json_decode($individualJson);
-                                                if ($individual == null || !property_exists($individual, 'eligibility')) {
+                                                $individualJson = $check["individual_json"] ?? '';
+                                                $individual = json_decode((string) $individualJson);
+                                                if (!is_object($individual) || !property_exists($individual, 'eligibility') || !is_iterable($individual->eligibility)) {
                                                     continue;
                                                 }
 
                                                 $results = $individual->eligibility;
                                                 foreach ($results as $eligibilityData) {
                                                     $data = null;
-                                                    if (property_exists($eligibilityData, 'mapped271')) {
+                                                    if (is_object($eligibilityData) && property_exists($eligibilityData, 'mapped271')) {
                                                         $data = $eligibilityData->mapped271;
                                                     }
                                                     if ($data == null) {

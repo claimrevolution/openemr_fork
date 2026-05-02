@@ -231,9 +231,9 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
         <?php } elseif ($datas !== []) { ?>
             <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
                 <small class="text-muted">
-                    <?php echo text($totalRecords); ?> <?php echo xlt("results"); ?>
+                    <?php echo text((string) $totalRecords); ?> <?php echo xlt("results"); ?>
                     <?php if ($totalPages > 1) { ?>
-                        &mdash; <?php echo xlt("Page"); ?> <?php echo text($pageIndex + 1); ?> <?php echo xlt("of"); ?> <?php echo text($totalPages); ?>
+                        &mdash; <?php echo xlt("Page"); ?> <?php echo text((string) ($pageIndex + 1)); ?> <?php echo xlt("of"); ?> <?php echo text((string) $totalPages); ?>
                     <?php } ?>
                 </small>
                 <div>
@@ -245,10 +245,10 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                     </button>
                     <?php if ($totalPages > 1) { ?>
                         <?php if ($pageIndex > 0) { ?>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex - 1); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex - 1)); ?>)">&laquo; <?php echo xlt("Prev"); ?></button>
                         <?php } ?>
                         <?php if ($pageIndex < $totalPages - 1) { ?>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr($pageIndex + 1); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="goToPage(<?php echo attr((string) ($pageIndex + 1)); ?>)"><?php echo xlt("Next"); ?> &raquo;</button>
                         <?php } ?>
                     <?php } ?>
                 </div>
