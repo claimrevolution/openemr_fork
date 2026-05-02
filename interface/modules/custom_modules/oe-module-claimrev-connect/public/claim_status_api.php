@@ -69,11 +69,18 @@ switch ($action) {
 
     case 'batch_sync':
         $pcnsJson = ModuleInput::postString('pcns');
-        $pcns = json_decode($pcnsJson, true);
+        $pcnsRaw = json_decode($pcnsJson, true);
 
-        if (!is_array($pcns) || $pcns === []) {
+        if (!is_array($pcnsRaw) || $pcnsRaw === []) {
             echo json_encode(['error' => 'Invalid PCN list']);
             exit;
+        }
+
+        $pcns = [];
+        foreach ($pcnsRaw as $pcn) {
+            if (is_string($pcn) && $pcn !== '') {
+                $pcns[] = $pcn;
+            }
         }
 
         $result = ClaimTrackingService::batchSyncFromClaimRev($pcns);

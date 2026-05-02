@@ -93,7 +93,7 @@ class DenialAnalyticsService
             $params[] = '%' . $payerNameFilter . '%';
         }
 
-        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = 'WHERE ' . implode(' AND ', $where);
 
         // Base FROM clause for all queries — joins ar_activity to payer info
         $baseFrom = "FROM ar_activity a " .
