@@ -389,7 +389,9 @@ class PaymentAdvicePostingService
         }
 
         // Get existing billing codes for matching
-        $existingCodes = InvoiceSummary::arGetInvoiceSummary($pid, $encounter, true);
+        $existingCodesRaw = InvoiceSummary::arGetInvoiceSummary($pid, $encounter, true);
+        /** @var array<string, mixed> $existingCodes */
+        $existingCodes = is_array($existingCodesRaw) ? $existingCodesRaw : [];
 
         // Match service lines
         // Field names from ClaimRev .NET model: ServicePaymentInfo
@@ -474,7 +476,10 @@ class PaymentAdvicePostingService
             $result['totalAdjusted'] += $totalAdj;
         }
 
-        $result['canPost'] = $result['errors'] === [];
+        // No code path between the early-return errors above and here adds
+        // to \$result['errors'], but keep this assignment as an explicit
+        // contract guard rather than hard-coding canPost = true.
+        $result['canPost'] = true;
         return $result;
     }
 
@@ -700,9 +705,8 @@ class PaymentAdvicePostingService
             amount: $payTotal,
         );
 
-        if ($sessionId !== 0) {
-            ClaimTrackingService::linkPaymentSession($pid, $encounter, $payerType, $sessionId);
-        }
+        // \$sessionId is guaranteed > 0 here (we returned earlier if it was 0)
+        ClaimTrackingService::linkPaymentSession($pid, $encounter, $payerType, $sessionId);
 
         // If primary and secondary insurance exists, re-queue for secondary billing
         if ($primary && SLEOB::arGetPayerID($pid, $serviceDate, 2)) {

@@ -325,7 +325,7 @@ class PatientBalanceService
             $user,
         ]);
 
-        return (int) QueryUtils::fetchSingleValue("SELECT LAST_INSERT_ID() AS id", 'id', []);
+        return TypeCoerce::asInt(QueryUtils::fetchSingleValue("SELECT LAST_INSERT_ID() AS id", 'id', []));
     }
 
     /**

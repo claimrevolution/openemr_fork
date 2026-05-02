@@ -25,13 +25,15 @@ use OpenEMR\Common\Database\QueryUtils;
  *     totalClaimAmount: float,
  *     claimPaymentAmount: float,
  *     patientResponsibility: float,
- *     isWorked: bool
+ *     isWorked: bool,
+ *     ...
  * }
  * @phpstan-type CheckInfoShape array{
  *     checkNumber: string,
  *     checkDate: string,
  *     paymentMethodCode: string,
- *     paymentAmount: float
+ *     paymentAmount: float,
+ *     ...
  * }
  * @phpstan-type PaymentAdviceShape array{
  *     paymentAdviceId: string,
@@ -40,7 +42,8 @@ use OpenEMR\Common\Database\QueryUtils;
  *     payerNumber: string,
  *     eraClassification: string,
  *     paymentInfo: PaymentInfoShape,
- *     checkInformation: CheckInfoShape
+ *     checkInformation: CheckInfoShape,
+ *     ...
  * }
  */
 class PaymentAdvicePage
