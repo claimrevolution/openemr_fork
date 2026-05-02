@@ -71,7 +71,7 @@ class ReconciliationService
      */
     public static function reconcile(array $filters): array
     {
-        $pageIndex = $filters['pageIndex'] ?? 0;
+        $pageIndex = (int) ($filters['pageIndex'] ?? 0);
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
         $statusFilter = $filters['statusFilter'] ?? 'billed';
@@ -160,7 +160,9 @@ class ReconciliationService
         }
 
         // Collect PCNs for ClaimRev batch lookup
+        /** @var array<string, int> $pcnMap */
         $pcnMap = []; // pcn => row index
+        /** @var array<int, ReconcileRow> $encounters */
         $encounters = [];
         foreach ($rows as $idx => $row) {
             $pid = TypeCoerce::asInt($row['pid'] ?? 0);
@@ -203,6 +205,8 @@ class ReconciliationService
 
         // Batch lookup in ClaimRev
         $claimRevLookupFailed = false;
+        /** @var array<string, array<string, mixed>> $crByPcn */
+        $crByPcn = [];
         try {
             $pcns = array_keys($pcnMap);
             $crResults = self::lookupClaimRev($pcns);
@@ -212,20 +216,29 @@ class ReconciliationService
                 if ($crPcn === '' || !isset($pcnMap[$crPcn])) {
                     continue;
                 }
+                $crByPcn[$crPcn] = $crClaim;
+            }
+        } catch (ClaimRevException) {
+            $claimRevLookupFailed = true;
+        }
 
-                $idx = $pcnMap[$crPcn];
-                $encounters[$idx]['crFound'] = true;
-                $encounters[$idx]['crStatusName'] = TypeCoerce::asString($crClaim['statusName'] ?? '');
-                $encounters[$idx]['crStatusId'] = TypeCoerce::asInt($crClaim['statusId'] ?? 0);
-                $encounters[$idx]['crPayerAcceptance'] = TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? '');
-                $encounters[$idx]['crPayerAcceptanceStatusId'] = TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0);
-                $encounters[$idx]['crEraClassification'] = TypeCoerce::asString($crClaim['eraClassification'] ?? '');
-                $encounters[$idx]['crPayerPaidAmount'] = TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0);
-                $encounters[$idx]['crObjectId'] = TypeCoerce::asString($crClaim['objectId'] ?? '');
-                $encounters[$idx]['crIsWorked'] = TypeCoerce::asBool($crClaim['isWorked'] ?? false);
+        // Merge ClaimRev data + compute discrepancies in a single pass.
+        // Building the row immutably keeps the array shape intact for PHPStan.
+        /** @var list<ReconcileRow> $merged */
+        $merged = [];
+        foreach ($encounters as $enc) {
+            $crClaim = $crByPcn[$enc['pcn']] ?? null;
+            if ($crClaim !== null) {
+                $enc['crFound'] = true;
+                $enc['crStatusName'] = TypeCoerce::asString($crClaim['statusName'] ?? '');
+                $enc['crStatusId'] = TypeCoerce::asInt($crClaim['statusId'] ?? 0);
+                $enc['crPayerAcceptance'] = TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? '');
+                $enc['crPayerAcceptanceStatusId'] = TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0);
+                $enc['crEraClassification'] = TypeCoerce::asString($crClaim['eraClassification'] ?? '');
+                $enc['crPayerPaidAmount'] = TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0);
+                $enc['crObjectId'] = TypeCoerce::asString($crClaim['objectId'] ?? '');
+                $enc['crIsWorked'] = TypeCoerce::asBool($crClaim['isWorked'] ?? false);
 
-                // Sync to local tracking tables
-                $enc = $encounters[$idx];
                 ClaimTrackingService::upsertClaimRecord(
                     $enc['pid'],
                     $enc['encounter'],
@@ -233,20 +246,14 @@ class ReconciliationService
                     $crClaim
                 );
             }
-        } catch (ClaimRevException) {
-            $claimRevLookupFailed = true;
-        }
 
-        // Compute discrepancies. The "ERA shows paid but nothing posted" check
-        // requires hitting ar_activity, so we pre-compute that signal per
-        // encounter here and pass it into the (otherwise pure) helper.
-        foreach ($encounters as &$enc) {
             $oeHasPayments = self::oeEncounterHasPayments($enc['pid'], $enc['encounter']);
             $verdict = self::computeDiscrepancy($enc, $oeHasPayments);
             $enc['discrepancy'] = $verdict['description'];
             $enc['discrepancyLevel'] = $verdict['level'];
+            $merged[] = $enc;
         }
-        unset($enc);
+        $encounters = $merged;
 
         // Filter to discrepancies only if requested
         if ($discrepancyOnly) {
@@ -255,6 +262,7 @@ class ReconciliationService
             $encounters = array_values($encounters);
         }
 
+        /** @var list<ReconcileRow> $encounters */
         return [
             'encounters' => $encounters,
             'totalRecords' => $discrepancyOnly ? count($encounters) : $totalRecords,
@@ -282,7 +290,20 @@ class ReconciliationService
         $model->pagingSearch->pageIndex = 0;
 
         $result = $api->searchClaims($model);
-        return $result['results'] ?? [];
+        $results = is_array($result) ? ($result['results'] ?? []) : [];
+        if (!is_array($results)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($results as $r) {
+            if (is_array($r)) {
+                /** @var array<string, mixed> $rTyped */
+                $rTyped = $r;
+                $out[] = $rTyped;
+            }
+        }
+        return $out;
     }
 
     /**

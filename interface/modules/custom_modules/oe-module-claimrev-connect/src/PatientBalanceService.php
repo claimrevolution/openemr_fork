@@ -67,7 +67,7 @@ class PatientBalanceService
      */
     public static function getPatientBalanceQueue(array $filters): array
     {
-        $pageIndex = $filters['pageIndex'] ?? 0;
+        $pageIndex = (int) ($filters['pageIndex'] ?? 0);
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
         $minAmountRaw = $filters['minAmount'] ?? '';
@@ -206,13 +206,19 @@ class PatientBalanceService
         $codes = [];
         $totalBalance = 0.0;
         foreach ($invoiceCodes as $code => $cdata) {
-            $bal = round((float) ($cdata['bal'] ?? 0), 2);
+            if (!is_array($cdata)) {
+                continue;
+            }
+            $bal = round(TypeCoerce::asFloat($cdata['bal'] ?? 0), 2);
             $totalBalance += $bal;
 
             $details = [];
             $dtlList = $cdata['dtl'] ?? null;
             if (is_array($dtlList) && $dtlList !== []) {
                 foreach ($dtlList as $key => $dtl) {
+                    if (!is_array($dtl)) {
+                        continue;
+                    }
                     $details[] = [
                         'date' => trim(substr((string) $key, 0, 10)),
                         'payment' => TypeCoerce::asFloat($dtl['pmt'] ?? 0),
@@ -226,11 +232,11 @@ class PatientBalanceService
 
             $codes[] = [
                 'code' => $code,
-                'codeType' => $cdata['code_type'] ?? '',
-                'codeText' => $cdata['code_text'] ?? '',
-                'charge' => round((float) ($cdata['chg'] ?? 0), 2),
+                'codeType' => TypeCoerce::asString($cdata['code_type'] ?? ''),
+                'codeText' => TypeCoerce::asString($cdata['code_text'] ?? ''),
+                'charge' => round(TypeCoerce::asFloat($cdata['chg'] ?? 0), 2),
                 'balance' => $bal,
-                'adjustment' => round((float) ($cdata['adj'] ?? 0), 2),
+                'adjustment' => round(TypeCoerce::asFloat($cdata['adj'] ?? 0), 2),
                 'details' => $details,
             ];
         }
@@ -267,7 +273,7 @@ class PatientBalanceService
         );
 
         foreach ($rows as $row) {
-            $memo = $row['memo'] ?? '';
+            $memo = TypeCoerce::asString($row['memo'] ?? '');
             if (preg_match('/Ins\d+\s+(dedbl|coins|copay|ptresp):\s*([\d.]+)/', $memo, $m)) {
                 $type = $m[1];
                 $amount = (float) $m[2];
@@ -326,7 +332,7 @@ class PatientBalanceService
             return [];
         }
 
-        return QueryUtils::fetchRecords(
+        $rows = QueryUtils::fetchRecords(
             "SELECT id, statement_date, statement_method, amount_due, status, " .
             "claimrev_statement_id, notes, created_by, created_date " .
             "FROM mod_claimrev_patient_statements " .
@@ -334,6 +340,15 @@ class PatientBalanceService
             "ORDER BY created_date DESC",
             [$pid, $encounter]
         );
+
+        $out = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                /** @var array<string, mixed> $row */
+                $out[] = $row;
+            }
+        }
+        return $out;
     }
 
     /**

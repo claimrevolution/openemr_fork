@@ -209,7 +209,11 @@ class ClaimTrackingService
             [$pid, $encounter, $payerType]
         );
 
-        return $row !== false && $row !== [] ? $row : null;
+        if (!is_array($row) || $row === []) {
+            return null;
+        }
+        /** @var array<string, mixed> $row */
+        return $row;
     }
 
     /**
@@ -227,10 +231,20 @@ class ClaimTrackingService
             $params[] = $payerType;
         }
 
-        return QueryUtils::fetchRecords(
+        $rows = QueryUtils::fetchRecords(
             "SELECT * FROM mod_claimrev_claim_events WHERE {$where} ORDER BY created_date DESC, id DESC",
             $params
         );
+
+        $out = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                /** @var array<string, mixed> $rowTyped */
+                $rowTyped = $row;
+                $out[] = $rowTyped;
+            }
+        }
+        return $out;
     }
 
     /**
@@ -241,7 +255,7 @@ class ClaimTrackingService
      */
     public static function getWorkQueue(array $filters): array
     {
-        $pageIndex = $filters['pageIndex'] ?? 0;
+        $pageIndex = (int) ($filters['pageIndex'] ?? 0);
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
         $statusFilter = $filters['statusFilter'] ?? 'all';
@@ -306,7 +320,7 @@ class ClaimTrackingService
             $params[] = '%' . $payerName . '%';
         }
 
-        $whereClause = $where !== [] ? 'WHERE ' . implode(' AND ', $where) : '';
+        $whereClause = 'WHERE ' . implode(' AND ', $where);
 
         // Count
         $countSql = "SELECT COUNT(*) AS cnt " . $baseJoin . $whereClause;
@@ -468,7 +482,8 @@ class ClaimTrackingService
             $model->pagingSearch->pageIndex = 0;
 
             $result = $api->searchClaims($model);
-            $claims = $result['results'] ?? [];
+            $rawClaims = is_array($result) ? ($result['results'] ?? []) : [];
+            $claims = is_array($rawClaims) ? $rawClaims : [];
         } catch (ClaimRevException) {
             return ['success' => false, 'message' => 'Failed to connect to ClaimRev', 'statusData' => []];
         }
@@ -496,6 +511,7 @@ class ClaimTrackingService
         if (!is_array($crClaim)) {
             return ['success' => false, 'message' => 'Invalid claim data', 'statusData' => []];
         }
+        /** @var array<string, mixed> $crClaim */
 
         // Get old state for comparison
         $oldRecord = self::getClaimRecord($pid, $encounter, $payerType);
@@ -605,7 +621,8 @@ class ClaimTrackingService
             $model->pagingSearch->pageIndex = 0;
 
             $result = $api->searchClaims($model);
-            $crClaims = is_array($result['results'] ?? null) ? $result['results'] : [];
+            $rawClaims = is_array($result) ? ($result['results'] ?? []) : [];
+            $crClaims = is_array($rawClaims) ? $rawClaims : [];
         } catch (ClaimRevException) {
             $summary['errors'] = count($pcns);
             foreach ($pcns as $pcn) {
@@ -615,6 +632,7 @@ class ClaimTrackingService
         }
 
         // Index by PCN
+        /** @var array<string, array<string, mixed>> $crMap */
         $crMap = [];
         foreach ($crClaims as $cr) {
             if (!is_array($cr)) {
@@ -622,6 +640,7 @@ class ClaimTrackingService
             }
             $crPcn = TypeCoerce::asString($cr['patientControlNumber'] ?? '');
             if ($crPcn !== '') {
+                /** @var array<string, mixed> $cr */
                 $crMap[$crPcn] = $cr;
             }
         }

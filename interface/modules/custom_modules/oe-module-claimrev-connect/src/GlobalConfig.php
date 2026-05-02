@@ -21,6 +21,7 @@ declare(strict_types=1);
 namespace OpenEMR\Modules\ClaimRevConnector;
 
 use OpenEMR\BC\ServiceContainer;
+use OpenEMR\Common\Crypto\CryptoGen;
 use OpenEMR\Services\Globals\GlobalSetting;
 
 class GlobalConfig
@@ -54,12 +55,18 @@ class GlobalConfig
     public const CONFIG_SWEEP_LOOKAHEAD = 'oe_claimrev_sweep_lookahead';
     public const CONFIG_ENABLE_CALENDAR_INDICATORS = 'oe_claimrev_enable_calendar_indicators';
 
-    /** @var \OpenEMR\Common\Crypto\CryptoGen */
-    private readonly object $cryptoGen;
+    private readonly CryptoGen $cryptoGen;
 
+    /**
+     * @param array<string, mixed> $globalsArray
+     */
     public function __construct(private array $globalsArray)
     {
-        $this->cryptoGen = ServiceContainer::getCrypto();
+        $crypto = ServiceContainer::getCrypto();
+        if (!$crypto instanceof CryptoGen) {
+            throw new \RuntimeException('ServiceContainer::getCrypto() did not return a CryptoGen instance');
+        }
+        $this->cryptoGen = $crypto;
     }
 
     /**
@@ -81,11 +88,12 @@ class GlobalConfig
         return true;
     }
 
-    public function getClientId()
+    public function getClientId(): mixed
     {
         return $this->getGlobalSetting(self::CONFIG_OPTION_CLIENTID);
     }
-    public function getClientSecret()
+
+    public function getClientSecret(): string|false
     {
         $encryptedValue = $this->getGlobalSetting(self::CONFIG_OPTION_CLIENTSECRET);
         return $this->cryptoGen->decryptStandard(is_string($encryptedValue) ? $encryptedValue : null);
@@ -117,7 +125,7 @@ class GlobalConfig
     ];
 
     /**
-     * @param 'scope'|'authority'|'api_server' $urlType
+     * @param 'scope'|'authority'|'api_server'|'portal' $urlType
      * @return non-empty-string
      * @throws ModuleNotConfiguredException if URL is not configured for the current environment
      */
@@ -126,7 +134,7 @@ class GlobalConfig
         $env = $this->getGlobalSetting(self::CONFIG_OPTION_ENVIRONMENT);
         $env = is_string($env) ? $env : 'P';
 
-        $url = ($env === 'D')
+        $url = ($env === 'D' && isset(self::DEV_URL_CONFIG_KEYS[$urlType]))
             ? $this->getGlobalSetting(self::DEV_URL_CONFIG_KEYS[$urlType])
             : (self::URL_CONFIGS[$urlType][$env] ?? null);
 
@@ -180,17 +188,20 @@ class GlobalConfig
         return $value !== null && $value !== '' && $value !== '0' && $value !== false;
     }
 
-    public function getAutoSendFiles()
+    public function getAutoSendFiles(): mixed
     {
         return $this->getGlobalSetting(self::CONFIG_AUTO_SEND_CLAIM_FILES);
     }
 
-    public function getGlobalSetting($settingKey)
+    public function getGlobalSetting(string $settingKey): mixed
     {
         return $this->globalsArray[$settingKey] ?? null;
     }
 
-    public function getGlobalSettingSectionConfiguration()
+    /**
+     * @return array<string, array{title: string, description: string, type: string, default: string}>
+     */
+    public function getGlobalSettingSectionConfiguration(): array
     {
         $settings = [
             self::CONFIG_OPTION_ENVIRONMENT => [
