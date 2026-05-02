@@ -39,6 +39,10 @@ namespace OpenEMR\Tests\Isolated\Modules\ClaimRevConnector;
 use OpenEMR\Modules\ClaimRevConnector\ReconciliationService;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @phpstan-import-type ReconcileRow from ReconciliationService
+ */
+
 require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-module-claimrev-connect/src/TypeCoerce.php';
 // ReconciliationService imports ClaimRevApi/ClaimSearchModel/etc., but those
 // are only used in reconcile() / lookupClaimRev() — computeDiscrepancy() is
@@ -53,11 +57,11 @@ class ReconciliationServiceTest extends TestCase
      * overrides on top. Tests only set the fields they care about.
      *
      * @param array<string, mixed> $overrides
-     * @return array<string, mixed>
+     * @return ReconcileRow
      */
     private static function row(array $overrides = []): array
     {
-        return array_merge([
+        $base = [
             'pid' => 1,
             'encounter' => 1,
             'pcn' => '1-1',
@@ -82,7 +86,10 @@ class ReconciliationServiceTest extends TestCase
             'crIsWorked' => false,
             'discrepancy' => '',
             'discrepancyLevel' => '',
-        ], $overrides);
+        ];
+        /** @var ReconcileRow $row */
+        $row = array_merge($base, $overrides);
+        return $row;
     }
 
     public function testBilledInOpenEmrButNotFoundInClaimRevIsDanger(): void
