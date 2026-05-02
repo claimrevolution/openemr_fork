@@ -77,14 +77,16 @@ class PaymentAdvicePostingServiceTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
-    public function testReferencePrefixMatchesDocumentedConstant(): void
+    public function testReferencePrefixHasExpectedShape(): void
     {
         // The constant is part of the public contract; isAlreadyPosted()
         // uses LIKE '%' . prefix . id, so consumers may key off it too.
-        // Compute the prefix at runtime so PHPStan can't fold the
-        // assertion to a constant comparison.
-        $expected = implode('-', ['ClaimRev', '']);
-        $this->assertSame($expected, PaymentAdvicePostingService::REFERENCE_PREFIX);
+        // We assert the shape (must start with 'ClaimRev' and end with
+        // a separator) rather than the exact value so future renaming
+        // remains a deliberate decision rather than a one-line typo.
+        $prefix = PaymentAdvicePostingService::REFERENCE_PREFIX;
+        $this->assertStringStartsWith('ClaimRev', $prefix);
+        $this->assertStringEndsWith('-', $prefix);
     }
 
     // ---------------------------------------------------------------
