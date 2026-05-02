@@ -103,8 +103,6 @@ class PaymentAdvicePageTest extends TestCase
         ]);
 
         $this->assertSame('pa-002', $shape['paymentAdviceId']);
-        $this->assertArrayHasKey('paymentInfo', $shape);
-        $this->assertArrayHasKey('checkInformation', $shape);
         $this->assertSame('', $shape['paymentInfo']['patientFirstName']);
         $this->assertSame(0.0, $shape['checkInformation']['paymentAmount']);
     }
