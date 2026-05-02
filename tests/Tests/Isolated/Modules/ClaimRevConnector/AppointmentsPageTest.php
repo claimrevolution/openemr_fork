@@ -60,7 +60,7 @@ class AppointmentsPageTest extends TestCase
 
     public function testMissingEligibilityPropertyReturnsNull(): void
     {
-        $this->assertNull(AppointmentsPage::getEligibilitySummary(json_encode([
+        $this->assertNull(AppointmentsPage::getEligibilitySummary((string) json_encode([
             'someOtherField' => 'value',
         ])));
     }
@@ -70,14 +70,14 @@ class AppointmentsPageTest extends TestCase
         // Older ClaimRev responses sometimes had eligibility as an object
         // rather than a list — if it's not iterable, return null instead
         // of crashing the foreach.
-        $this->assertNull(AppointmentsPage::getEligibilitySummary(json_encode([
+        $this->assertNull(AppointmentsPage::getEligibilitySummary((string) json_encode([
             'eligibility' => 'not an array',
         ])));
     }
 
     public function testSingleEligibilityProducesSummary(): void
     {
-        $json = json_encode([
+        $json = (string) json_encode([
             'eligibility' => [
                 [
                     'status' => 'Active Coverage',
@@ -94,7 +94,6 @@ class AppointmentsPageTest extends TestCase
 
         $this->assertIsArray($summaries);
         $this->assertCount(1, $summaries);
-        $this->assertInstanceOf(\stdClass::class, $summaries[0]);
         $this->assertSame('Active Coverage', $summaries[0]->status);
         $this->assertSame('MEM-12345', $summaries[0]->subscriberId);
         $this->assertSame('PPO', $summaries[0]->insuranceType);
@@ -106,7 +105,7 @@ class AppointmentsPageTest extends TestCase
         // Partial response — only status set; the other three properties
         // must still be present as '' so the calendar template doesn't
         // crash on undefined reads.
-        $json = json_encode([
+        $json = (string) json_encode([
             'eligibility' => [
                 ['status' => 'Inactive'],
             ],
@@ -123,7 +122,7 @@ class AppointmentsPageTest extends TestCase
 
     public function testMultipleEligibilitiesProduceMultipleSummaries(): void
     {
-        $json = json_encode([
+        $json = (string) json_encode([
             'eligibility' => [
                 ['status' => 'Active Coverage', 'subscriberId' => 'A'],
                 ['status' => 'Inactive', 'subscriberId' => 'B'],
@@ -144,7 +143,7 @@ class AppointmentsPageTest extends TestCase
     {
         // If an eligibility entry is a scalar (malformed), skip it
         // rather than crash on the property_exists chain.
-        $json = json_encode([
+        $json = (string) json_encode([
             'eligibility' => [
                 'malformed entry',
                 ['status' => 'Active Coverage'],
@@ -162,7 +161,7 @@ class AppointmentsPageTest extends TestCase
 
     public function testPayerNameFromMalformedPayerInfoDefaultsToEmpty(): void
     {
-        $json = json_encode([
+        $json = (string) json_encode([
             'eligibility' => [
                 [
                     'status' => 'Active Coverage',
