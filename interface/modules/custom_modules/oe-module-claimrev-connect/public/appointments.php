@@ -213,7 +213,7 @@ $path = str_replace("public", "templates", __DIR__);
                                 if (strtolower($eligStatus) == 'success') {
                                     $summaries = AppointmentsPage::getEligibilitySummary($eligIndividualJson);
                                     if ($summaries !== null && $summaries !== []) {
-                                        $coverageStatus = (string) $summaries[0]->status;
+                                        $coverageStatus = \OpenEMR\Modules\ClaimRevConnector\TypeCoerce::asString($summaries[0]->status);
                                         if ($coverageStatus === 'Active Coverage') {
                                             $statusClass = 'elig-active';
                                             $statusText = xlt("Active Coverage");
@@ -243,7 +243,7 @@ $path = str_replace("public", "templates", __DIR__);
                             if ($eligIndividualJson !== null) {
                                 $summaries = AppointmentsPage::getEligibilitySummary($eligIndividualJson);
                                 if ($summaries !== null && $summaries !== []) {
-                                    $payerName = (string) $summaries[0]->payerName;
+                                    $payerName = \OpenEMR\Modules\ClaimRevConnector\TypeCoerce::asString($summaries[0]->payerName);
                                 }
                             }
                             ?>
@@ -262,8 +262,8 @@ $path = str_replace("public", "templates", __DIR__);
                                     <?php if ($payerName != '') { ?>
                                         <br/><small><?php echo text($payerName); ?></small>
                                     <?php } ?>
-                                    <?php if ($eligMessage != null && $eligMessage != '') { ?>
-                                        <br/><small class="text-muted"><?php echo text($eligMessage); ?></small>
+                                    <?php if (($eligMessage ?? '') !== '') { ?>
+                                        <br/><small class="text-muted"><?php echo text((string) $eligMessage); ?></small>
                                     <?php } ?>
                                 </td>
                                 <td>

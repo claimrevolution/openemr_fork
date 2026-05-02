@@ -86,7 +86,9 @@ class Bootstrap
         $this->moduleDirectoryName = basename(dirname(__DIR__));
 
         // we inject our globals value.
-        $this->globalsConfig = new GlobalConfig($GLOBALS);
+        /** @var array<string, mixed> $globals */
+        $globals = $GLOBALS;
+        $this->globalsConfig = new GlobalConfig($globals);
         $this->logger = $logger ?? ServiceContainer::getLogger();
     }
 

@@ -159,18 +159,18 @@ class ReconciliationService
             return ['encounters' => [], 'totalRecords' => $totalRecords, 'claimRevLookupFailed' => false];
         }
 
-        // Collect PCNs for ClaimRev batch lookup
+        // Collect base encounter records (without CR fields yet) and PCN map
         /** @var array<string, int> $pcnMap */
         $pcnMap = []; // pcn => row index
-        /** @var array<int, ReconcileRow> $encounters */
-        $encounters = [];
+        /** @var list<array{pid: int, encounter: int, pcn: string, encounterDate: string, patientName: string, patientDob: string, payerName: string, payerNumber: string, totalCharges: float, billTime: string, oeStatus: int, oeStatusLabel: string, oeProcessFile: string}> $oeRows */
+        $oeRows = [];
         foreach ($rows as $idx => $row) {
             $pid = TypeCoerce::asInt($row['pid'] ?? 0);
             $encounter = TypeCoerce::asInt($row['encounter'] ?? 0);
             $pcn = $pid . '-' . $encounter;
             $oeStatus = TypeCoerce::asInt($row['claim_status'] ?? 0);
 
-            $encounters[$idx] = [
+            $oeRows[] = [
                 'pid' => $pid,
                 'encounter' => $encounter,
                 'pcn' => $pcn,
@@ -181,23 +181,9 @@ class ReconciliationService
                 'payerNumber' => TypeCoerce::asString($row['payer_number'] ?? ''),
                 'totalCharges' => TypeCoerce::asFloat($row['total_charges'] ?? 0),
                 'billTime' => TypeCoerce::asString($row['bill_time'] ?? ''),
-                // OpenEMR status
                 'oeStatus' => $oeStatus,
                 'oeStatusLabel' => self::OE_STATUS_LABELS[$oeStatus] ?? 'Unknown (' . $oeStatus . ')',
                 'oeProcessFile' => TypeCoerce::asString($row['process_file'] ?? ''),
-                // ClaimRev status (populated below)
-                'crFound' => false,
-                'crStatusName' => '',
-                'crStatusId' => 0,
-                'crPayerAcceptance' => '',
-                'crPayerAcceptanceStatusId' => 0,
-                'crEraClassification' => '',
-                'crPayerPaidAmount' => 0.0,
-                'crObjectId' => '',
-                'crIsWorked' => false,
-                // Discrepancy
-                'discrepancy' => '',
-                'discrepancyLevel' => '', // info, warning, danger
             ];
 
             $pcnMap[$pcn] = $idx;
@@ -222,38 +208,56 @@ class ReconciliationService
             $claimRevLookupFailed = true;
         }
 
-        // Merge ClaimRev data + compute discrepancies in a single pass.
-        // Building the row immutably keeps the array shape intact for PHPStan.
-        /** @var list<ReconcileRow> $merged */
-        $merged = [];
-        foreach ($encounters as $enc) {
-            $crClaim = $crByPcn[$enc['pcn']] ?? null;
-            if ($crClaim !== null) {
-                $enc['crFound'] = true;
-                $enc['crStatusName'] = TypeCoerce::asString($crClaim['statusName'] ?? '');
-                $enc['crStatusId'] = TypeCoerce::asInt($crClaim['statusId'] ?? 0);
-                $enc['crPayerAcceptance'] = TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? '');
-                $enc['crPayerAcceptanceStatusId'] = TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0);
-                $enc['crEraClassification'] = TypeCoerce::asString($crClaim['eraClassification'] ?? '');
-                $enc['crPayerPaidAmount'] = TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0);
-                $enc['crObjectId'] = TypeCoerce::asString($crClaim['objectId'] ?? '');
-                $enc['crIsWorked'] = TypeCoerce::asBool($crClaim['isWorked'] ?? false);
+        // Build complete ReconcileRow shapes in one pass — assembling the
+        // CR fields up-front keeps PHPStan's typed-shape inference intact
+        // through the computeDiscrepancy() call below.
+        /** @var list<ReconcileRow> $encounters */
+        $encounters = [];
+        foreach ($oeRows as $oeRow) {
+            $crClaim = $crByPcn[$oeRow['pcn']] ?? null;
 
+            $crFields = $crClaim !== null
+                ? [
+                    'crFound' => true,
+                    'crStatusName' => TypeCoerce::asString($crClaim['statusName'] ?? ''),
+                    'crStatusId' => TypeCoerce::asInt($crClaim['statusId'] ?? 0),
+                    'crPayerAcceptance' => TypeCoerce::asString($crClaim['payerAcceptanceStatusName'] ?? ''),
+                    'crPayerAcceptanceStatusId' => TypeCoerce::asInt($crClaim['payerAcceptanceStatusId'] ?? 0),
+                    'crEraClassification' => TypeCoerce::asString($crClaim['eraClassification'] ?? ''),
+                    'crPayerPaidAmount' => TypeCoerce::asFloat($crClaim['payerPaidAmount'] ?? 0),
+                    'crObjectId' => TypeCoerce::asString($crClaim['objectId'] ?? ''),
+                    'crIsWorked' => TypeCoerce::asBool($crClaim['isWorked'] ?? false),
+                ]
+                : [
+                    'crFound' => false,
+                    'crStatusName' => '',
+                    'crStatusId' => 0,
+                    'crPayerAcceptance' => '',
+                    'crPayerAcceptanceStatusId' => 0,
+                    'crEraClassification' => '',
+                    'crPayerPaidAmount' => 0.0,
+                    'crObjectId' => '',
+                    'crIsWorked' => false,
+                ];
+
+            $encWithoutDiscrepancy = $oeRow + $crFields + ['discrepancy' => '', 'discrepancyLevel' => ''];
+            /** @var ReconcileRow $encWithoutDiscrepancy */
+
+            if ($crClaim !== null) {
                 ClaimTrackingService::upsertClaimRecord(
-                    $enc['pid'],
-                    $enc['encounter'],
+                    $oeRow['pid'],
+                    $oeRow['encounter'],
                     1, // primary by default from reconciliation view
                     $crClaim
                 );
             }
 
-            $oeHasPayments = self::oeEncounterHasPayments($enc['pid'], $enc['encounter']);
-            $verdict = self::computeDiscrepancy($enc, $oeHasPayments);
-            $enc['discrepancy'] = $verdict['description'];
-            $enc['discrepancyLevel'] = $verdict['level'];
-            $merged[] = $enc;
+            $oeHasPayments = self::oeEncounterHasPayments($oeRow['pid'], $oeRow['encounter']);
+            $verdict = self::computeDiscrepancy($encWithoutDiscrepancy, $oeHasPayments);
+            $encWithoutDiscrepancy['discrepancy'] = $verdict['description'];
+            $encWithoutDiscrepancy['discrepancyLevel'] = $verdict['level'];
+            $encounters[] = $encWithoutDiscrepancy;
         }
-        $encounters = $merged;
 
         // Filter to discrepancies only if requested
         if ($discrepancyOnly) {
