@@ -108,7 +108,7 @@ $path = str_replace("public", "templates", __DIR__);
                                         foreach ($facilities as $fac) {
                                             $selected = ($facilityId == $fac['id']) ? 'selected' : '';
                                             ?>
-                                            <option value="<?php echo attr($fac['id']); ?>" <?php echo $selected; ?>><?php echo text($fac['name']); ?></option>
+                                            <option value="<?php echo attr((string) $fac['id']); ?>" <?php echo $selected; ?>><?php echo text($fac['name']); ?></option>
                                             <?php
                                         }
                                         ?>
@@ -124,7 +124,7 @@ $path = str_replace("public", "templates", __DIR__);
                                         foreach ($providers as $prov) {
                                             $selected = ($providerId == $prov['id']) ? 'selected' : '';
                                             ?>
-                                            <option value="<?php echo attr($prov['id']); ?>" <?php echo $selected; ?>><?php echo text($prov['provider_name']); ?></option>
+                                            <option value="<?php echo attr((string) $prov['id']); ?>" <?php echo $selected; ?>><?php echo text($prov['provider_name']); ?></option>
                                             <?php
                                         }
                                         ?>
@@ -212,9 +212,9 @@ $path = str_replace("public", "templates", __DIR__);
                             if ($eligStatus != null) {
                                 if (strtolower($eligStatus) == 'success') {
                                     $summaries = AppointmentsPage::getEligibilitySummary($eligIndividualJson);
-                                    if ($summaries != null && count($summaries) > 0) {
-                                        $coverageStatus = $summaries[0]->status;
-                                        if ($coverageStatus == 'Active Coverage') {
+                                    if ($summaries !== null && $summaries !== []) {
+                                        $coverageStatus = (string) $summaries[0]->status;
+                                        if ($coverageStatus === 'Active Coverage') {
                                             $statusClass = 'elig-active';
                                             $statusText = xlt("Active Coverage");
                                         } else {
@@ -240,25 +240,24 @@ $path = str_replace("public", "templates", __DIR__);
                             }
 
                             $payerName = '';
-                            if ($eligIndividualJson != null) {
+                            if ($eligIndividualJson !== null) {
                                 $summaries = AppointmentsPage::getEligibilitySummary($eligIndividualJson);
-                                if ($summaries != null && count($summaries) > 0) {
-                                    $payerName = $summaries[0]->payerName;
+                                if ($summaries !== null && $summaries !== []) {
+                                    $payerName = (string) $summaries[0]->payerName;
                                 }
                             }
                             ?>
-                            <tr id="appt-row-<?php echo attr($appt['pc_eid']); ?>">
+                            <tr id="appt-row-<?php echo attr((string) $appt['pc_eid']); ?>">
                                 <td>
-                                    <input type="checkbox" name="eids[]" value="<?php echo attr($appt['pc_eid']); ?>" class="appt-checkbox"/>
+                                    <input type="checkbox" name="eids[]" value="<?php echo attr((string) $appt['pc_eid']); ?>" class="appt-checkbox"/>
                                 </td>
                                 <td><?php echo text($appt['appointmentDate']); ?></td>
-                                <?php $startTime = is_string($appt['pc_startTime'] ?? null) ? $appt['pc_startTime'] : ''; ?>
-                                <td><?php echo text(substr($startTime, 0, 5)); ?></td>
+                                <td><?php echo text(substr($appt['pc_startTime'], 0, 5)); ?></td>
                                 <td><?php echo text($appt['lname']); ?>, <?php echo text($appt['fname']); ?></td>
                                 <td><?php echo text($appt['dob']); ?></td>
                                 <td><?php echo text($appt['provider_name']); ?></td>
                                 <td><?php echo text($appt['facility_name']); ?></td>
-                                <td id="status-<?php echo attr($appt['pc_eid']); ?>">
+                                <td id="status-<?php echo attr((string) $appt['pc_eid']); ?>">
                                     <span class="<?php echo attr($statusClass); ?>"><?php echo $statusText; ?></span>
                                     <?php if ($payerName != '') { ?>
                                         <br/><small><?php echo text($payerName); ?></small>
