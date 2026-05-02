@@ -140,9 +140,6 @@ class EligibilityObjectCreator
         $results = [];
         $resultSubscribers = EligibilityData::getSubscriberData((int) $pid, $payer_responsibility);
         foreach ($resultSubscribers as $subscriberRow) {
-            if (!is_array($subscriberRow)) {
-                continue;
-            }
             $payers = [];
             $pr = ValueMapping::mapPayerResponsibility(TypeCoerce::asString($subscriberRow['type'] ?? ''));
             $revenueTools = EligibilityObjectCreator::buildRevenueToolsRequest($pid, $pr, $eventDate, $providerId, $facilityId, $productsToRun);

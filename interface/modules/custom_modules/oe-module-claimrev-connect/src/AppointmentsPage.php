@@ -162,10 +162,10 @@ class AppointmentsPage
             return;
         }
 
-        $pid = TypeCoerce::asInt($appointmentData['pc_pid'] ?? 0);
-        $eventDate = TypeCoerce::asString($appointmentData['appointmentDate'] ?? '');
-        $facilityId = TypeCoerce::asInt($appointmentData['facilityId'] ?? 0);
-        $providerId = TypeCoerce::asInt($appointmentData['providerId'] ?? 0);
+        $pid = $appointmentData['pc_pid'];
+        $eventDate = $appointmentData['appointmentDate'];
+        $facilityId = $appointmentData['facilityId'];
+        $providerId = $appointmentData['providerId'];
 
         $insurance = EligibilityData::getInsuranceData($pid);
         foreach ($insurance as $row) {
