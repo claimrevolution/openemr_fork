@@ -50,7 +50,9 @@ if (ModuleInput::postExists('checkElig')) {
 
     $requestObjects = EligibilityObjectCreator::buildObject($pid, $pr, null, null, null, $selectedProducts);
     EligibilityObjectCreator::saveToDatabase($requestObjects, $pid);
-    $request = $requestObjects[0];
+    if ($requestObjects !== []) {
+        $request = $requestObjects[0];
+    }
 }
 
 ?>
@@ -64,7 +66,7 @@ if (ModuleInput::postExists('checkElig')) {
 foreach ($insurance as $row) {
     ?>
             <li class="nav-item" role="presentation">
-                <a id="claimrev-ins-<?php echo attr(ucfirst((string) $row['payer_responsibility']));?>-tab" aria-selected="<?php echo($first); ?>" class="nav-link <?php echo($classActive);?>"  data-toggle="tab" role="tab" href="#<?php echo attr(ucfirst((string) $row['payer_responsibility']));?>"> <?php echo xlt(ucfirst((string) $row['payer_responsibility']));?>  </a>
+                <a id="claimrev-ins-<?php echo attr(ucfirst((string) $row['payer_responsibility']));?>-tab" aria-selected="<?php echo($first); ?>" class="nav-link <?php echo($classActive);?>"  data-toggle="tab" role="tab" href="#<?php echo attr(ucfirst((string) $row['payer_responsibility']));?>"> <?php echo text(ucfirst((string) $row['payer_responsibility']));?>  </a>
             </li>
     <?php
     $first = "false";
@@ -128,11 +130,11 @@ foreach ($insurance as $row) {
                                     (<?php echo xlt("Last Update"); ?>: <?php echo text($check["last_update"]);?>)
                                 </div>
                                 <div class="col">
-            <?php echo xlt("Message"); ?>: <?php echo text($check["response_message"]);?>
+            <?php echo xlt("Message"); ?>: <?php echo text((string) $check["response_message"]);?>
                                 </div>
                                 <div class="col-auto d-flex align-items-center">
                                     <button type="button" class="btn btn-outline-secondary btn-sm" title="<?php echo attr(xl('Update the Insurance card Eligibility tab with this data')); ?>"
-                                        onclick="syncNativeEligibility('<?php echo attr($pid); ?>', '<?php echo attr($row['payer_responsibility']); ?>', this)">
+                                        onclick="syncNativeEligibility('<?php echo attr((string) $pid); ?>', '<?php echo attr($row['payer_responsibility']); ?>', this)">
                                         <i class="fa fa-sync"></i> <?php echo xlt("Sync to Insurance Card"); ?>
                                     </button>
                                     <span class="cr-sync-status ml-2 small"></span>
@@ -232,7 +234,7 @@ foreach ($insurance as $row) {
 
                 <?php
                 // === Eligibility Tab (Product 1) ===
-                if ($hasEligibility) {
+                if ($hasEligibility && is_object($individual)) {
                     $results = $individual->eligibility;
                     $index = 0;
                     ?>
@@ -243,50 +245,46 @@ foreach ($insurance as $row) {
                                 $benefits = null;
                                 $subscriberPatient = null;
                                 $data = null;
-                        if (property_exists($eligibilityData, 'mapped271')) {
+                        if (is_object($eligibilityData) && property_exists($eligibilityData, 'mapped271')) {
                             $data = $eligibilityData->mapped271;
                         }
 
-                        if ($data !== null && property_exists($data, 'dependent')) {
+                        if (is_object($data) && property_exists($data, 'dependent')) {
                             $dependent = $data->dependent;
-                            if ($dependent != null) {
-                                if (property_exists($dependent, 'benefits')) {
-                                    $benefits = $dependent->benefits;
-                                    $subscriberPatient = $dependent;
-                                }
+                            if (is_object($dependent) && property_exists($dependent, 'benefits')) {
+                                $benefits = $dependent->benefits;
+                                $subscriberPatient = $dependent;
                             }
                         }
 
-                        if ($data !== null && property_exists($data, 'subscriber')) {
+                        if (is_object($data) && property_exists($data, 'subscriber')) {
                             $subscriber = $data->subscriber;
-                            if ($subscriber != null) {
-                                if (property_exists($subscriber, 'benefits')) {
-                                    $benefits = $subscriber->benefits;
-                                    $subscriberPatient = $subscriber;
-                                }
+                            if (is_object($subscriber) && property_exists($subscriber, 'benefits')) {
+                                $benefits = $subscriber->benefits;
+                                $subscriberPatient = $subscriber;
                             }
                         }
                         ?>
                                 <ul class="nav nav-tabs nav-tabs-sm mb-2 mt-2">
-                                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#elig-quick-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Quick Info"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-deductibles-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Deductibles"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-benefits-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Benefits"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-medicare-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Medicare"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-validations-<?php echo $prKey . '-' . attr($index); ?>"><?php echo xlt("Validations"); ?></a></li>
+                                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#elig-quick-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Quick Info"); ?></a></li>
+                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-deductibles-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Deductibles"); ?></a></li>
+                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-benefits-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Benefits"); ?></a></li>
+                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-medicare-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Medicare"); ?></a></li>
+                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-validations-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Validations"); ?></a></li>
                                 </ul>
                                 <div class="tab-content">
-                                    <div id="elig-quick-<?php echo $prKey . '-' . attr($index); ?>" class="tab-pane active">
+                                    <div id="elig-quick-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane active">
                                         <?php include $path . '/quick_info.php'; ?>
                                     </div>
-                                    <div id="elig-deductibles-<?php echo $prKey . '-' . attr($index); ?>" class="tab-pane">
+                                    <div id="elig-deductibles-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
                                         <?php include $path . '/deductibles.php'; ?>
                                     </div>
-                                    <div id="elig-benefits-<?php echo $prKey . '-' . attr($index); ?>" class="tab-pane">
+                                    <div id="elig-benefits-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
                                         <?php
-                                        if ($data !== null) {
-                                            $source = $data->informationSourceName;
+                                        if (is_object($data)) {
+                                            $source = property_exists($data, 'informationSourceName') ? $data->informationSourceName : '';
                                             include $path . '/source.php';
-                                            $receiver = $data->receiver;
+                                            $receiver = property_exists($data, 'receiver') ? $data->receiver : null;
                                             include $path . '/receiver.php';
                                         }
                                         if ($benefits != null) {
@@ -295,10 +293,10 @@ foreach ($insurance as $row) {
                                         }
                                         ?>
                                     </div>
-                                    <div id="elig-medicare-<?php echo $prKey . '-' . attr($index); ?>" class="tab-pane">
+                                    <div id="elig-medicare-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
                                         <?php include $path . '/medicare_info.php'; ?>
                                     </div>
-                                    <div id="elig-validations-<?php echo $prKey . '-' . attr($index); ?>" class="tab-pane">
+                                    <div id="elig-validations-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
                                         <?php include $path . '/validation.php'; ?>
                                     </div>
                                 </div>
@@ -311,7 +309,7 @@ foreach ($insurance as $row) {
                         if ($hasCoverageDiscovery) {
                             ?>
                             <div id="product-coverage-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility ? 'active' : ''; ?>">
-                                <?php if ($hasCoverageDiscoveryResults) {
+                                <?php if ($hasCoverageDiscoveryResults && is_object($individual)) {
                                     $coverageResults = $individual->coverageDiscovery;
                                     include $path . '/coverage_discovery_results.php';
                                 } elseif (strtolower($insuranceFinderStatus) === 'complete') { ?>
@@ -332,7 +330,7 @@ foreach ($insurance as $row) {
 
                         <?php
                         // === Demographics Tab (Product 2) ===
-                        if ($hasDemographics) {
+                        if ($hasDemographics && is_object($individual)) {
                             $demographicInfo = $individual->demographicInfo;
                             ?>
                             <div id="product-demo-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility && !$hasCoverageDiscovery ? 'active' : ''; ?>">
@@ -342,7 +340,7 @@ foreach ($insurance as $row) {
 
                         <?php
                         // === MBI Finder Tab (Product 5) ===
-                        if ($hasMbi) {
+                        if ($hasMbi && is_object($individual)) {
                             $mbiResults = $individual->mbiFinderResults;
                             ?>
                             <div id="product-mbi-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility && !$hasCoverageDiscovery && !$hasDemographics ? 'active' : ''; ?>">
@@ -388,7 +386,7 @@ function checkNow(responsibility) {
 
     // Gather product selections for this responsibility tab
     var formData = {
-        pid: <?php echo js_escape($pid); ?>,
+        pid: <?php echo js_escape((string) $pid); ?>,
         responsibility: responsibility,
         csrf_token: <?php echo js_escape($eligibilityCsrfToken); ?>
     };

@@ -66,10 +66,10 @@ class EligibilityData
      */
     public static function getEligibilityCheckByStatus(string $status): array
     {
-        return QueryUtils::fetchRecords(
+        return self::asListOfRecords(QueryUtils::fetchRecords(
             "SELECT * FROM mod_claimrev_eligibility WHERE status = ?",
             [$status]
-        );
+        ));
     }
 
     /**
@@ -77,10 +77,24 @@ class EligibilityData
      */
     public static function getEligibilityResults(string $status, int $minutes): array
     {
-        return QueryUtils::fetchRecords(
+        return self::asListOfRecords(QueryUtils::fetchRecords(
             "SELECT * FROM mod_claimrev_eligibility WHERE status = ? AND TIMESTAMPDIFF(MINUTE,last_checked,NOW()) >= ?",
             [$status, $minutes]
-        );
+        ));
+    }
+
+    /**
+     * @param list<array<mixed, mixed>> $rows
+     * @return list<array<string, mixed>>
+     */
+    private static function asListOfRecords(array $rows): array
+    {
+        $out = [];
+        foreach ($rows as $row) {
+            /** @var array<string, mixed> $row */
+            $out[] = $row;
+        }
+        return $out;
     }
 
     /**
@@ -106,82 +120,109 @@ class EligibilityData
      *
      * @return array<string, mixed>|null
      */
-    public static function getExistingRecord($pid, $payer_responsibility)
+    public static function getExistingRecord(int $pid, string $payer_responsibility): ?array
     {
         $pr = ValueMapping::mapPayerResponsibility($payer_responsibility);
-        $sql = "SELECT id, status, individual_json, response_json FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? LIMIT 1";
-        $res = sqlStatement($sql, [$pid, $pr]);
-        foreach ($res as $row) {
-            return $row;
+        $rows = QueryUtils::fetchRecords(
+            "SELECT id, status, individual_json, response_json FROM mod_claimrev_eligibility WHERE pid = ? AND payer_responsibility = ? LIMIT 1",
+            [$pid, $pr]
+        );
+        if ($rows === []) {
+            return null;
         }
-        return null;
+        /** @var array<string, mixed> $row */
+        $row = $rows[0];
+        return $row;
     }
 
-    public static function updateEligibilityRecord($id, $status, $request_json, $response_json, $updateLastChecked, $responseMessage, $raw271, $eligibility_json, $individual_json)
-    {
+    /**
+     * @param int|string  $id
+     * @param string|null $request_json
+     * @param string|null $response_json
+     * @param string|null $responseMessage
+     * @param string|null $raw271
+     * @param string|null $eligibility_json
+     * @param string|null $individual_json
+     */
+    public static function updateEligibilityRecord(
+        int|string $id,
+        string $status,
+        ?string $request_json,
+        ?string $response_json,
+        bool $updateLastChecked,
+        ?string $responseMessage,
+        ?string $raw271,
+        ?string $eligibility_json,
+        ?string $individual_json,
+    ): void {
         $sql = "UPDATE mod_claimrev_eligibility SET status = ? ";
 
         $sqlarr = [$status];
         if ($updateLastChecked) {
             $sql .= ",last_checked = NOW() ";
         }
-        if ($response_json != null) {
+        if ($response_json !== null) {
             $sql .= " ,response_json = ?";
-            array_push($sqlarr, $response_json);
+            $sqlarr[] = $response_json;
         }
-        if ($request_json != null) {
+        if ($request_json !== null) {
             $sql .= " ,request_json = ?";
-            array_push($sqlarr, $request_json);
+            $sqlarr[] = $request_json;
         }
-        if ($responseMessage != null) {
+        if ($responseMessage !== null) {
             $sql .= " ,response_message = ?";
-            array_push($sqlarr, $responseMessage);
+            $sqlarr[] = $responseMessage;
         }
-        if ($raw271 != null) {
-                $sql .= " ,raw271 = ? ";
-                array_push($sqlarr, $raw271);
+        if ($raw271 !== null) {
+            $sql .= " ,raw271 = ? ";
+            $sqlarr[] = $raw271;
         }
-        if ($eligibility_json != null) {
+        if ($eligibility_json !== null) {
             $sql .= " ,eligibility_json = ?";
-            array_push($sqlarr, $eligibility_json);
+            $sqlarr[] = $eligibility_json;
         }
-        if ($individual_json != null) {
+        if ($individual_json !== null) {
             $sql .= " ,individual_json = ?";
-            array_push($sqlarr, $individual_json);
+            $sqlarr[] = $individual_json;
         }
 
         $sql .= " WHERE id = ?";
-        array_push($sqlarr, $id);
-        sqlStatement($sql, $sqlarr);
+        $sqlarr[] = $id;
+        QueryUtils::sqlStatementThrowException($sql, $sqlarr);
     }
 
-    public static function getSubscriberData($pid = 0, $pr = "")
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function getSubscriberData(int $pid = 0, string $pr = ""): array
     {
-            $query = "SELECT
-                    c.name as payer_name
-                    , coalesce( c.eligibility_id, c.cms_id) as payerId
-                    , i.subscriber_lname
-                    , i.subscriber_fname
-                    , DATE_FORMAT(i.subscriber_DOB, '%Y-%m-%d') as subscriber_dob
-                    , i.policy_number
-                    , i.type
-                from insurance_data i
-                inner join insurance_companies as c ON (c.id = i.provider)
-                where i.pid = ?";
+        $query = "SELECT
+                c.name as payer_name
+                , coalesce( c.eligibility_id, c.cms_id) as payerId
+                , i.subscriber_lname
+                , i.subscriber_fname
+                , DATE_FORMAT(i.subscriber_DOB, '%Y-%m-%d') as subscriber_dob
+                , i.policy_number
+                , i.type
+            from insurance_data i
+            inner join insurance_companies as c ON (c.id = i.provider)
+            where i.pid = ?";
 
-            $ary = [$pid];
+        $ary = [$pid];
 
-        if ($pr != "") {
+        if ($pr !== "") {
             $query .= " AND i.type = ?";
-            array_push($ary, $pr);
+            $ary[] = $pr;
         }
-            $query .= " order by i.date desc LIMIT 1";
+        $query .= " order by i.date desc LIMIT 1";
 
-            $res = sqlStatement($query, $ary);
-            return $res;
+        return self::asListOfRecords(QueryUtils::fetchRecords($query, $ary));
     }
 
-    public static function getRequiredInsuranceData($pid = 0)
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function getRequiredInsuranceData(int $pid = 0): ?array
     {
         $query = "SELECT
                         d.facility_id,
@@ -216,12 +257,13 @@ class EligibilityData
                     WHERE p.pid = ?
                     LIMIT 1";
 
-        $ary = [$pid];
-        $res = sqlStatement($query, $ary);
-
-        return $res;
+        return self::firstRow(QueryUtils::fetchRecords($query, [$pid]));
     }
-    public static function getFacilityData($fid)
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function getFacilityData(int $fid): ?array
     {
         $query = "SELECT
                         f.pos_code,
@@ -233,19 +275,13 @@ class EligibilityData
                     WHERE f.id = ?
                     LIMIT 1";
 
-        $ary = [$fid];
-        $result = sqlStatement($query, $ary);
-
-        if (sqlNumRows($result) == 1) {
-            foreach ($result as $row) {
-                return $row;
-            }
-        }
-
-        return null;
+        return self::firstRow(QueryUtils::fetchRecords($query, [$fid]));
     }
 
-    public static function getPatientData($pid = 0)
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function getPatientData(int $pid = 0): ?array
     {
         $query = "SELECT
                         p.lname,
@@ -271,19 +307,13 @@ class EligibilityData
                     WHERE p.pid = ?
                     LIMIT 1";
 
-        $ary = [$pid];
-        $result = sqlStatement($query, $ary);
-
-        if (sqlNumRows($result) == 1) {
-            foreach ($result as $row) {
-                return $row;
-            }
-        }
-
-        return null;
+        return self::firstRow(QueryUtils::fetchRecords($query, [$pid]));
     }
 
-    public static function getProviderData($pid = 0)
+    /**
+     * @return array<string, mixed>|null
+     */
+    public static function getProviderData(int $pid = 0): ?array
     {
         $query = "SELECT
                         d.lname as provider_lname,
@@ -294,16 +324,21 @@ class EligibilityData
                     WHERE d.id = ?
                     LIMIT 1";
 
-        $ary = [$pid];
-        $result = sqlStatement($query, $ary);
+        return self::firstRow(QueryUtils::fetchRecords($query, [$pid]));
+    }
 
-        if (sqlNumRows($result) == 1) {
-            foreach ($result as $row) {
-                return $row;
-            }
+    /**
+     * @param list<array<mixed, mixed>> $rows
+     * @return array<string, mixed>|null
+     */
+    private static function firstRow(array $rows): ?array
+    {
+        if ($rows === []) {
+            return null;
         }
-
-        return null;
+        /** @var array<string, mixed> $row */
+        $row = $rows[0];
+        return $row;
     }
 
     /**

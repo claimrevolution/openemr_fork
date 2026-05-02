@@ -43,8 +43,12 @@ readonly class ClaimRevApi
     {
         // Use include (not include_once) so local vars are always set,
         // even if version.php was already loaded elsewhere in the request.
-        @include(OEGlobalsBag::getInstance()->get('fileroot') . "/version.php");
-        $oemrVersion = ($v_major ?? '?') . '.' . ($v_minor ?? '?') . '.' . ($v_patch ?? '?') . ($v_tag ?? '');
+        $fileroot = OEGlobalsBag::getInstance()->getString('fileroot');
+        @include($fileroot . "/version.php");
+        $oemrVersion = TypeCoerce::asString($v_major ?? '?') . '.'
+            . TypeCoerce::asString($v_minor ?? '?') . '.'
+            . TypeCoerce::asString($v_patch ?? '?')
+            . TypeCoerce::asString($v_tag ?? '');
 
         return [
             'X-Module-Version' => Bootstrap::MODULE_VERSION,
@@ -273,7 +277,7 @@ readonly class ClaimRevApi
      */
     public function getClaimErrors(string $claimId): array
     {
-        return $this->get('/api/ClaimView/v1/GetClaimErrors', ['claimId' => $claimId]);
+        return self::asListOfRecords($this->get('/api/ClaimView/v1/GetClaimErrors', ['claimId' => $claimId]));
     }
 
     /**
@@ -284,7 +288,7 @@ readonly class ClaimRevApi
      */
     public function getClaimStatuses(): array
     {
-        return $this->get('/api/ClaimView/v1/GetClaimStatuses');
+        return self::asListOfRecords($this->get('/api/ClaimView/v1/GetClaimStatuses'));
     }
 
     /**
@@ -295,9 +299,30 @@ readonly class ClaimRevApi
      */
     public function getPortalNotifications(bool $isReadFilter = false): array
     {
-        return $this->get('/api/NotificationMgmt/v1/GetPortalNotifications', [
+        return self::asListOfRecords($this->get('/api/NotificationMgmt/v1/GetPortalNotifications', [
             'isReadFilter' => $isReadFilter ? 'true' : 'false',
-        ]);
+        ]));
+    }
+
+    /**
+     * Coerce a response body that should be a JSON array of objects into a
+     * list of array<string, mixed>. The internal `get()` helper returns the
+     * full decoded body typed as array<string, mixed>; this drops any
+     * non-array entries so the caller's list type holds.
+     *
+     * @param array<int|string, mixed> $body
+     * @return list<array<string, mixed>>
+     */
+    private static function asListOfRecords(array $body): array
+    {
+        $out = [];
+        foreach ($body as $entry) {
+            if (is_array($entry)) {
+                /** @var array<string, mixed> $entry */
+                $out[] = $entry;
+            }
+        }
+        return $out;
     }
 
     /**
@@ -446,11 +471,26 @@ readonly class ClaimRevApi
         // Concatenate text from all chunks: candidates[0].content.parts[0].text
         $text = '';
         foreach ($chunks as $chunk) {
+            if (!is_array($chunk)) {
+                continue;
+            }
             $candidates = $chunk['candidates'] ?? [];
+            if (!is_array($candidates)) {
+                continue;
+            }
             foreach ($candidates as $candidate) {
-                $parts = $candidate['content']['parts'] ?? [];
+                if (!is_array($candidate)) {
+                    continue;
+                }
+                $content = $candidate['content'] ?? null;
+                $parts = is_array($content) ? ($content['parts'] ?? []) : [];
+                if (!is_array($parts)) {
+                    continue;
+                }
                 foreach ($parts as $part) {
-                    $text .= $part['text'] ?? '';
+                    if (is_array($part)) {
+                        $text .= TypeCoerce::asString($part['text'] ?? '');
+                    }
                 }
             }
         }
