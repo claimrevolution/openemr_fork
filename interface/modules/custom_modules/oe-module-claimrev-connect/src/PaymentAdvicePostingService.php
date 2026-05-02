@@ -446,9 +446,6 @@ class PaymentAdvicePostingService
             if (!$matched && $code !== '' && !$modifier) {
                 // Try matching without modifier
                 foreach (array_keys($existingCodes) as $existingKey) {
-                    if (!is_string($existingKey)) {
-                        continue;
-                    }
                     if (str_starts_with($existingKey, $code . ':') || $existingKey === $code) {
                         $matched = true;
                         $codekey = $existingKey;

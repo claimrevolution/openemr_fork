@@ -101,7 +101,7 @@ class PaymentAdviceMockService
             /** @var array<string, mixed> $enc */
             $result = self::buildMockPaymentAdvice($enc);
             if ($result !== null) {
-                $results[] = $result;
+                $results[] = PaymentAdvicePage::normalizeAdvice($result);
             }
         }
 
@@ -115,7 +115,10 @@ class PaymentAdviceMockService
      * Build a single mock ClaimPaymentAggregation from an encounter.
      *
      * @param  array<string, mixed> $enc Encounter row with patient data
-     * @return PaymentAdviceShape|null
+     * @return array<string, mixed>|null Returned as PaymentAdviceShape via
+     *     normalizeAdvice() in PaymentAdvicePage::searchPaymentInfo, but
+     *     this raw mock response carries extra fields the real ClaimRev
+     *     API returns too (servicePaymentInfos, accountNumber, etc).
      */
     private static function buildMockPaymentAdvice(array $enc): ?array
     {
