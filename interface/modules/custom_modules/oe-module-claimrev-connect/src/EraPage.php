@@ -39,14 +39,16 @@ class EraPage
         $model->receivedDateEnd = $endDate !== '' ? $endDate : null;
 
         $data = EraSearch::search($model);
-        if ($data === false || !is_array($data)) {
+        if ($data === false) {
             return null;
         }
 
         $results = [];
         foreach ($data as $entry) {
-            if (is_object($entry)) {
+            if ($entry instanceof \stdClass) {
                 $results[] = $entry;
+            } elseif (is_object($entry)) {
+                $results[] = (object) get_object_vars($entry);
             } elseif (is_array($entry)) {
                 $results[] = (object) $entry;
             }

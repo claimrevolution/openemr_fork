@@ -54,6 +54,9 @@ class PrintProperty
         self::displayProperty($title, $strDate);
     }
 
+    /**
+     * @param iterable<int, object>|null $validations
+     */
     public static function printValidation(string $title, ?iterable $validations): void
     {
         if ($validations === null) {
@@ -64,7 +67,7 @@ class PrintProperty
                 echo("<div class='card'>");
                     echo("<div class='card-body'>");
                         echo("<h6>");
-                            echo xlt($title);
+                            echo text($title);
                         echo("</h6>");
         foreach ($validations as $validation) {
             if (!is_object($validation)) {

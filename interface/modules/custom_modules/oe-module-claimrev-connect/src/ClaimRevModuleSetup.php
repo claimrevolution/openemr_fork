@@ -146,7 +146,11 @@ class ClaimRevModuleSetup
             "SELECT * FROM background_services WHERE name = ? LIMIT 1",
             [$name]
         );
-        return $row !== false && $row !== [] ? $row : null;
+        if (!is_array($row) || $row === []) {
+            return null;
+        }
+        /** @var array<string, mixed> $row */
+        return $row;
     }
     /**
      * Reset any ClaimRev background services that are stuck in running state.
@@ -185,6 +189,9 @@ class ClaimRevModuleSetup
 
         while (!feof($fd)) {
             $line = fgets($fd, 2048);
+            if ($line === false) {
+                break;
+            }
             $line = rtrim($line);
 
             if (preg_match('/^\s*--/', $line) || $line === '') {
@@ -244,9 +251,17 @@ class ClaimRevModuleSetup
      */
     public static function getBackgroundServices(): array
     {
-        return QueryUtils::fetchRecords(
+        $rows = QueryUtils::fetchRecords(
             "SELECT * FROM background_services WHERE name like '%ClaimRev%' OR name = 'X12_SFTP'"
         );
+        $out = [];
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                /** @var array<string, mixed> $row */
+                $out[] = $row;
+            }
+        }
+        return $out;
     }
     public static function createBackGroundServices(): void
     {

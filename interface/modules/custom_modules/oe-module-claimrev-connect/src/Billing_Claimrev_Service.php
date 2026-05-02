@@ -24,6 +24,8 @@ use OpenEMR\Modules\ClaimRevConnector\ReportDownload;
  * reads the x12_remote_tracker table and sends
  * files to x12 partners that are in the 'waiting'
  * status.
+ *
+ * @phpstan-ignore openemr.noGlobalNsFunctions
  */
 function start_X12_Claimrev_send_files(): void
 {
@@ -34,9 +36,11 @@ function start_X12_Claimrev_send_files(): void
     }
 }
 
+/**
+ * @phpstan-ignore openemr.noGlobalNsFunctions
+ */
 function start_X12_Claimrev_get_reports(): void
 {
-
     $autoSend = OEGlobalsBag::getInstance()->get('oe_claimrev_config_auto_send_claim_files') ?? null;
 
     if ($autoSend) {

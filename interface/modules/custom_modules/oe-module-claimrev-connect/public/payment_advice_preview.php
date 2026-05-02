@@ -21,6 +21,7 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
 use OpenEMR\Modules\ClaimRevConnector\PaymentAdvicePostingService;
+use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
 
 header('Content-Type: application/json');
 
@@ -37,19 +38,21 @@ if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'payment
 }
 
 $paymentDataJson = ModuleInput::postString('paymentData');
-$paymentData = json_decode($paymentDataJson, true);
+$decoded = json_decode($paymentDataJson, true);
 
-if (!is_array($paymentData)) {
+if (!is_array($decoded)) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid payment data']);
     exit;
 }
+/** @var array<string, mixed> $paymentData */
+$paymentData = $decoded;
 
 $preview = PaymentAdvicePostingService::preview($paymentData);
 
 // If already posted, include the actual posting details
 if ($preview['alreadyPosted']) {
-    $paymentAdviceId = $paymentData['paymentAdviceId'] ?? '';
+    $paymentAdviceId = TypeCoerce::asString($paymentData['paymentAdviceId'] ?? '');
     $postingDetails = PaymentAdvicePostingService::getPostingDetails(
         $paymentAdviceId,
         $preview['pid'],

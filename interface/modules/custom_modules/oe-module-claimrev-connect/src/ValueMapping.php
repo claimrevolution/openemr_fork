@@ -16,16 +16,13 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 class ValueMapping
 {
-    public static function mapPayerResponsibility($payerResponsibility)
+    public static function mapPayerResponsibility(string $payerResponsibility): string
     {
-        if (strtolower((string) $payerResponsibility) == "primary") {
-            return "p";
-        } elseif (strtolower((string) $payerResponsibility) == "secondary") {
-            return "s";
-        } elseif (strtolower((string) $payerResponsibility) == "tertiary") {
-            return"t";
-        } else {
-            return substr((string) $payerResponsibility, 0, 1);
-        }
+        return match (strtolower($payerResponsibility)) {
+            'primary'   => 'p',
+            'secondary' => 's',
+            'tertiary'  => 't',
+            default     => substr($payerResponsibility, 0, 1),
+        };
     }
 }
