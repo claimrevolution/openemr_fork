@@ -591,7 +591,7 @@ $searchFilters = [
                                     </div>
                                     <div class="col-md-3">
                                         <div class="detail-label"><?php echo xlt("Worked"); ?></div>
-                                        <div class="detail-value worked-detail-<?php echo attr((string) $objectId); ?>">
+                                        <div class="detail-value worked-detail-<?php echo attr($objectId); ?>">
                                             <?php if ($isWorked) { ?>
                                                 <span class="text-success"><i class="fa fa-check-circle"></i> <?php echo xlt("Yes"); ?></span>
                                             <?php } else { ?>
