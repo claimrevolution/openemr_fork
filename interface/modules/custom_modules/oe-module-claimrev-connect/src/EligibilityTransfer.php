@@ -345,7 +345,8 @@ class EligibilityTransfer extends BaseService
             EligibilityData::updateEligibilityRecord($eid, self::STATUS_SEND_ERROR, null, null, true, 'no results', null, null, null);
             return;
         }
-        $payload = json_encode($result, JSON_UNESCAPED_SLASHES);
+        $encoded = json_encode($result, JSON_UNESCAPED_SLASHES);
+        $payload = $encoded !== false ? $encoded : null;
 
         if (!isset($result['responseMessage'])) {
             EligibilityData::updateEligibilityRecord($eid, self::STATUS_SEND_ERROR, null, $payload, true, 'missing responseMessage Property', null, null, null);
@@ -393,7 +394,8 @@ class EligibilityTransfer extends BaseService
             $eligibilities = $individual['eligibility'];
             $firstKey = array_key_first($eligibilities);
             $eligibility = $firstKey !== null ? $eligibilities[$firstKey] : null;
-            $eligibility_json = json_encode($eligibility, JSON_UNESCAPED_SLASHES);
+            $encodedElig = json_encode($eligibility, JSON_UNESCAPED_SLASHES);
+            $eligibility_json = $encodedElig !== false ? $encodedElig : null;
 
             if (is_array($eligibility) && isset($eligibility['raw271']) && $eligibility['raw271'] !== '') {
                 $raw271 = TypeCoerce::asString($eligibility['raw271']);
@@ -415,8 +417,10 @@ class EligibilityTransfer extends BaseService
             }
         }
 
-        $payload = json_encode($result, JSON_UNESCAPED_SLASHES);
-        $individual_json = json_encode($individual, JSON_UNESCAPED_SLASHES);
+        $encodedFinal = json_encode($result, JSON_UNESCAPED_SLASHES);
+        $payload = $encodedFinal !== false ? $encodedFinal : null;
+        $encodedIndividual = json_encode($individual, JSON_UNESCAPED_SLASHES);
+        $individual_json = $encodedIndividual !== false ? $encodedIndividual : null;
 
         EligibilityData::updateEligibilityRecord($eid, self::STATUS_SUCCESS, null, $payload, true, $responseMessage, $raw271, $eligibility_json, $individual_json);
     }

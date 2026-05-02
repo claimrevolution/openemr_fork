@@ -18,6 +18,7 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimsPage;
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
+use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
 
 if (!AclMain::aclCheckCore('acct', 'bill')) {
     http_response_code(403);
@@ -61,8 +62,8 @@ $exportFilters = [
 
 try {
     $result = ClaimsPage::exportCsv($exportFilters);
-    $fileText = $result['fileText'] ?? '';
-    $fileName = $result['fileName'] ?? 'claims_export.csv';
+    $fileText = TypeCoerce::asString($result['fileText'] ?? '');
+    $fileName = TypeCoerce::asString($result['fileName'] ?? 'claims_export.csv');
 
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . attr($fileName) . '"');
