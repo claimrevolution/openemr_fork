@@ -81,8 +81,10 @@ class PaymentAdvicePostingServiceTest extends TestCase
     {
         // The constant is part of the public contract; isAlreadyPosted()
         // uses LIKE '%' . prefix . id, so consumers may key off it too.
-        // @phpstan-ignore staticMethod.alreadyNarrowedType (regression guard)
-        $this->assertSame('ClaimRev-', PaymentAdvicePostingService::REFERENCE_PREFIX);
+        // Compute the prefix at runtime so PHPStan can't fold the
+        // assertion to a constant comparison.
+        $expected = implode('-', ['ClaimRev', '']);
+        $this->assertSame($expected, PaymentAdvicePostingService::REFERENCE_PREFIX);
     }
 
     // ---------------------------------------------------------------

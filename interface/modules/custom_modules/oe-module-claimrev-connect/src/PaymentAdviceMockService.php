@@ -98,9 +98,6 @@ class PaymentAdviceMockService
 
         $results = [];
         foreach ($encounters as $enc) {
-            if (!is_array($enc)) {
-                continue;
-            }
             /** @var array<string, mixed> $enc */
             $result = self::buildMockPaymentAdvice($enc);
             if ($result !== null) {
@@ -158,9 +155,6 @@ class PaymentAdviceMockService
         $serviceLines = [];
 
         foreach ($billingRows as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
             $fee = TypeCoerce::asFloat($row['fee'] ?? 0);
             $code = TypeCoerce::asString($row['code'] ?? '');
             $modifier = TypeCoerce::asString($row['modifier'] ?? '');
