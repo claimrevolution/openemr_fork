@@ -117,8 +117,8 @@ class PaymentAdviceMockService
     /**
      * Build a single mock ClaimPaymentAggregation from an encounter.
      *
-     * @param array<string, mixed> $enc Encounter row with patient data
-     * @return array<string, mixed>|null
+     * @param  array<string, mixed> $enc Encounter row with patient data
+     * @return PaymentAdviceShape|null
      */
     private static function buildMockPaymentAdvice(array $enc): ?array
     {

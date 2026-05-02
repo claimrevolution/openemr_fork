@@ -236,8 +236,6 @@ class ReconciliationService
         // Filter to discrepancies only if requested
         if ($discrepancyOnly) {
             $encounters = array_values(array_filter($encounters, fn(array $enc): bool => $enc['discrepancy'] !== ''));
-        } else {
-            $encounters = array_values($encounters);
         }
 
         return [
