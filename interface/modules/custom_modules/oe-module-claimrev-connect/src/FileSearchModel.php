@@ -16,14 +16,14 @@ declare(strict_types=1);
 
 class FileSearchModel
 {
-    public $accountNumber = "";
+    public string $accountNumber = "";
     public int $fileStatus = 3;
     public ?string $ediType = "";
     public ?string $ediVersion = "";
     public ?string $payerNumber = "";
     public ?string $fileId = "";
-    public $receivedDateStart;
-    public $receivedDateEnd;
+    public ?string $receivedDateStart = null;
+    public ?string $receivedDateEnd = null;
 
     public function __construct()
     {

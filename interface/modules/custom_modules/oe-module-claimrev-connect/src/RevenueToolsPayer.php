@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 class RevenueToolsPayer
 {
-    public $payerNumber;
-    public $payerName;
-    public $subscriberNumber;
+    public ?string $payerNumber = null;
+    public ?string $payerName = null;
+    public ?string $subscriberNumber = null;
 }

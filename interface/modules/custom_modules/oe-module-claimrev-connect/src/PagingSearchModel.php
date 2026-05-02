@@ -16,8 +16,8 @@ namespace OpenEMR\Modules\ClaimRevConnector;
 
 class PagingSearchModel
 {
-    public $pageIndex = 0;
-    public $pageSize = 50;
-    public $sortField = "";
-    public $sortDirection = "";
+    public int $pageIndex = 0;
+    public int $pageSize = 50;
+    public string $sortField = "";
+    public string $sortDirection = "";
 }
