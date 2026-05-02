@@ -551,7 +551,7 @@ $searchFilters = [
                                         </a>
                                     <?php } ?>
                                     <button type="button" class="btn worked-toggle <?php echo $isWorked ? 'btn-success' : 'btn-outline-secondary'; ?>"
-                                        data-objectid="<?php echo attr((string) $objectId); ?>"
+                                        data-objectid="<?php echo attr($objectId); ?>"
                                         data-worked="<?php echo $isWorked ? '1' : '0'; ?>"
                                         title="<?php echo $isWorked ? xla("Worked - click to unmark") : xla("Not worked - click to mark"); ?>"
                                         onclick="toggleWorked(this);">
