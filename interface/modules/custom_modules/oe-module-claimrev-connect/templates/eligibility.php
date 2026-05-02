@@ -309,7 +309,7 @@ foreach ($insurance as $row) {
                         if ($hasCoverageDiscovery) {
                             ?>
                             <div id="product-coverage-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility ? 'active' : ''; ?>">
-                                <?php if ($hasCoverageDiscoveryResults && is_object($individual)) {
+                                <?php if ($hasCoverageDiscoveryResults && is_object($individual) && property_exists($individual, 'coverageDiscovery')) {
                                     $coverageResults = $individual->coverageDiscovery;
                                     include $path . '/coverage_discovery_results.php';
                                 } elseif (strtolower($insuranceFinderStatus) === 'complete') { ?>
@@ -330,7 +330,7 @@ foreach ($insurance as $row) {
 
                         <?php
                         // === Demographics Tab (Product 2) ===
-                        if ($hasDemographics && is_object($individual)) {
+                        if ($hasDemographics && is_object($individual) && property_exists($individual, 'demographicInfo')) {
                             $demographicInfo = $individual->demographicInfo;
                             ?>
                             <div id="product-demo-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility && !$hasCoverageDiscovery ? 'active' : ''; ?>">
@@ -340,7 +340,7 @@ foreach ($insurance as $row) {
 
                         <?php
                         // === MBI Finder Tab (Product 5) ===
-                        if ($hasMbi && is_object($individual)) {
+                        if ($hasMbi && is_object($individual) && property_exists($individual, 'mbiFinderResults')) {
                             $mbiResults = $individual->mbiFinderResults;
                             ?>
                             <div id="product-mbi-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility && !$hasCoverageDiscovery && !$hasDemographics ? 'active' : ''; ?>">

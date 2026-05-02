@@ -81,6 +81,7 @@ class PaymentAdvicePostingServiceTest extends TestCase
     {
         // The constant is part of the public contract; isAlreadyPosted()
         // uses LIKE '%' . prefix . id, so consumers may key off it too.
+        // @phpstan-ignore staticMethod.alreadyNarrowedType (regression guard)
         $this->assertSame('ClaimRev-', PaymentAdvicePostingService::REFERENCE_PREFIX);
     }
 
@@ -110,6 +111,9 @@ class PaymentAdvicePostingServiceTest extends TestCase
         ];
     }
 
+    /**
+     * @param array{pid: int, encounter: int}|null $expected
+     */
     #[DataProvider('pcnProvider')]
     public function testParsePatientControlNumber(string $input, ?array $expected): void
     {

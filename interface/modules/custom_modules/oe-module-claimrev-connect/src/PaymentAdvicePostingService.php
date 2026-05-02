@@ -498,14 +498,14 @@ class PaymentAdvicePostingService
             ];
         }
 
-        if (!$approved && ($preview['requiresApproval'] ?? false)) {
+        if (!$approved && $preview['requiresApproval']) {
             return [
                 'success' => false,
                 'session_id' => null,
                 'message' => 'Requires approval: ' . implode('; ', $preview['warnings']),
                 'posted_lines' => 0,
                 'requiresApproval' => true,
-                'approvalReason' => $preview['approvalReason'] ?? '',
+                'approvalReason' => $preview['approvalReason'],
             ];
         }
 

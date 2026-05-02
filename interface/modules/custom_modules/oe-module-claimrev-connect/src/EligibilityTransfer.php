@@ -234,7 +234,7 @@ class EligibilityTransfer extends BaseService
                 $eligData = $individual['eligibility'] ?? $individual['coverageDiscovery'] ?? null;
                 if (is_array($eligData) && $eligData !== []) {
                     $firstEligKey = array_key_first($eligData);
-                    $firstElig = $firstEligKey !== null ? ($eligData[$firstEligKey] ?? null) : null;
+                    $firstElig = $eligData[$firstEligKey] ?? null;
                     if (is_array($firstElig)) {
                         $coverageStatus = TypeCoerce::asString($firstElig['status'] ?? 'Complete');
                         $payerInfo = $firstElig['payerInfo'] ?? null;
@@ -278,16 +278,18 @@ class EligibilityTransfer extends BaseService
                 continue;
             }
 
-            $status = $visit['sharpRevenueData']['mappedData']['status']
-                ?? $visit['mappedData']['status']
-                ?? null;
+            $sharp = is_array($visit['sharpRevenueData'] ?? null) ? $visit['sharpRevenueData'] : null;
+            $sharpMapped = is_array($sharp['mappedData'] ?? null) ? $sharp['mappedData'] : null;
+            $visitMapped = is_array($visit['mappedData'] ?? null) ? $visit['mappedData'] : null;
+            $status = ($sharpMapped['status'] ?? null) ?? ($visitMapped['status'] ?? null);
 
             if ($status !== null) {
                 $statusLower = strtolower(TypeCoerce::asString($status));
                 if ($statusLower === 'complete' || $statusLower === 'error') {
                     // Extract the SharpRevenue response in the same format saveEligibility expects
-                    $sharp = $visit['sharpRevenueData'] ?? $visit;
-                    return is_array($sharp) ? $sharp : $visit;
+                    /** @var array<string, mixed> $result */
+                    $result = $sharp ?? $visit;
+                    return $result;
                 }
             }
         }
@@ -310,17 +312,19 @@ class EligibilityTransfer extends BaseService
     private static function mergeProductResults(array $newResult, array $existingIndividual, array $productsRun): array
     {
         $mappedData = $newResult['mappedData'] ?? null;
-        if (!is_array($mappedData) || !isset($mappedData['individuals']) || !is_array($mappedData['individuals'])) {
+        if (!is_array($mappedData)) {
+            return $newResult;
+        }
+        $individuals = $mappedData['individuals'] ?? null;
+        if (!is_array($individuals) || $individuals === []) {
             return $newResult;
         }
 
-        $individuals = &$newResult['mappedData']['individuals'];
         $key = array_key_first($individuals);
-        if ($key === null || !is_array($individuals[$key])) {
+        $newIndividual = $individuals[$key] ?? null;
+        if (!is_array($newIndividual)) {
             return $newResult;
         }
-
-        $newIndividual = &$individuals[$key];
 
         // For each product that was NOT run, preserve the existing data
         foreach (self::PRODUCT_KEYS as $productId => $propertyKey) {
@@ -333,6 +337,10 @@ class EligibilityTransfer extends BaseService
         if (!in_array(3, $productsRun) && isset($existingIndividual['insuranceFinderStatus'])) {
             $newIndividual['insuranceFinderStatus'] = $existingIndividual['insuranceFinderStatus'];
         }
+
+        $individuals[$key] = $newIndividual;
+        $mappedData['individuals'] = $individuals;
+        $newResult['mappedData'] = $mappedData;
 
         return $newResult;
     }

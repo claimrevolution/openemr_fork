@@ -52,7 +52,7 @@ class PatientBalanceService
             'cnt',
             []
         );
-        return ((int) $count) > 0;
+        return TypeCoerce::asInt($count) > 0;
     }
 
     /**
@@ -205,6 +205,13 @@ class PatientBalanceService
 
         $codes = [];
         $totalBalance = 0.0;
+        if (!is_array($invoiceCodes)) {
+            return [
+                'codes' => $codes,
+                'prMemos' => $prMemos,
+                'totalBalance' => round($totalBalance, 2),
+            ];
+        }
         foreach ($invoiceCodes as $code => $cdata) {
             if (!is_array($cdata)) {
                 continue;
