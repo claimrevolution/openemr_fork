@@ -84,8 +84,8 @@ if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
         } else {
             $result = PaymentAdvicePage::searchPaymentInfo($paymentSearchFilters);
         }
-        $datas = $result['results'] ?? [];
-        $totalRecords = $result['totalRecords'] ?? 0;
+        $datas = $result['results'];
+        $totalRecords = $result['totalRecords'];
     } catch (ClaimRevApiException) {
         $errorMessage = xlt('Failed to search payment advice. Please check your ClaimRev connection settings.');
         $datas = [];
@@ -95,13 +95,11 @@ if (ModuleInput::isPostRequest() && ModuleInput::postExists('SubmitButton')) {
 // Check which results are already posted
 $postedMap = [];
 foreach ($datas as $data) {
-    $id = $data['paymentAdviceId'] ?? '';
-    $paymentInfo = $data['paymentInfo'] ?? [];
-    $pcnRaw = $paymentInfo['patientControlNumber'] ?? '';
-    $pcn = is_string($pcnRaw) ? $pcnRaw : '';
-    $parts = preg_split('/[\s\-]/', $pcn);
-    $pid = (is_array($parts) && count($parts) >= 2) ? (int) $parts[0] : 0;
-    $enc = (is_array($parts) && count($parts) >= 2) ? (int) $parts[1] : 0;
+    $id = $data['paymentAdviceId'];
+    $pcn = $data['paymentInfo']['patientControlNumber'];
+    $parsed = PaymentAdvicePostingService::parsePatientControlNumber($pcn);
+    $pid = $parsed['pid'] ?? 0;
+    $enc = $parsed['encounter'] ?? 0;
     if ($id !== '') {
         $check = PaymentAdvicePostingService::isAlreadyPosted($id, $pid, $enc);
         $postedMap[$id] = $check['posted'];
@@ -286,27 +284,27 @@ $totalPages = ($totalRecords > 0) ? (int) ceil($totalRecords / $pageSize) : 0;
                 </thead>
                 <tbody>
                     <?php foreach ($datas as $idx => $data) {
-                        $paymentAdviceId = (string) ($data['paymentAdviceId'] ?? '');
-                        $receivedDate = substr((string) ($data['receivedDate'] ?? ''), 0, 10);
-                        $payerName = (string) ($data['payerName'] ?? '');
-                        $payerNumber = (string) ($data['payerNumber'] ?? '');
+                        $paymentAdviceId = $data['paymentAdviceId'];
+                        $receivedDate = substr($data['receivedDate'], 0, 10);
+                        $payerName = $data['payerName'];
+                        $payerNumber = $data['payerNumber'];
 
-                        $paymentInfo = $data['paymentInfo'] ?? [];
-                        $patientFirst = (string) ($paymentInfo['patientFirstName'] ?? '');
-                        $patientLast = (string) ($paymentInfo['patientLastName'] ?? '');
-                        $pcn = (string) ($paymentInfo['patientControlNumber'] ?? '');
-                        $claimStatusCode = (string) ($paymentInfo['claimStatusCode'] ?? '');
-                        $totalClaimAmount = (float) ($paymentInfo['totalClaimAmount'] ?? 0);
-                        $claimPaymentAmount = (float) ($paymentInfo['claimPaymentAmount'] ?? 0);
-                        $patientResponsibility = (float) ($paymentInfo['patientResponsibility'] ?? 0);
-                        $isWorked = (bool) ($paymentInfo['isWorked'] ?? false);
+                        $paymentInfo = $data['paymentInfo'];
+                        $patientFirst = $paymentInfo['patientFirstName'];
+                        $patientLast = $paymentInfo['patientLastName'];
+                        $pcn = $paymentInfo['patientControlNumber'];
+                        $claimStatusCode = $paymentInfo['claimStatusCode'];
+                        $totalClaimAmount = $paymentInfo['totalClaimAmount'];
+                        $claimPaymentAmount = $paymentInfo['claimPaymentAmount'];
+                        $patientResponsibility = $paymentInfo['patientResponsibility'];
+                        $isWorked = $paymentInfo['isWorked'];
 
-                        $checkInfo = $data['checkInformation'] ?? [];
-                        $checkNumber = (string) ($checkInfo['checkNumber'] ?? '');
-                        $checkDate = isset($checkInfo['checkDate']) ? substr((string) $checkInfo['checkDate'], 0, 10) : '';
+                        $checkInfo = $data['checkInformation'];
+                        $checkNumber = $checkInfo['checkNumber'];
+                        $checkDate = $checkInfo['checkDate'] !== '' ? substr($checkInfo['checkDate'], 0, 10) : '';
 
                         // ERA classification from ClaimRev (Paid, Denied, PartiallyPaid, etc.)
-                        $eraClassification = (string) ($data['eraClassification'] ?? '');
+                        $eraClassification = $data['eraClassification'];
 
                         $claimStatusLabels = [
                             '1' => 'Primary',
