@@ -188,6 +188,8 @@ class AgingReportService
 
     /**
      * Get the aging bucket name for a given age in days.
+     *
+     * @return 'current'|'days30'|'days60'|'days90'|'days120'|'days120plus'
      */
     private static function getBucket(int $ageDays): string
     {

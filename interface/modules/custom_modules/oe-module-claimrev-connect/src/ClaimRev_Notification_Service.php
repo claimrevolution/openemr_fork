@@ -18,143 +18,16 @@
 
 declare(strict_types=1);
 
-use OpenEMR\Common\Database\QueryUtils;
-use OpenEMR\Core\OEGlobalsBag;
-use OpenEMR\Modules\ClaimRevConnector\ClaimRevApi;
-use OpenEMR\Modules\ClaimRevConnector\ClaimRevException;
-use OpenEMR\Modules\ClaimRevConnector\GlobalConfig;
-
-require_once(OEGlobalsBag::getInstance()->getString('fileroot') . "/library/pnotes.inc.php");
+use OpenEMR\Modules\ClaimRevConnector\NotificationPollService;
 
 /**
- * Convert HTML to readable plain text, preserving paragraph breaks,
- * list structure, and table rows.
+ * Cron-registered entry point. Background service tables identify cron
+ * targets by global function name, so this thin wrapper just delegates
+ * to the namespaced NotificationPollService.
+ *
+ * @phpstan-ignore openemr.noGlobalNsFunctions
  */
-function htmlToPlainText(string $html): string
-{
-    // Remove head/style/script blocks entirely
-    $text = preg_replace('/<head\b[^>]*>.*?<\/head>/is', '', $html);
-    $text = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', (string) $text);
-    $text = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', (string) $text);
-
-    // Block-level breaks: </p>, </div>, </tr>, </h1-6>, <br>
-    $text = preg_replace('/<br\s*\/?>/i', "\n", (string) $text);
-    $text = preg_replace('/<\/(?:p|div|tr|h[1-6])>/i', "\n\n", (string) $text);
-
-    // List items
-    $text = preg_replace('/<li\b[^>]*>/i', "\n- ", (string) $text);
-
-    // Table cells: add spacing between <td> content
-    $text = preg_replace('/<\/td>\s*<td/i', "</td>  <td", (string) $text);
-
-    // Strip remaining tags
-    $text = strip_tags((string) $text);
-
-    // Decode HTML entities
-    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-    // Collapse runs of whitespace on each line (preserve newlines)
-    $text = preg_replace('/[^\S\n]+/', ' ', $text);
-
-    // Collapse 3+ consecutive newlines into 2
-    $text = preg_replace('/\n{3,}/', "\n\n", (string) $text);
-
-    return trim((string) $text);
-}
-
 function start_claimrev_notifications(): void
 {
-    $enabledRaw = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_ENABLE_NOTIFICATIONS) ?? '1';
-    if (in_array($enabledRaw, [false, '', '0', 0], true)) {
-        return;
-    }
-
-    try {
-        $api = ClaimRevApi::makeFromGlobals();
-    } catch (ClaimRevException) {
-        return;
-    }
-
-    try {
-        $notifications = $api->getPortalNotifications(false);
-    } catch (ClaimRevException) {
-        return;
-    }
-
-    if (!is_array($notifications)) {
-        return;
-    }
-
-    $recipientSetting = OEGlobalsBag::getInstance()->getString(GlobalConfig::CONFIG_NOTIFICATION_RECIPIENT, 'admin');
-    if ($recipientSetting === '') {
-        $recipientSetting = 'admin';
-    }
-    $recipients = array_filter(array_map(trim(...), explode(';', $recipientSetting)));
-    if ($recipients === []) {
-        $recipients = ['admin'];
-    }
-
-    foreach ($notifications as $notification) {
-        $portalId = $notification['portalNotificationId'] ?? null;
-        if ($portalId === null) {
-            continue;
-        }
-
-        // Check if we already processed this notification
-        $existing = QueryUtils::querySingleRow(
-            "SELECT id FROM mod_claimrev_notifications WHERE portal_notification_id = ?",
-            [$portalId]
-        );
-        if ($existing !== [] && $existing !== false) {
-            continue;
-        }
-
-        $title = htmlToPlainText($notification['messageTitle'] ?? 'ClaimRev Notification');
-
-        $bodyText = $notification['messageBodyText'] ?? '';
-        if ($bodyText === '' || $bodyText === null) {
-            $bodyText = $notification['messageBody'] ?? '';
-        }
-        $body = htmlToPlainText($bodyText);
-
-        $messageText = "ClaimRev: " . $title . "\n\n" . $body;
-
-        // Create pnote for each configured recipient
-        $firstPnoteId = 0;
-        foreach ($recipients as $recipient) {
-            $pnoteId = addPnote(
-                0,
-                $messageText,
-                0,
-                1,
-                "ClaimRev",
-                $recipient,
-                "",
-                "New",
-                "claimrev-notifications"
-            );
-            if ($firstPnoteId == 0) {
-                $firstPnoteId = $pnoteId;
-            }
-        }
-
-        // Track it so we don't create duplicates
-        sqlInsert(
-            "INSERT INTO mod_claimrev_notifications (portal_notification_id, message_title, message_body, pnote_id, created_date, processed_date) VALUES (?, ?, ?, ?, ?, NOW())",
-            [
-                $portalId,
-                $title,
-                $body,
-                $firstPnoteId,
-                $notification['createdDate'] ?? date('Y-m-d H:i:s')
-            ]
-        );
-
-        // Mark as read on ClaimRev so it doesn't come back next poll
-        try {
-            $api->setNotificationReadStatus($portalId, true);
-        } catch (ClaimRevException) {
-            // Non-fatal - notification was already delivered
-        }
-    }
+    NotificationPollService::run();
 }

@@ -36,7 +36,7 @@ class PaymentAdviceMockService
      */
     public static function generateMockResults(array $filters): array
     {
-        $pageIndex = $filters['pageIndex'] ?? 0;
+        $pageIndex = (int) ($filters['pageIndex'] ?? 0);
         $pageSize = 50;
         $offset = $pageIndex * $pageSize;
 
@@ -98,6 +98,10 @@ class PaymentAdviceMockService
 
         $results = [];
         foreach ($encounters as $enc) {
+            if (!is_array($enc)) {
+                continue;
+            }
+            /** @var array<string, mixed> $enc */
             $result = self::buildMockPaymentAdvice($enc);
             if ($result !== null) {
                 $results[] = $result;
@@ -118,8 +122,8 @@ class PaymentAdviceMockService
      */
     private static function buildMockPaymentAdvice(array $enc): ?array
     {
-        $pid = (int) $enc['pid'];
-        $encounter = (int) $enc['encounter'];
+        $pid = TypeCoerce::asInt($enc['pid'] ?? 0);
+        $encounter = TypeCoerce::asInt($enc['encounter'] ?? 0);
         $pcn = $pid . '-' . $encounter;
 
         // Get billing line items for this encounter
@@ -144,8 +148,8 @@ class PaymentAdviceMockService
             [$pid]
         );
 
-        $payerName = $insRow['payer_name'] ?? 'Mock Payer';
-        $payerNumber = $insRow['payer_number'] ?? '99999';
+        $payerName = is_array($insRow) ? TypeCoerce::asString($insRow['payer_name'] ?? 'Mock Payer') : 'Mock Payer';
+        $payerNumber = is_array($insRow) ? TypeCoerce::asString($insRow['payer_number'] ?? '99999') : '99999';
 
         // Generate a deterministic fake ID from pid+encounter
         $fakeId = md5('mock-' . $pcn);
@@ -154,30 +158,39 @@ class PaymentAdviceMockService
         $serviceLines = [];
 
         foreach ($billingRows as $row) {
-            $fee = (float) $row['fee'];
+            if (!is_array($row)) {
+                continue;
+            }
+            $fee = TypeCoerce::asFloat($row['fee'] ?? 0);
+            $code = TypeCoerce::asString($row['code'] ?? '');
+            $modifier = TypeCoerce::asString($row['modifier'] ?? '');
+            $units = TypeCoerce::asFloat($row['units'] ?? 1);
+            if ($units === 0.0) {
+                $units = 1.0;
+            }
             $totalCharged += $fee;
 
             // Simulate realistic payment: 70-90% paid, rest adjusted
-            $payPercent = (crc32($pcn . $row['code']) % 21 + 70) / 100; // 70-90%
+            $payPercent = (crc32($pcn . $code) % 21 + 70) / 100; // 70-90%
             $paid = round($fee * $payPercent, 2);
             $coAdj = round(($fee - $paid) * 0.6, 2); // 60% of remainder is contractual
             $prAdj = round($fee - $paid - $coAdj, 2); // rest is patient responsibility
 
             $serviceLines[] = [
-                'procedureCode' => $row['code'],
+                'procedureCode' => $code,
                 'procedureQualifier' => 'HC',
-                'modifier1' => $row['modifier'] ?? '',
+                'modifier1' => $modifier,
                 'modifier2' => '',
                 'modifier3' => '',
                 'modifier4' => '',
                 'chargeAmount' => $fee,
                 'paymentAmount' => $paid,
                 'revenueCode' => '',
-                'unitsOfServicePaidCount' => (float) ($row['units'] ?: 1),
-                'originalUnitsOfServiceCount' => (float) ($row['units'] ?: 1),
-                'serviceDateStart' => substr((string) $enc['date'], 0, 10),
-                'serviceDateEnd' => substr((string) $enc['date'], 0, 10),
-                'adjudicatedProcedureCode' => $row['code'],
+                'unitsOfServicePaidCount' => $units,
+                'originalUnitsOfServiceCount' => $units,
+                'serviceDateStart' => substr(TypeCoerce::asString($enc['date'] ?? ''), 0, 10),
+                'serviceDateEnd' => substr(TypeCoerce::asString($enc['date'] ?? ''), 0, 10),
+                'adjudicatedProcedureCode' => $code,
                 'procedureCodeDesc' => '',
                 'contractedAmount' => null,
                 'varianceFromContract' => null,
@@ -217,7 +230,7 @@ class PaymentAdviceMockService
             foreach ($svc['adjustmentGroups'] as $group) {
                 if ($group['groupCode'] === 'PR') {
                     foreach ($group['adjustments'] as $adj) {
-                        $totalPatientResp += $adj['adjustmentAmount'];
+                        $totalPatientResp += TypeCoerce::asFloat($adj['adjustmentAmount']);
                     }
                 }
             }
@@ -234,9 +247,10 @@ class PaymentAdviceMockService
         }
 
         $checkNumber = 'MOCK' . substr($fakeId, 0, 8);
-        $encounterDate = substr((string) $enc['date'], 0, 10);
+        $encounterDate = substr(TypeCoerce::asString($enc['date'] ?? ''), 0, 10);
         // Simulate received date as a few days after encounter
-        $receivedDate = date('Y-m-d', strtotime($encounterDate . ' +7 days'));
+        $receivedTs = strtotime($encounterDate . ' +7 days');
+        $receivedDate = date('Y-m-d', $receivedTs !== false ? $receivedTs : time());
 
         return [
             'paymentAdviceId' => $fakeId,
@@ -253,13 +267,13 @@ class PaymentAdviceMockService
                 'claimPaymentAmount' => $totalPaid,
                 'patientResponsibility' => $totalPatientResp,
                 'payerControlNumber' => 'MOCK-' . $checkNumber,
-                'patientFirstName' => $enc['fname'] ?? '',
-                'patientLastName' => $enc['lname'] ?? '',
-                'patientMiddleName' => $enc['mname'] ?? '',
+                'patientFirstName' => TypeCoerce::asString($enc['fname'] ?? ''),
+                'patientLastName' => TypeCoerce::asString($enc['lname'] ?? ''),
+                'patientMiddleName' => TypeCoerce::asString($enc['mname'] ?? ''),
                 'patientSuffix' => '',
-                'patientIdentifier' => $enc['ss'] ?? '',
-                'insuredFirstName' => $enc['fname'] ?? '',
-                'insuredLastName' => $enc['lname'] ?? '',
+                'patientIdentifier' => TypeCoerce::asString($enc['ss'] ?? ''),
+                'insuredFirstName' => TypeCoerce::asString($enc['fname'] ?? ''),
+                'insuredLastName' => TypeCoerce::asString($enc['lname'] ?? ''),
                 'insuredMiddleName' => '',
                 'insuredSuffix' => '',
                 'insuredIdentifier' => '',
