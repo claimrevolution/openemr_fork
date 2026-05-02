@@ -573,7 +573,7 @@ class PaymentAdvicePostingService
         }
 
         // Create payment session
-        $sessionId = SLEOB::arPostSession(
+        $sessionId = TypeCoerce::asInt(SLEOB::arPostSession(
             payer_id: $insuranceId,
             check_number: $reference,
             check_date: $checkDate,
@@ -581,9 +581,9 @@ class PaymentAdvicePostingService
             post_to_date: date('Y-m-d'),
             deposit_date: date('Y-m-d'),
             debug: false,
-        );
+        ));
 
-        if (!$sessionId) {
+        if ($sessionId === 0) {
             return [
                 'success' => false,
                 'session_id' => null,
@@ -689,7 +689,7 @@ class PaymentAdvicePostingService
             amount: $payTotal,
         );
 
-        if ($sessionId) {
+        if ($sessionId !== 0) {
             ClaimTrackingService::linkPaymentSession($pid, $encounter, $payerType, $sessionId);
         }
 
