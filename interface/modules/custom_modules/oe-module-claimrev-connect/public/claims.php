@@ -631,7 +631,7 @@ $searchFilters = [
                                     </div>
                                 </div>
                                 <?php if ($errorCount > 0) { ?>
-                                    <div class="mt-3 claim-errors-section" data-claimid="<?php echo attr((string) $objectId); ?>" data-loaded="0">
+                                    <div class="mt-3 claim-errors-section" data-claimid="<?php echo attr($objectId); ?>" data-loaded="0">
                                         <div class="detail-label"><?php echo xlt("Errors"); ?> (<?php echo text((string) $errorCount); ?>)</div>
                                         <div class="claim-errors-content">
                                             <span class="text-muted small"><i class="fa fa-spinner fa-spin"></i> <?php echo xlt("Loading errors..."); ?></span>
