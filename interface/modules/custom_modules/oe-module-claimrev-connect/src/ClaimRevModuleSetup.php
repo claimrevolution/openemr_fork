@@ -46,7 +46,7 @@ class ClaimRevModuleSetup
      * - ISA15: P (Production)
      * - Processing format: standard
      */
-    public static function createPartnerRecord(string $idNumber = '', string $senderId = '')
+    public static function createPartnerRecord(string $idNumber = '', string $senderId = ''): void
     {
         $x12Name = OEGlobalsBag::getInstance()->get(GlobalConfig::CONFIG_X12_PARTNER_NAME) ?: 'ClaimRev';
 
@@ -175,7 +175,7 @@ class ClaimRevModuleSetup
      * Supports: CREATE/INSERT/ALTER/UPDATE/DELETE statements,
      * #IfNotRow, #IfNotColumnType, #IfNotTable, #EndIf directives.
      */
-    public static function runMigrations()
+    public static function runMigrations(): void
     {
         $modulePath = dirname(__DIR__);
         $fullname = $modulePath . '/table.sql';

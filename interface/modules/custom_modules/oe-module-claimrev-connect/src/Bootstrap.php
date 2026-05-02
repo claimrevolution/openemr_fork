@@ -135,10 +135,10 @@ class Bootstrap
                 $section,
                 $key,
                 new GlobalSetting(
-                    text(xl($config['title'])),
+                    text($config['title']),
                     $config['type'],
                     $value,
-                    text(xl($config['description'])),
+                    text($config['description']),
                     true
                 )
             );

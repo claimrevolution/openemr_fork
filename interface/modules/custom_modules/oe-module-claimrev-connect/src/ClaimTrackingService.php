@@ -479,7 +479,7 @@ class ClaimTrackingService
             $model->pagingSearch->pageIndex = 0;
 
             $result = $api->searchClaims($model);
-            $rawClaims = is_array($result) ? ($result['results'] ?? []) : [];
+            $rawClaims = $result['results'] ?? [];
             $claims = is_array($rawClaims) ? $rawClaims : [];
         } catch (ClaimRevException) {
             return ['success' => false, 'message' => 'Failed to connect to ClaimRev', 'statusData' => []];
@@ -618,7 +618,7 @@ class ClaimTrackingService
             $model->pagingSearch->pageIndex = 0;
 
             $result = $api->searchClaims($model);
-            $rawClaims = is_array($result) ? ($result['results'] ?? []) : [];
+            $rawClaims = $result['results'] ?? [];
             $crClaims = is_array($rawClaims) ? $rawClaims : [];
         } catch (ClaimRevException) {
             $summary['errors'] = count($pcns);
