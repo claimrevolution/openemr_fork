@@ -44,7 +44,7 @@ $str = static function (object $o, string $prop): string {
         <?php if ($confidenceScore !== null && $confidenceScore !== '' && $confidenceScore !== 0) { ?>
             <div class="row mb-1">
                 <div class="col-3 font-weight-bold"><?php echo xlt("Confidence Score"); ?>:</div>
-                <div class="col"><?php echo text((string) $confidenceScore); ?></div>
+                <div class="col"><?php echo text(\OpenEMR\Modules\ClaimRevConnector\TypeCoerce::asString($confidenceScore)); ?></div>
             </div>
         <?php } ?>
 

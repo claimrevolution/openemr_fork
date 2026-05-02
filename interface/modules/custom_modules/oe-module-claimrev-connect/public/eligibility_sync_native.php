@@ -44,7 +44,7 @@ if ($pid === '' || $payerResponsibility === '') {
 }
 
 $record = EligibilityData::getRaw271($pid, $payerResponsibility);
-if ($record === null || ($record['raw271'] ?? '') === '') {
+if ($record === null || $record['raw271'] === '') {
     echo json_encode(['success' => false, 'message' => 'No raw 271 data available for this eligibility check']);
     exit;
 }

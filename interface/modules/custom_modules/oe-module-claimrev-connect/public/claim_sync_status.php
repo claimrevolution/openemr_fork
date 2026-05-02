@@ -18,6 +18,7 @@ use OpenEMR\Common\Acl\AclMain;
 use OpenEMR\Modules\ClaimRevConnector\ClaimStatusSyncService;
 use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
 use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
+use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
 
 header('Content-Type: application/json');
 
@@ -34,13 +35,22 @@ if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token'), 'claims'
 }
 
 $claimDataJson = ModuleInput::postString('claimData');
-$claimData = json_decode($claimDataJson, true);
+$decoded = json_decode($claimDataJson, true);
 
-if (!is_array($claimData)) {
+if (!is_array($decoded)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid claim data']);
     exit;
 }
+
+$claimData = [
+    'patientControlNumber' => TypeCoerce::asString($decoded['patientControlNumber'] ?? ''),
+    'statusId' => TypeCoerce::asInt($decoded['statusId'] ?? 0),
+    'statusName' => TypeCoerce::asString($decoded['statusName'] ?? ''),
+    'payerAcceptanceStatusId' => TypeCoerce::asInt($decoded['payerAcceptanceStatusId'] ?? 0),
+    'payerAcceptanceStatusName' => TypeCoerce::asString($decoded['payerAcceptanceStatusName'] ?? ''),
+    'errorMessage' => TypeCoerce::asString($decoded['errorMessage'] ?? ''),
+];
 
 $result = ClaimStatusSyncService::syncStatus($claimData);
 echo json_encode($result);
