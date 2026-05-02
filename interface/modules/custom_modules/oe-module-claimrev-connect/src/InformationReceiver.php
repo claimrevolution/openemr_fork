@@ -16,19 +16,19 @@ declare(strict_types=1);
 
 class InformationReceiver
 {
-    public $receiverType;//
-    public $groupName;
-    public $firstName;//
-    public $lastName;//
-    public $middleName;//
-    public $suffix;
-    public $address1;//
-    public $address2;//
-    public $city;//
-    public $state;//
-    public $zip;//
-    public $providerNpi;//
-    public $signature;
+    public ?string $receiverType = null;
+    public ?string $groupName = null;
+    public ?string $firstName = null;
+    public ?string $lastName = null;
+    public ?string $middleName = null;
+    public ?string $suffix = null;
+    public ?string $address1 = null;
+    public ?string $address2 = null;
+    public ?string $city = null;
+    public ?string $state = null;
+    public ?string $zip = null;
+    public ?string $providerNpi = null;
+    public ?string $signature = null;
 
     public function __construct()
     {
