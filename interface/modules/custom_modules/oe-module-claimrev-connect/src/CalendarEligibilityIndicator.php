@@ -38,7 +38,14 @@ class CalendarEligibilityIndicator
         // Collect all unique PIDs from the calendar events
         $pids = [];
         foreach (array_keys($eventsByDay) as $key) {
-            foreach ($eventsByDay[$key] as $calEvent) {
+            $events = $eventsByDay[$key];
+            if (!is_array($events)) {
+                continue;
+            }
+            foreach ($events as $calEvent) {
+                if (!is_array($calEvent)) {
+                    continue;
+                }
                 $pid = TypeCoerce::asInt($calEvent['pid'] ?? 0);
                 if ($pid !== 0) {
                     $pids[$pid] = true;
@@ -55,9 +62,16 @@ class CalendarEligibilityIndicator
 
         // Apply eventViewClass to each calendar event
         foreach (array_keys($eventsByDay) as $key) {
+            if (!is_array($eventsByDay[$key])) {
+                continue;
+            }
             $eventCount = count($eventsByDay[$key]);
             for ($i = 0; $i < $eventCount; $i++) {
-                $pid = TypeCoerce::asInt($eventsByDay[$key][$i]['pid'] ?? 0);
+                $calEvent = $eventsByDay[$key][$i] ?? null;
+                if (!is_array($calEvent)) {
+                    continue;
+                }
+                $pid = TypeCoerce::asInt($calEvent['pid'] ?? 0);
                 if ($pid === 0) {
                     continue;
                 }
@@ -67,7 +81,7 @@ class CalendarEligibilityIndicator
                     continue;
                 }
 
-                $existingClass = TypeCoerce::asString($eventsByDay[$key][$i]['eventViewClass'] ?? '');
+                $existingClass = TypeCoerce::asString($calEvent['eventViewClass'] ?? '');
                 $eventsByDay[$key][$i]['eventViewClass'] = trim($existingClass . ' ' . $eligClass);
             }
         }
@@ -121,6 +135,8 @@ class CalendarEligibilityIndicator
 
     /**
      * Determine the CSS class for a patient's eligibility record.
+     *
+     * @param array{status: ?string, individual_json: ?string, last_date: ?string}|null $eligRecord
      */
     private function determineEligClass(?array $eligRecord): string
     {
@@ -141,11 +157,14 @@ class CalendarEligibilityIndicator
         }
 
         // Check for staleness
-        $lastDate = is_string($eligRecord['last_date'] ?? null) ? $eligRecord['last_date'] : '';
-        if ($lastDate !== '') {
-            $daysSinceCheck = (int) ((time() - strtotime($lastDate)) / 86400);
-            if ($daysSinceCheck >= $this->staleAgeDays) {
-                return 'event_elig_stale';
+        $lastDate = $eligRecord['last_date'] ?? '';
+        if ($lastDate !== null && $lastDate !== '') {
+            $ts = strtotime($lastDate);
+            if ($ts !== false) {
+                $daysSinceCheck = (int) ((time() - $ts) / 86400);
+                if ($daysSinceCheck >= $this->staleAgeDays) {
+                    return 'event_elig_stale';
+                }
             }
         }
 
@@ -154,7 +173,7 @@ class CalendarEligibilityIndicator
             $individualJson = $eligRecord['individual_json'] ?? null;
             if ($individualJson !== null) {
                 $summaries = AppointmentsPage::getEligibilitySummary($individualJson);
-                if ($summaries !== null && count($summaries) > 0) {
+                if ($summaries !== null && $summaries !== []) {
                     if ($summaries[0]->status === 'Active Coverage') {
                         return 'event_elig_active';
                     }
