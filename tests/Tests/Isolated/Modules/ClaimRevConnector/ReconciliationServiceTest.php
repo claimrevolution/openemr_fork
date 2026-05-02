@@ -39,10 +39,6 @@ namespace OpenEMR\Tests\Isolated\Modules\ClaimRevConnector;
 use OpenEMR\Modules\ClaimRevConnector\ReconciliationService;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @phpstan-import-type ReconcileRow from ReconciliationService
- */
-
 require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-module-claimrev-connect/src/TypeCoerce.php';
 // ReconciliationService imports ClaimRevApi/ClaimSearchModel/etc., but those
 // are only used in reconcile() / lookupClaimRev() — computeDiscrepancy() is
@@ -50,6 +46,9 @@ require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-modu
 require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ClaimRevException.php';
 require_once __DIR__ . '/../../../../../interface/modules/custom_modules/oe-module-claimrev-connect/src/ReconciliationService.php';
 
+/**
+ * @phpstan-import-type ReconcileRow from ReconciliationService
+ */
 class ReconciliationServiceTest extends TestCase
 {
     /**

@@ -57,9 +57,10 @@ class ConnectivityInfo
             $api = ClaimRevApi::makeFromGlobals();
             $this->hasToken = $api->canConnect();
             $account = $api->getDefaultAccount();
-            $this->defaultAccount = is_array($account) && isset($account['value']) && is_string($account['value'])
-                ? $account['value']
-                : json_encode($account, JSON_THROW_ON_ERROR);
+            $accountValue = $account['value'] ?? null;
+            $this->defaultAccount = is_string($accountValue)
+                ? $accountValue
+                : (string) json_encode($account, JSON_THROW_ON_ERROR);
         } catch (ClaimRevAuthenticationException) {
             $this->hasToken = false;
             $this->defaultAccount = '';

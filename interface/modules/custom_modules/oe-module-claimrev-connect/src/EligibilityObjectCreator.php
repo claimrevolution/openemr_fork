@@ -73,7 +73,7 @@ class EligibilityObjectCreator
         }
 
         //only 1 will come back here
-        $patientData = EligibilityData::getPatientData($pid);
+        $patientData = EligibilityData::getPatientData((int) $pid);
 
         if ($patientData != null) {
             if ($facilityId == null) {

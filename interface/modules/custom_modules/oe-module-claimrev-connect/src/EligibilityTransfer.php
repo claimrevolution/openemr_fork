@@ -176,7 +176,9 @@ class EligibilityTransfer extends BaseService
         if ($eid === null) {
             return ['success' => false, 'message' => 'Failed to create eligibility request'];
         }
-        $eid = is_int($eid) || is_string($eid) ? $eid : (string) $eid;
+        if (!is_int($eid) && !is_string($eid)) {
+            $eid = TypeCoerce::asString($eid);
+        }
 
         // Send immediately via the API
         $req = $requestObjects[0];

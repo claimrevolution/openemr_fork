@@ -158,7 +158,7 @@ class CalendarEligibilityIndicator
 
         // Check for staleness
         $lastDate = $eligRecord['last_date'] ?? '';
-        if ($lastDate !== null && $lastDate !== '') {
+        if ($lastDate !== '') {
             $ts = strtotime($lastDate);
             if ($ts !== false) {
                 $daysSinceCheck = (int) ((time() - $ts) / 86400);

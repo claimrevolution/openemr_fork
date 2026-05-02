@@ -307,7 +307,7 @@ class ReconciliationService
         $model->pagingSearch->pageIndex = 0;
 
         $result = $api->searchClaims($model);
-        $results = is_array($result) ? ($result['results'] ?? []) : [];
+        $results = $result['results'] ?? [];
         if (!is_array($results)) {
             return [];
         }
