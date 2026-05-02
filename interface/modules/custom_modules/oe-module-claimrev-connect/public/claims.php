@@ -285,16 +285,17 @@ $searchFilters = [
             $sortIdx = intval($rawIdx === false ? 0 : $rawIdx);
             $currentSort = $validSortFields[$sortIdx];
             $currentDir = $sortDirectionRaw === 'desc' ? 'desc' : 'asc';
-            // Helper to render sort indicator
-            function sortIcon($field, $currentSort, $currentDir)
-            {
+            // Helper closure to render sort indicator (defined inside the
+            // template scope to capture $currentSort/$currentDir without
+            // creating a global function).
+            $sortIcon = static function (string $field) use ($currentSort, $currentDir): string {
                 if ($currentSort !== $field) {
                     return ' <i class="fa fa-sort text-muted"></i>';
                 }
                 return $currentDir === 'desc'
                     ? ' <i class="fa fa-sort-down"></i>'
                     : ' <i class="fa fa-sort-up"></i>';
-            }
+            };
             ?>
                 <div class="mt-3 mb-2 d-flex justify-content-between align-items-center">
                     <span><?php echo text((string) $totalRecords) . " " . xlt("total results"); ?></span>
@@ -310,11 +311,11 @@ $searchFilters = [
                 <thead class="thead-light">
                     <tr>
                         <th scope="col"><?php echo xlt("Status"); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo sortIcon('MainProperties.PatientLastName', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo sortIcon('PayerName', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.PatientLastName"><?php echo xlt("Patient"); ?><?php echo $sortIcon('MainProperties.PatientLastName'); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="PayerName"><?php echo xlt("Payer"); ?><?php echo $sortIcon('PayerName'); ?></th>
                         <th scope="col"><?php echo xlt("Provider"); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo sortIcon('MainProperties.StartServiceDate', $currentSort, $currentDir); ?></th>
-                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo sortIcon('ReceivedDate', $currentSort, $currentDir); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="MainProperties.StartServiceDate"><?php echo xlt("Service Date"); ?><?php echo $sortIcon('MainProperties.StartServiceDate'); ?></th>
+                        <th scope="col" class="sortable-header" data-sort="ReceivedDate"><?php echo xlt("Received"); ?><?php echo $sortIcon('ReceivedDate'); ?></th>
                         <th scope="col" class="text-right"><?php echo xlt("Billed"); ?></th>
                         <th scope="col" class="text-right"><?php echo xlt("Paid"); ?></th>
                         <th scope="col"><?php echo xlt("OE Status"); ?></th>
@@ -530,7 +531,7 @@ $searchFilters = [
                                             <i class="fa fa-redo"></i>
                                         </button>
                                     <?php } ?>
-                                    <?php if ($objectId !== '' && $editorRoute !== '') { ?>
+                                    <?php if ($objectId !== '') { ?>
                                         <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-outline-primary" title="<?php echo xla("Edit in Portal"); ?>">
                                             <i class="fa fa-external-link-alt"></i>
                                         </a>
@@ -601,7 +602,7 @@ $searchFilters = [
                                             </div>
                                         <?php } ?>
                                         <div class="mt-3">
-                                            <?php if ($objectId !== '' && $editorRoute !== '') { ?>
+                                            <?php if ($objectId !== '') { ?>
                                                 <a href="<?php echo attr($portalUrl . $editorRoute . $objectId); ?>" target="_blank" class="btn btn-sm btn-outline-primary">
                                                     <i class="fa fa-external-link-alt"></i> <?php echo xlt("Edit in Portal"); ?>
                                                 </a>

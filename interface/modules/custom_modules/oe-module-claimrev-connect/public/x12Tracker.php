@@ -19,6 +19,7 @@ declare(strict_types=1);
     use OpenEMR\Core\Header;
     use OpenEMR\Modules\ClaimRevConnector\CsrfHelper;
     use OpenEMR\Modules\ClaimRevConnector\ModuleInput;
+    use OpenEMR\Modules\ClaimRevConnector\TypeCoerce;
     use OpenEMR\Modules\ClaimRevConnector\X12TrackerPage;
 
     $tab = "x12";
@@ -99,8 +100,11 @@ if (ModuleInput::postExists('SubmitButton')) {
                         <tbody>
                         <?php
                         foreach ($datas as $data) {
-                            $status = (string) ($data['status'] ?? '');
-                            $rowId = (string) ($data['id'] ?? '');
+                            if (!is_array($data)) {
+                                continue;
+                            }
+                            $status = TypeCoerce::asString($data['status'] ?? '');
+                            $rowId = TypeCoerce::asString($data['id'] ?? '');
                             $isError = str_contains($status, 'error');
                             $badgeClass = 'badge-secondary';
                             if ($status === 'success') {
@@ -114,11 +118,11 @@ if (ModuleInput::postExists('SubmitButton')) {
                             }
                             ?>
                             <tr id="tracker-row-<?php echo attr($rowId); ?>">
-                                <td><?php echo text((string) ($data["x12_filename"] ?? '')); ?></td>
+                                <td><?php echo text(TypeCoerce::asString($data["x12_filename"] ?? '')); ?></td>
                                 <td><span id="status-badge-<?php echo attr($rowId); ?>" class="badge <?php echo attr($badgeClass); ?>"><?php echo text($status); ?></span></td>
-                                <td><?php echo text((string) ($data["messages"] ?? '')); ?></td>
-                                <td><?php echo text((string) ($data["created_at"] ?? '')); ?></td>
-                                <td><?php echo text((string) ($data["updated_at"] ?? '')); ?></td>
+                                <td><?php echo text(TypeCoerce::asString($data["messages"] ?? '')); ?></td>
+                                <td><?php echo text(TypeCoerce::asString($data["created_at"] ?? '')); ?></td>
+                                <td><?php echo text(TypeCoerce::asString($data["updated_at"] ?? '')); ?></td>
                                 <td>
                                     <?php if ($isError) { ?>
                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="retryFile(<?php echo attr_js($rowId); ?>)">
