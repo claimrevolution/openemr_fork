@@ -61,13 +61,11 @@ class CalendarEligibilityIndicator
         $eligMap = $this->loadEligibilityMap(array_keys($pids));
 
         // Apply eventViewClass to each calendar event
-        foreach (array_keys($eventsByDay) as $key) {
-            if (!is_array($eventsByDay[$key])) {
+        foreach ($eventsByDay as $key => $dayEvents) {
+            if (!is_array($dayEvents)) {
                 continue;
             }
-            $eventCount = count($eventsByDay[$key]);
-            for ($i = 0; $i < $eventCount; $i++) {
-                $calEvent = $eventsByDay[$key][$i] ?? null;
+            foreach ($dayEvents as $i => $calEvent) {
                 if (!is_array($calEvent)) {
                     continue;
                 }
@@ -82,8 +80,10 @@ class CalendarEligibilityIndicator
                 }
 
                 $existingClass = TypeCoerce::asString($calEvent['eventViewClass'] ?? '');
-                $eventsByDay[$key][$i]['eventViewClass'] = trim($existingClass . ' ' . $eligClass);
+                $calEvent['eventViewClass'] = trim($existingClass . ' ' . $eligClass);
+                $dayEvents[$i] = $calEvent;
             }
+            $eventsByDay[$key] = $dayEvents;
         }
 
         $event->setEventsByDays($eventsByDay);

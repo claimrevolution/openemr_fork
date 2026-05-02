@@ -135,10 +135,10 @@ class Bootstrap
                 $section,
                 $key,
                 new GlobalSetting(
-                    xlt($config['title']),
+                    text(xl($config['title'])),
                     $config['type'],
                     $value,
-                    xlt($config['description']),
+                    text(xl($config['description'])),
                     true
                 )
             );
@@ -159,9 +159,13 @@ class Bootstrap
             $this->eventDispatcher->addListener(AppointmentSetEvent::EVENT_HANDLE, $this->renderAppointmentSetEvent(...));
         }
     }
-    public function renderAppointmentSetEvent(AppointmentSetEvent $event)
+    public function renderAppointmentSetEvent(AppointmentSetEvent $event): void
     {
-        ClaimRevRteService::createEligibilityFromAppointment($event->eid);
+        $eid = $event->eid;
+        if (!is_int($eid) && !is_string($eid)) {
+            return;
+        }
+        ClaimRevRteService::createEligibilityFromAppointment($eid);
     }
 
     public function registerCalendarIndicators(): void
@@ -302,8 +306,10 @@ class Bootstrap
         $menuItem->global_req = [];
 
         foreach ($menu as $item) {
-            if (is_object($item) && property_exists($item, 'menu_id') && $item->menu_id == 'modimg') {
-                $item->children[] = $menuItem;
+            if (is_object($item) && property_exists($item, 'menu_id') && $item->menu_id == 'modimg' && property_exists($item, 'children') && is_array($item->children)) {
+                $children = $item->children;
+                $children[] = $menuItem;
+                $item->children = $children;
                 break;
             }
         }

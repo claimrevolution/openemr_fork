@@ -84,9 +84,6 @@ class EligibilitySweepService
 
             $count = 0;
             foreach ($rows as $row) {
-                if (!is_array($row)) {
-                    continue;
-                }
                 $pcEid = TypeCoerce::asString($row['pc_eid'] ?? '');
                 if ($pcEid === '') {
                     continue;
