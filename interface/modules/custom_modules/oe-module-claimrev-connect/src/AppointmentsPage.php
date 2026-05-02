@@ -169,10 +169,7 @@ class AppointmentsPage
 
         $insurance = EligibilityData::getInsuranceData($pid);
         foreach ($insurance as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-            $pr = TypeCoerce::asString($row['payer_responsibility'] ?? '');
+            $pr = $row['payer_responsibility'];
             $formattedPr = ValueMapping::mapPayerResponsibility($pr);
             EligibilityData::removeEligibilityCheck($pid, $formattedPr);
             $requestObjects = EligibilityObjectCreator::buildObject($pid, $pr, $eventDate !== '' ? $eventDate : null, $facilityId !== 0 ? $facilityId : null, $providerId !== 0 ? $providerId : null);

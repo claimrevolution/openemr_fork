@@ -34,10 +34,8 @@ class X12TrackerPage
 
         $out = [];
         foreach ($rows as $row) {
-            if (is_array($row)) {
-                /** @var array<string, mixed> $row */
-                $out[] = $row;
-            }
+            /** @var array<string, mixed> $row */
+            $out[] = $row;
         }
         return $out;
     }

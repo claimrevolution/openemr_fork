@@ -238,11 +238,8 @@ class ClaimTrackingService
 
         $out = [];
         foreach ($rows as $row) {
-            if (is_array($row)) {
-                /** @var array<string, mixed> $rowTyped */
-                $rowTyped = $row;
-                $out[] = $rowTyped;
-            }
+            /** @var array<string, mixed> $row */
+            $out[] = $row;
         }
         return $out;
     }

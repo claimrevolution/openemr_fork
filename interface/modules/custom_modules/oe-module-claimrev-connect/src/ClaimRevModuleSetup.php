@@ -220,7 +220,7 @@ class ClaimRevModuleSetup
                     'COLUMN_TYPE',
                     [$matches[1], $matches[2]]
                 );
-                $skipping = $columnType !== null && stripos((string) $columnType, $matches[3]) !== false;
+                $skipping = $columnType !== null && stripos(TypeCoerce::asString($columnType), $matches[3]) !== false;
                 continue;
             } elseif (preg_match('/^#(EndIf|Endif)/i', $line)) {
                 $skipping = false;
@@ -256,10 +256,8 @@ class ClaimRevModuleSetup
         );
         $out = [];
         foreach ($rows as $row) {
-            if (is_array($row)) {
-                /** @var array<string, mixed> $row */
-                $out[] = $row;
-            }
+            /** @var array<string, mixed> $row */
+            $out[] = $row;
         }
         return $out;
     }
