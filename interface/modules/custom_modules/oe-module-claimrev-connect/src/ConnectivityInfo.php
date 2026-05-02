@@ -60,7 +60,7 @@ class ConnectivityInfo
             $accountValue = $account['value'] ?? null;
             $this->defaultAccount = is_string($accountValue)
                 ? $accountValue
-                : (string) json_encode($account, JSON_THROW_ON_ERROR);
+                : json_encode($account, JSON_THROW_ON_ERROR);
         } catch (ClaimRevAuthenticationException) {
             $this->hasToken = false;
             $this->defaultAccount = '';
