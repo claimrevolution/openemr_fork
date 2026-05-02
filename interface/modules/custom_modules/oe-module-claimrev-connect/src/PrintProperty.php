@@ -55,7 +55,7 @@ class PrintProperty
     }
 
     /**
-     * @param iterable<int, object>|null $validations
+     * @param iterable<mixed, mixed>|null $validations
      */
     public static function printValidation(string $title, ?iterable $validations): void
     {

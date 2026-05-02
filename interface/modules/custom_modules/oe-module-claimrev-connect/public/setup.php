@@ -90,7 +90,9 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                         </div>
                         <div class="card-body">
                             <?php
-                            $globalsConfig = new \OpenEMR\Modules\ClaimRevConnector\GlobalConfig($GLOBALS);
+                            /** @var array<string, mixed> $globalsForConfig */
+                            $globalsForConfig = $GLOBALS;
+                            $globalsConfig = new \OpenEMR\Modules\ClaimRevConnector\GlobalConfig($globalsForConfig);
                             if (ClaimRevModuleSetup::doesPartnerExists()) {
                                 echo "<span class='text-success'>" . xlt("It looks like your X12 partner record is setup.") . "</span>";
                             } elseif (!$globalsConfig->isConfigured()) {
@@ -179,8 +181,8 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                             foreach ($services as $service) {
                                 ?>
                                 <tr>
-                                    <td><?php echo text((string) ($service["name"] ?? '')); ?> - <?php echo text((string) ($service["title"] ?? '')); ?></td>
-                                    <td><?php echo text((string) ($service["active"] ?? '')); ?></td>
+                                    <td><?php echo text(TypeCoerce::asString($service["name"] ?? '')); ?> - <?php echo text(TypeCoerce::asString($service["title"] ?? '')); ?></td>
+                                    <td><?php echo text(TypeCoerce::asString($service["active"] ?? '')); ?></td>
                                     <td>
                                         <?php if (TypeCoerce::asInt($service["running"] ?? 0) === 1) { ?>
                                             <span class="text-danger font-weight-bold"><?php echo text(TypeCoerce::asString($service["running"])); ?></span>
@@ -188,10 +190,10 @@ $services = ClaimRevModuleSetup::getBackgroundServices();
                                             <?php echo text(TypeCoerce::asString($service["running"] ?? '')); ?>
                                         <?php } ?>
                                     </td>
-                                    <td><?php echo text((string) ($service["next_run"] ?? '')); ?></td>
-                                    <td><?php echo text((string) ($service["execute_interval"] ?? '')); ?></td>
-                                    <td><?php echo text((string) ($service["function"] ?? '')); ?></td>
-                                    <td><small><?php echo text((string) ($service["require_once"] ?? '')); ?></small></td>
+                                    <td><?php echo text(TypeCoerce::asString($service["next_run"] ?? '')); ?></td>
+                                    <td><?php echo text(TypeCoerce::asString($service["execute_interval"] ?? '')); ?></td>
+                                    <td><?php echo text(TypeCoerce::asString($service["function"] ?? '')); ?></td>
+                                    <td><small><?php echo text(TypeCoerce::asString($service["require_once"] ?? '')); ?></small></td>
                                 </tr>
                                 <?php
                             }

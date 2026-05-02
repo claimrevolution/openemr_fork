@@ -42,7 +42,7 @@ class ModuleManagerListener extends AbstractModuleActionListener
      */
     public function moduleManagerAction($methodName, $modId, string $currentActionStatus = 'Success'): string
     {
-        if (is_string($methodName) && method_exists(self::class, $methodName)) {
+        if (method_exists(self::class, $methodName)) {
             $result = self::$methodName($modId, $currentActionStatus);
             return is_string($result) ? $result : $currentActionStatus;
         }
