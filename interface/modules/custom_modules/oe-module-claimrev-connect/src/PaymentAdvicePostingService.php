@@ -33,15 +33,15 @@ class PaymentAdvicePostingService
     /**
      * Map of X12 835 claim status codes (CLP02) to display labels.
      *
-     * @var array<string, string>
+     * @var array<int, string>
      */
     public const CLAIM_STATUS_LABELS = [
-        '1' => 'Processed as Primary',
-        '2' => 'Processed as Secondary',
-        '3' => 'Processed as Tertiary',
-        '4' => 'Denied',
-        '5' => 'Pended',
-        '22' => 'Reversal of Previous Payment',
+        1 => 'Processed as Primary',
+        2 => 'Processed as Secondary',
+        3 => 'Processed as Tertiary',
+        4 => 'Denied',
+        5 => 'Pended',
+        22 => 'Reversal of Previous Payment',
     ];
 
     /**
@@ -88,7 +88,9 @@ class PaymentAdvicePostingService
      */
     public static function getClaimStatusLabel(string $code): string
     {
-        return self::CLAIM_STATUS_LABELS[$code] ?? $code;
+        return is_numeric($code)
+            ? (self::CLAIM_STATUS_LABELS[(int) $code] ?? $code)
+            : $code;
     }
 
     /**
@@ -154,10 +156,11 @@ class PaymentAdvicePostingService
         );
 
         if ($row !== null) {
+            $sessionIdInt = TypeCoerce::asInt($row);
             return [
                 'posted' => true,
-                'session_id' => (int) $row,
-                'details' => 'Payment session already exists (session_id: ' . $row . ')',
+                'session_id' => $sessionIdInt,
+                'details' => 'Payment session already exists (session_id: ' . $sessionIdInt . ')',
             ];
         }
 
@@ -171,7 +174,7 @@ class PaymentAdvicePostingService
                 [$pid, $encounter, '%' . $reference]
             );
 
-            if ((int) $count > 0) {
+            if (TypeCoerce::asInt($count) > 0) {
                 return [
                     'posted' => true,
                     'session_id' => null,
@@ -616,6 +619,7 @@ class PaymentAdvicePostingService
 
             // Post payment for this service line
             if ($svc['paid'] != 0.0) {
+                // @phpstan-ignore staticMethod.deprecated
                 SLEOB::arPostPayment(
                     patient_id: (string) $pid,
                     encounter_id: (string) $encounter,
@@ -646,6 +650,7 @@ class PaymentAdvicePostingService
 
                     $reason .= sprintf("%.2f", $adj['amount']);
 
+                    // @phpstan-ignore staticMethod.deprecated
                     SLEOB::arPostAdjustment(
                         patient_id: (string) $pid,
                         encounter_id: (string) $encounter,
@@ -657,6 +662,7 @@ class PaymentAdvicePostingService
                         codetype: $codetype,
                     );
                 } elseif ($adj['amount'] != 0.0) {
+                    // @phpstan-ignore staticMethod.deprecated
                     SLEOB::arPostAdjustment(
                         patient_id: (string) $pid,
                         encounter_id: (string) $encounter,
