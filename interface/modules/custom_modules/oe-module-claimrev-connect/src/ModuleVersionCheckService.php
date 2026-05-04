@@ -117,7 +117,7 @@ class ModuleVersionCheckService
                 "FROM mod_claimrev_version_check WHERE id = 1",
                 []
             );
-        } catch (\Throwable $e) {
+        } catch (\Throwable) {
             return null;
         }
         if (!is_array($row) || $row === []) {
