@@ -167,7 +167,11 @@ class EligibilityObjectCreator
      */
     public static function saveSingleToDatabase(RevenueToolsRequest $req, int|string $pid): void
     {
-        $stale_age = OEGlobalsBag::getInstance()->getInt('oe_claimrev_eligibility_results_age');
+        // Symfony ParameterBag::getInt() throws on non-numeric values (incl. empty
+        // string), and the global comes from a config screen that defaults to ''.
+        // Read as string and coerce so an unset value falls back to 0.
+        $stale_age_raw = OEGlobalsBag::getInstance()->getString('oe_claimrev_eligibility_results_age', '0');
+        $stale_age = is_numeric($stale_age_raw) ? (int) $stale_age_raw : 0;
 
         // If the existing record is too old or in a non-terminal state, drop
         // it so the new one can take over.  We don't care about successful
