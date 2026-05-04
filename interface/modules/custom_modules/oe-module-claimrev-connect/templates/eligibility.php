@@ -234,7 +234,7 @@ foreach ($insurance as $row) {
 
                 <?php
                 // === Eligibility Tab (Product 1) ===
-                if ($hasEligibility && is_object($individual)) {
+                if ($hasEligibility) {
                     $results = $individual->eligibility;
                     $index = 0;
                     ?>

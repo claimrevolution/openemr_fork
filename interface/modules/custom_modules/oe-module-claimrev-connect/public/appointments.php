@@ -32,7 +32,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 $csrfToken = CsrfHelper::collectCsrfToken('eligibility');
 
 // Handle bulk eligibility queue (Run & Go) — read raw $_POST['eids'] array via filter_input_array.
-$bulkEids = filter_input(INPUT_POST, 'eids', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY);
+$bulkEids = filter_input(INPUT_POST, 'eids', FILTER_UNSAFE_RAW, FILTER_REQUIRE_ARRAY);
 if (ModuleInput::postExists('runBulkEligibility') && is_array($bulkEids)) {
     foreach ($bulkEids as $eid) {
         if (is_string($eid) && $eid !== '') {
