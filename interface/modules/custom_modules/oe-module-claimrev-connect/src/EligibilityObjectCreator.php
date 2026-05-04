@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
-use OpenEMR\BC\Utilities;
 use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Core\OEGlobalsBag;
 use OpenEMR\Modules\ClaimRevConnector\EligibilityData;
@@ -150,7 +149,8 @@ class EligibilityObjectCreator
             $revenueTools->subscriberFirstName = TypeCoerce::asString($subscriberRow['subscriber_fname'] ?? '');
             $revenueTools->subscriberLastName = TypeCoerce::asString($subscriberRow['subscriber_lname'] ?? '');
             $subscriberDob = TypeCoerce::asString($subscriberRow['subscriber_dob'] ?? '');
-            if (!Utilities::isDateEmpty($subscriberDob)) {
+            // OE8's BC\Utilities::isDateEmpty inlined — class doesn't exist on OE7.
+            if ($subscriberDob !== '' && !str_starts_with($subscriberDob, '0000-00-00') && $subscriberDob !== '00/00/0000' && $subscriberDob !== '00-00-0000') {
                 $revenueTools->subscriberDob = $subscriberDob;
             }
 
