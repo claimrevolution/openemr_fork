@@ -37,7 +37,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use OpenEMR\BC\ServiceContainer;
 use OpenEMR\Common\Database\QueryUtils;
-use OpenEMR\Common\Exceptions\SqlQueryException;
+use OpenEMR\Common\Database\SqlQueryException;
 use OpenEMR\Modules\ClaimRevConnector\Dto\ModuleVersionCheckResult;
 
 class ModuleVersionCheckService
