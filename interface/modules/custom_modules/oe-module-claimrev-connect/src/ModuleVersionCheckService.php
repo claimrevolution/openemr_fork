@@ -107,11 +107,18 @@ class ModuleVersionCheckService
      */
     private static function loadCachedRow(): ?array
     {
-        $row = QueryUtils::querySingleRow(
-            "SELECT install_id, last_checked_at, current_version, is_current, " .
-            "is_supported, message, severity, download_url, disabled, disable_reason " .
-            "FROM mod_claimrev_version_check WHERE id = 1"
-        );
+        // Best-effort: if the table doesn't exist (upgrade not yet run) or
+        // the DB is otherwise unhappy, treat it as "no cached result" rather
+        // than letting the dashboard or claim-send path crash.
+        try {
+            $row = QueryUtils::querySingleRow(
+                "SELECT install_id, last_checked_at, current_version, is_current, " .
+                "is_supported, message, severity, download_url, disabled, disable_reason " .
+                "FROM mod_claimrev_version_check WHERE id = 1"
+            );
+        } catch (\Throwable $e) {
+            return null;
+        }
         if (!is_array($row) || $row === []) {
             return null;
         }
@@ -225,6 +232,17 @@ class ModuleVersionCheckService
     }
 
     private static function persist(string $installId, ModuleVersionCheckResult $r): void
+    {
+        // Best-effort write: if the table doesn't exist, swallow the error
+        // rather than propagate it up into claim send / eligibility flows.
+        try {
+            self::persistOrThrow($installId, $r);
+        } catch (\Throwable $e) {
+            ServiceContainer::getLogger()->debug('ClaimRev version check persist failed', ['exception' => $e]);
+        }
+    }
+
+    private static function persistOrThrow(string $installId, ModuleVersionCheckResult $r): void
     {
         QueryUtils::sqlStatementThrowException(
             "INSERT INTO mod_claimrev_version_check " .
