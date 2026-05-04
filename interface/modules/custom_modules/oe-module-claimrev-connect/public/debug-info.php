@@ -38,7 +38,7 @@ if (!AclMain::aclCheckCore('acct', 'bill')) {
 $forceCheckResult = null;
 $forceCheckRan = false;
 $forceCheckFailed = false;
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ModuleInput::postString('action') === 'check_version') {
+if (ModuleInput::isPostRequest() && ModuleInput::postString('action') === 'check_version') {
     if (!CsrfHelper::verifyCsrfToken(ModuleInput::postString('csrf_token_form'), 'ClaimRevModule')) {
         CsrfUtils::csrfNotVerified();
     }
