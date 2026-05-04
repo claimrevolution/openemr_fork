@@ -193,7 +193,7 @@ class ClaimTrackingService
              $statusCode, $statusDescription, $detailText, $amount, $createdBy]
         );
 
-        $row = QueryUtils::querySingleRow("SELECT LAST_INSERT_ID() AS id");
+        $row = QueryUtils::querySingleRow("SELECT LAST_INSERT_ID() AS id", []);
         return TypeCoerce::asInt($row['id'] ?? 0);
     }
 
