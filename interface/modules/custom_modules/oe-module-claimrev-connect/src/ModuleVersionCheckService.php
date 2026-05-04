@@ -114,7 +114,8 @@ class ModuleVersionCheckService
             $row = QueryUtils::querySingleRow(
                 "SELECT install_id, last_checked_at, current_version, is_current, " .
                 "is_supported, message, severity, download_url, disabled, disable_reason " .
-                "FROM mod_claimrev_version_check WHERE id = 1"
+                "FROM mod_claimrev_version_check WHERE id = 1",
+                []
             );
         } catch (\Throwable $e) {
             return null;
