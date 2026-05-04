@@ -237,7 +237,7 @@ class ClaimRevModuleSetup
             if (preg_match('/;\s*$/', $query)) {
                 $query = rtrim($query, "; \t\n\r");
                 if (trim($query) !== '') {
-                    QueryUtils::sqlStatementThrowException($query);
+                    QueryUtils::sqlStatementThrowException($query, []);
                 }
                 $query = '';
             }
