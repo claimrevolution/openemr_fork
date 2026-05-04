@@ -37,6 +37,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use OpenEMR\BC\ServiceContainer;
 use OpenEMR\Common\Database\QueryUtils;
+use OpenEMR\Common\Exceptions\SqlQueryException;
 use OpenEMR\Modules\ClaimRevConnector\Dto\ModuleVersionCheckResult;
 
 class ModuleVersionCheckService
@@ -117,7 +118,7 @@ class ModuleVersionCheckService
                 "FROM mod_claimrev_version_check WHERE id = 1",
                 []
             );
-        } catch (\Throwable) {
+        } catch (SqlQueryException) {
             return null;
         }
         if (!is_array($row) || $row === []) {
@@ -238,7 +239,7 @@ class ModuleVersionCheckService
         // rather than propagate it up into claim send / eligibility flows.
         try {
             self::persistOrThrow($installId, $r);
-        } catch (\Throwable $e) {
+        } catch (SqlQueryException $e) {
             ServiceContainer::getLogger()->debug('ClaimRev version check persist failed', ['exception' => $e]);
         }
     }
