@@ -16,11 +16,6 @@ declare(strict_types=1);
 
 namespace OpenEMR\Modules\ClaimRevConnector;
 
-if (!defined('OPENEMR_GLOBALS_LOADED')) {
-    http_response_code(404);
-    exit();
-}
-
 use OpenEMR\Billing\EDI270;
 use OpenEMR\Common\Database\QueryUtils;
 use OpenEMR\Core\OEGlobalsBag;
