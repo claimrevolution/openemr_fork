@@ -19,4 +19,5 @@ class RevenueToolsPayer
     public ?string $payerNumber = null;
     public ?string $payerName = null;
     public ?string $subscriberNumber = null;
+    public bool $isRevenueToolsPayerId = false;
 }
