@@ -1,5 +1,7 @@
 # 2.1.2
-Bug fix: send `serviceTypeCodes` as a JSON array (`List<string>`) instead of a comma-separated string. The ClaimRev API tightened request validation and started rejecting the old shape with HTTP 400, breaking Check Now eligibility requests. Empty configuration still asks for all benefits.
+Bug fixes:
+- Send `serviceTypeCodes` as a JSON array (`List<string>`) instead of a comma-separated string. The ClaimRev API tightened request validation and started rejecting the old shape with HTTP 400, breaking Check Now eligibility requests. Empty configuration still asks for all benefits.
+- Always emit `isRevenueToolsPayerId: false` on each payer in the eligibility request so the API can disambiguate ClaimRev-internal payer IDs from clearinghouse payer numbers.
 
 # 2.1.1
 Maintenance release: apply phpcbf style fixes, rector modernization, refresh PHPStan baseline, and refactor CSV downloads + migration helpers to avoid Semgrep XSS/SQLi false positives. No functional changes.
