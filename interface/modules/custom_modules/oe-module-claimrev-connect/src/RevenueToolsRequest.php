@@ -21,7 +21,8 @@ class RevenueToolsRequest
 
     // Defaults that may be set as global vars
     public ?string $accountNumber = null;
-    public ?string $serviceTypeCodes = null;
+    /** @var list<string>|null */
+    public ?array $serviceTypeCodes = null;
     public ?bool $includeCredit = null;
     /** @var list<int>|null */
     public ?array $productsToRun = null;

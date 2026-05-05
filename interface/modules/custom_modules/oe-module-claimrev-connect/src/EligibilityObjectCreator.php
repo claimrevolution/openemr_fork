@@ -47,7 +47,11 @@ class EligibilityObjectCreator
         $providerPinCode = "";
 
         $useFacility = OEGlobalsBag::getInstance()->getBoolean('oe_claimrev_config_use_facility_for_eligibility');
-        $serviceTypeCodes = OEGlobalsBag::getInstance()->getString('oe_claimrev_config_service_type_codes');
+        $serviceTypeCodesRaw = OEGlobalsBag::getInstance()->getString('oe_claimrev_config_service_type_codes');
+        $serviceTypeCodes = array_values(array_filter(
+            array_map('trim', explode(',', $serviceTypeCodesRaw)),
+            static fn(string $code): bool => $code !== '',
+        ));
         $accountNumber = "";
         if ($productsToRun === null || $productsToRun === []) {
             $productsToRun = [1];
@@ -59,7 +63,7 @@ class EligibilityObjectCreator
         $revenueTools->accountNumber = $accountNumber;
         $revenueTools->payerResponsibility = $pr;
         $revenueTools->includeCredit = false;
-        $revenueTools->serviceTypeCodes = $serviceTypeCodes;
+        $revenueTools->serviceTypeCodes = $serviceTypeCodes === [] ? null : $serviceTypeCodes;
         $revenueTools->productsToRun = $productsToRun;
 
 
