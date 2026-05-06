@@ -101,7 +101,7 @@ foreach ($insurance as $row) {
                             <div class="form-row align-items-center mb-2">
                                 <div class="col-auto">
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input cr-product-cb cr-exclusive" type="checkbox" name="product_1" id="product_1_<?php echo attr($row['payer_responsibility']); ?>" value="1" checked data-pr="<?php echo attr($row['payer_responsibility']); ?>" data-excludes="product_3">
+                                        <input class="form-check-input cr-product-cb cr-exclusive" type="checkbox" name="product_1" id="product_1_<?php echo attr($row['payer_responsibility']); ?>" value="1" checked data-pr="<?php echo attr($row['payer_responsibility']); ?>" data-excludes="product_3,product_5">
                                         <label class="form-check-label" for="product_1_<?php echo attr($row['payer_responsibility']); ?>"><?php echo xlt("Eligibility"); ?></label>
                                     </div>
                                     <div class="form-check form-check-inline">
@@ -114,7 +114,7 @@ foreach ($insurance as $row) {
                                         <label class="form-check-label" for="product_2_<?php echo attr($row['payer_responsibility']); ?>"><?php echo xlt("Demographics"); ?></label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input cr-product-cb" type="checkbox" name="product_5" id="product_5_<?php echo attr($row['payer_responsibility']); ?>" value="1">
+                                        <input class="form-check-input cr-product-cb cr-exclusive" type="checkbox" name="product_5" id="product_5_<?php echo attr($row['payer_responsibility']); ?>" value="1" data-pr="<?php echo attr($row['payer_responsibility']); ?>" data-excludes="product_1">
                                         <label class="form-check-label" for="product_5_<?php echo attr($row['payer_responsibility']); ?>"><?php echo xlt("MBI Finder"); ?></label>
                                     </div>
                                 </div>
@@ -514,17 +514,21 @@ function escapeHtmlSync(text) {
     return div.innerHTML;
 }
 
-// Mutual exclusivity: Eligibility and Coverage Discovery can't both be checked
+// Mutual exclusivity: Eligibility, Coverage Discovery, and MBI Finder cannot run together.
 document.querySelectorAll('.cr-exclusive').forEach(function(cb) {
     cb.addEventListener('change', function() {
-        if (this.checked) {
-            var excludes = this.dataset.excludes;
-            var pr = this.dataset.pr;
-            if (excludes && pr) {
-                var other = document.getElementById(excludes + '_' + pr);
-                if (other) other.checked = false;
-            }
+        if (!this.checked) {
+            return;
         }
+        var excludes = this.dataset.excludes;
+        var pr = this.dataset.pr;
+        if (!excludes || !pr) {
+            return;
+        }
+        excludes.split(',').forEach(function(name) {
+            var other = document.getElementById(name.trim() + '_' + pr);
+            if (other) other.checked = false;
+        });
     });
 });
 </script>
