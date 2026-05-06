@@ -49,7 +49,7 @@ class EligibilityObjectCreator
         $useFacility = OEGlobalsBag::getInstance()->getBoolean('oe_claimrev_config_use_facility_for_eligibility');
         $serviceTypeCodesRaw = OEGlobalsBag::getInstance()->getString('oe_claimrev_config_service_type_codes');
         $serviceTypeCodes = array_values(array_filter(
-            array_map('trim', explode(',', $serviceTypeCodesRaw)),
+            array_map(trim(...), explode(',', $serviceTypeCodesRaw)),
             static fn(string $code): bool => $code !== '',
         ));
         $accountNumber = "";
