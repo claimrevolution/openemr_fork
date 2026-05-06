@@ -235,83 +235,27 @@ foreach ($insurance as $row) {
                 <?php
                 // === Eligibility Tab (Product 1) ===
                 if ($hasEligibility) {
-                    $results = $individual->eligibility;
-                    $index = 0;
                     ?>
                             <div id="product-elig-<?php echo $prKey; ?>" class="tab-pane active">
-                    <?php foreach ($results as $result) {
-                                $index++;
-                                $eligibilityData = $result;
-                                $benefits = null;
-                                $subscriberPatient = null;
-                                $data = null;
-                        if (is_object($eligibilityData) && property_exists($eligibilityData, 'mapped271')) {
-                            $data = $eligibilityData->mapped271;
-                        }
-
-                        if (is_object($data) && property_exists($data, 'dependent')) {
-                            $dependent = $data->dependent;
-                            if (is_object($dependent) && property_exists($dependent, 'benefits')) {
-                                $benefits = $dependent->benefits;
-                                $subscriberPatient = $dependent;
-                            }
-                        }
-
-                        if (is_object($data) && property_exists($data, 'subscriber')) {
-                            $subscriber = $data->subscriber;
-                            if (is_object($subscriber) && property_exists($subscriber, 'benefits')) {
-                                $benefits = $subscriber->benefits;
-                                $subscriberPatient = $subscriber;
-                            }
-                        }
-                        ?>
-                                <ul class="nav nav-tabs nav-tabs-sm mb-2 mt-2">
-                                    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#elig-quick-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Quick Info"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-deductibles-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Deductibles"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-benefits-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Benefits"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-medicare-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Medicare"); ?></a></li>
-                                    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#elig-validations-<?php echo $prKey . '-' . attr((string) $index); ?>"><?php echo xlt("Validations"); ?></a></li>
-                                </ul>
-                                <div class="tab-content">
-                                    <div id="elig-quick-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane active">
-                                        <?php include $path . '/quick_info.php'; ?>
-                                    </div>
-                                    <div id="elig-deductibles-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
-                                        <?php include $path . '/deductibles.php'; ?>
-                                    </div>
-                                    <div id="elig-benefits-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
-                                        <?php
-                                        if (is_object($data)) {
-                                            $source = property_exists($data, 'informationSourceName') ? $data->informationSourceName : '';
-                                            include $path . '/source.php';
-                                            $receiver = property_exists($data, 'receiver') ? $data->receiver : null;
-                                            include $path . '/receiver.php';
-                                        }
-                                        if ($benefits != null) {
-                                            include $path . '/subscriber_patient.php';
-                                            include $path . '/benefit.php';
-                                        }
-                                        ?>
-                                    </div>
-                                    <div id="elig-medicare-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
-                                        <?php include $path . '/medicare_info.php'; ?>
-                                    </div>
-                                    <div id="elig-validations-<?php echo $prKey . '-' . attr((string) $index); ?>" class="tab-pane">
-                                        <?php include $path . '/validation.php'; ?>
-                                    </div>
-                                </div>
-                            <?php } //end foreach eligibility ?>
+                                <?php
+                                $results = $individual->eligibility;
+                                $tabPrefix = 'elig';
+                                include $path . '/eligibility_result_block.php';
+                                ?>
                             </div>
                         <?php } //end if eligibility ?>
 
                         <?php
                         // === Coverage Discovery Tab (Product 3) ===
+                        // CoverageDiscovery returns the same SharpRevenueEligibilityResponse
+                        // shape as Eligibility, so reuse the result-block template.
                         if ($hasCoverageDiscovery) {
                             ?>
                             <div id="product-coverage-<?php echo $prKey; ?>" class="tab-pane <?php echo !$hasEligibility ? 'active' : ''; ?>">
                                 <?php if ($hasCoverageDiscoveryResults && is_object($individual) && property_exists($individual, 'coverageDiscovery')) {
-                                    $coverageResults = $individual->coverageDiscovery;
-                                    include $path . '/coverage_discovery_results.php';
+                                    $results = $individual->coverageDiscovery;
+                                    $tabPrefix = 'cd';
+                                    include $path . '/eligibility_result_block.php';
                                 } elseif (strtolower($insuranceFinderStatus) === 'complete') { ?>
                                     <div class="text-center py-5">
                                         <i class="fa fa-search fa-3x text-muted mb-3" style="opacity:0.4"></i>
