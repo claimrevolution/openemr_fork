@@ -143,14 +143,13 @@ class EligibilityObjectCreator
     ): array {
         $results = [];
         $resultSubscribers = EligibilityData::getSubscriberData((int) $pid, $payer_responsibility);
+        // Null productsToRun defaults to eligibility (see buildRevenueToolsRequest).
+        $hasEligibility = $productsToRun === null || in_array(1, $productsToRun, true);
+        $hasMbiFinder = $productsToRun !== null && in_array(5, $productsToRun, true);
         foreach ($resultSubscribers as $subscriberRow) {
-            $payers = [];
             $pr = ValueMapping::mapPayerResponsibility(TypeCoerce::asString($subscriberRow['type'] ?? ''));
             $revenueTools = EligibilityObjectCreator::buildRevenueToolsRequest($pid, $pr, $eventDate, $providerId, $facilityId, $productsToRun);
-            $payer = new RevenueToolsPayer();
-            $payer->payerNumber = TypeCoerce::asString($subscriberRow['payerId'] ?? '');
-            $payer->payerName = TypeCoerce::asString($subscriberRow['payer_name'] ?? '');
-            $payer->subscriberNumber = TypeCoerce::asString($subscriberRow['policy_number'] ?? '');
+            $subscriberNumber = TypeCoerce::asString($subscriberRow['policy_number'] ?? '');
             $revenueTools->subscriberFirstName = TypeCoerce::asString($subscriberRow['subscriber_fname'] ?? '');
             $revenueTools->subscriberLastName = TypeCoerce::asString($subscriberRow['subscriber_lname'] ?? '');
             $subscriberDob = TypeCoerce::asString($subscriberRow['subscriber_dob'] ?? '');
@@ -158,8 +157,20 @@ class EligibilityObjectCreator
                 $revenueTools->subscriberDob = $subscriberDob;
             }
 
-            $payers[] = $payer;
-            $revenueTools->payers = $payers;
+            if ($hasEligibility) {
+                $payer = new RevenueToolsPayer();
+                $payer->payerNumber = TypeCoerce::asString($subscriberRow['payerId'] ?? '');
+                $payer->payerName = TypeCoerce::asString($subscriberRow['payer_name'] ?? '');
+                $payer->subscriberNumber = $subscriberNumber;
+                $revenueTools->payers = [$payer];
+            }
+
+            // MBI Finder reads the subscriber id from the top-level field; the
+            // payers array is intentionally omitted for non-eligibility products.
+            if ($hasMbiFinder) {
+                $revenueTools->subscriberId = $subscriberNumber;
+            }
+
             $results[] = $revenueTools;
         }
 
