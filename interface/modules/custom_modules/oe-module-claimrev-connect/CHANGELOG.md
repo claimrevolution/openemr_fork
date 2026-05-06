@@ -3,6 +3,7 @@ Bug fixes:
 - Send `serviceTypeCodes` as a JSON array (`List<string>`) instead of a comma-separated string. The ClaimRev API tightened request validation and started rejecting the old shape with HTTP 400, breaking Check Now eligibility requests. Empty configuration still asks for all benefits.
 - Always emit `isRevenueToolsPayerId: false` on each payer in the eligibility request so the API can disambiguate ClaimRev-internal payer IDs from clearinghouse payer numbers.
 - Make MBI Finder mutually exclusive with Eligibility (matches Coverage Discovery). Drop the `payers` array from the request when only non-eligibility products are selected, since the API ignores it for those products and the presence corrupts MBI Finder results. When MBI Finder is requested, copy the subscriber number to the top-level `subscriberId` field.
+- Render Coverage Discovery results with the full Quick Info / Deductibles / Benefits / Medicare / Validations layout used by Eligibility. The API returns the same `SharpRevenueEligibilityResponse` shape for both products, but the old Coverage Discovery view only showed the flat top-level coverage fields and dropped the nested `mapped271` data.
 
 # 2.1.1
 Maintenance release: apply phpcbf style fixes, rector modernization, refresh PHPStan baseline, and refactor CSV downloads + migration helpers to avoid Semgrep XSS/SQLi false positives. No functional changes.
