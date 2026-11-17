@@ -14,8 +14,6 @@ namespace OpenEMR\Modules\Dorn;
 
 use DateTime;
 use OpenEMR\Core\OEGlobalsBag;
-use OpenEMR\Modules\ClaimRevConnector\ClaimRevApi;
-use OpenEMR\Modules\ClaimRevConnector\ClaimRevAuthenticationException;
 use OpenEMR\Modules\Dorn\models\AckViewModel;
 use OpenEMR\Modules\Dorn\models\ApiResponseViewModel;
 use OpenEMR\Modules\Dorn\models\CompendiumInstallDateViewModel;
@@ -315,6 +313,26 @@ class ConnectorApi
         return $response;
     }
 
+    /**
+     * The DORN account the configured key signs in as, for the Setup tab's connection test.
+     *
+     * @return array{status: int, account: string} status 200 with the account, 401 when the API refuses
+     *     the token, 403 when the service user isn't linked to a DORN customer, 0 when unreachable
+     */
+    public static function getAccountNumber(): array
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, ConnectorApi::getServerInfo() . "/api/Customer/v1/GetAccountNumber");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ConnectorApi::buildHeader());
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        $httpcode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        // The API returns the account as plain text (or a JSON string).
+        $account = is_string($result) ? trim($result, " \t\n\r\0\x0B\"") : '';
+        return ['status' => $result === false ? 0 : $httpcode, 'account' => $httpcode === 200 ? $account : ''];
+    }
+
     public static function getServerInfo()
     {
         $bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
@@ -325,7 +343,13 @@ class ConnectorApi
 
     public static function buildHeader(): array
     {
-        $token = ConnectorApi::getAccessToken();
+        try {
+            $token = ConnectorApi::getAccessToken();
+        } catch (DornAuthenticationException $e) {
+            // The API then answers 401, which every caller already reports; the reason is in the log.
+            error_log('DORN sign-in failed: ' . $e->getMessage());
+            $token = '';
+        }
         $content = 'content-type: application/json';
         $bearer = 'authorization: Bearer ' . $token;
         $headers = [
@@ -335,47 +359,48 @@ class ConnectorApi
         return $headers;
     }
 
-
-    public static function canConnectToClaimRev(): bool
+    /**
+     * A ZITADEL access token for the DORN API: the cached one while it is still fresh, otherwise a new
+     * one from the JWT-bearer exchange with the module's service-user key (Setup tab).
+     *
+     * @throws DornAuthenticationException when no key is configured or ZITADEL refuses it
+     */
+    public static function getAccessToken(): string
     {
-        try {
-            ClaimRevApi::makeFromGlobals();
-            return true;
-        } catch (ClaimRevAuthenticationException) {
-            return false;
+        $cached = ZitadelKeyStore::getCachedToken();
+        if ($cached !== null) {
+            return $cached;
         }
-    }
 
-    public static function getAccessToken()
-    {
         $bootstrap = new Bootstrap(OEGlobalsBag::getInstance()->getKernel()->getEventDispatcher());
         $globalsConfig = $bootstrap->getGlobalConfig();
-        $authority = $globalsConfig->getClientAuthority();
-        $clientId = $globalsConfig->getClientId();
-        $scope = $globalsConfig->getClientScope();
-        $client_secret = $globalsConfig->getClientSecret();
-        $api_server = $globalsConfig->getApiServer();
-        $headers = [
-            'content-type: application/x-www-form-urlencoded'
-        ];
-        $payload = "client_id=" . $clientId . "&scope=" . $scope . "&client_secret=" . $client_secret . "&grant_type=client_credentials";
+        $authority = $globalsConfig->getZitadelAuthority();
+        $form = ZitadelAuth::tokenRequestForm(ZitadelKeyStore::getKeyFile(), $authority, $globalsConfig->getZitadelProjectId(), time());
+
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $authority);
+        curl_setopt($ch, CURLOPT_URL, ZitadelAuth::tokenEndpoint($authority));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($form));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['content-type: application/x-www-form-urlencoded']);
         $result = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+
         if ($result === false) {
-            error_log('cURL error: ' . curl_error($ch));
+            throw new DornAuthenticationException('Could not reach ZITADEL at ' . $authority . ': ' . $curlError);
         }
-        $data = json_decode($result);
-        $token = "";
-        if (property_exists($data, 'access_token')) {
-            $token = $data->access_token;
+        $data = json_decode((string) $result, true);
+        $token = is_array($data) ? ($data['access_token'] ?? null) : null;
+        if ($httpcode !== 200 || !is_string($token) || $token === '') {
+            // ZITADEL explains in error_description, e.g. a key from another instance (staging vs production).
+            $reason = is_array($data) ? (string) ($data['error_description'] ?? $data['error'] ?? '') : '';
+            throw new DornAuthenticationException("ZITADEL refused the DORN key (HTTP {$httpcode}) at {$authority}" . ($reason !== '' ? ": {$reason}" : '.'));
         }
 
+        // Machine-to-machine flows get no refresh token: cache this one for its lifetime and sign again after.
+        ZitadelKeyStore::saveToken($token, (int) ($data['expires_in'] ?? 0));
         return $token;
     }
 }

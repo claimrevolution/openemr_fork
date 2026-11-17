@@ -43,6 +43,12 @@ $isAuth = AclMain::aclCheckCore('admin', 'users') ?? false;
             } ?>">
                 <a class="nav-link" href="lab_setup.php"><?php echo xlt("Lab Setup"); ?> </a>
             </li>
+            <li class="nav-item <?php
+            if ($tab == "setup") {
+                echo "active";
+            } ?>">
+                <a class="nav-link" href="setup.php"><?php echo xlt("Setup"); ?></a>
+            </li>
             <?php } ?>
             <li class="nav-item <?php
             if ($tab == "orders") {

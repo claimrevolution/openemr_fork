@@ -29,3 +29,15 @@ CREATE TABLE IF NOT EXISTS `mod_dorn_compendium` (
   `specimen_type_notes` VARCHAR(500) NULL,
   `orderable_item_type` VARCHAR(45) NULL,
   PRIMARY KEY (`id`));
+
+-- The module's ZITADEL service-user key (encrypted) and its cached access token, in one singleton row.
+CREATE TABLE IF NOT EXISTS `mod_dorn_auth` (
+  `id` TINYINT(1) PRIMARY KEY DEFAULT 1,
+  `zitadel_key` TEXT DEFAULT NULL,
+  `zitadel_key_id` VARCHAR(64) NOT NULL DEFAULT '',
+  `zitadel_user_id` VARCHAR(64) NOT NULL DEFAULT '',
+  `zitadel_key_expires` VARCHAR(40) NOT NULL DEFAULT '',
+  `access_token` TEXT DEFAULT NULL,
+  `access_token_expires_at` DATETIME DEFAULT NULL,
+  `updated_at` DATETIME DEFAULT NULL
+) ENGINE=InnoDB;

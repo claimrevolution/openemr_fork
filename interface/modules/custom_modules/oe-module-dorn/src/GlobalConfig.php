@@ -12,27 +12,29 @@
 
  namespace OpenEMR\Modules\Dorn;
 
-use OpenEMR\BC\ServiceContainer;
-use OpenEMR\Common\Crypto\CryptoInterface;
 use OpenEMR\Services\Globals\GlobalSetting;
 
 class GlobalConfig
 {
     public const CONFIG_OPTION_API_URL = 'oe_dorn_api_url';
     public const CONFIG_OPTION_ENVIRONMENT = 'oe_dorn_config_environment';
-    public const CONFIG_OPTION_CLIENTID = 'oe_dorn_config_clientid';
-    public const CONFIG_OPTION_CLIENTSECRET = 'oe_dorn_config_clientsecret';
-    public const CONFIG_OPTION_SCOPE = 'oe_dorn_config_scope';
-    public const CONFIG_OPTION_AUTHORITY = 'oe_dorn_config_authority';
+
+    /**
+     * ZITADEL instance (issuer) and ClaimRev project (the token audience) per environment.
+     * Production uses the production instance; Staging and Development use the staging instance,
+     * which is the one the development DORN API accepts.
+     */
+    private const ZITADEL = [
+        'P' => ['authority' => 'https://auth.claimrev.com', 'projectId' => '394259562464542723'],
+        'S' => ['authority' => 'https://auth-staging.claimrev.com', 'projectId' => '394262572515196931'],
+        'D' => ['authority' => 'https://auth-staging.claimrev.com', 'projectId' => '394262572515196931'],
+    ];
 
 
     public const CONFIG_ENABLE_MENU = "oe_dorn_config_add_menu_button";
 
-    private readonly CryptoInterface $cryptoGen;
-
     public function __construct(private array $globalsArray)
     {
-        $this->cryptoGen = ServiceContainer::getCrypto();
     }
 
     /**
@@ -52,34 +54,21 @@ class GlobalConfig
         return true;
     }
 
-    public function getClientId()
+    /** P, S or D; anything else is treated as production. */
+    public function getEnvironment(): string
     {
-        return $this->getGlobalSetting(self::CONFIG_OPTION_CLIENTID);
-    }
-    public function getClientSecret(): string
-    {
-        $encryptedValue = $this->getGlobalSetting(self::CONFIG_OPTION_CLIENTSECRET);
-        return $this->cryptoGen->decryptFromDatabase(is_string($encryptedValue) ? $encryptedValue : null);
+        $environment = strtoupper(trim((string) $this->getGlobalSetting(self::CONFIG_OPTION_ENVIRONMENT)));
+        return array_key_exists($environment, self::ZITADEL) ? $environment : 'P';
     }
 
-    public function getClientScope(): string
+    public function getZitadelAuthority(): string
     {
-        if ($this->getGlobalSetting(self::CONFIG_OPTION_ENVIRONMENT) == "S") {
-            return "https://stagingclaimrevcom.onmicrosoft.com/portal/api/.default";
-        } elseif ($this->getGlobalSetting(self::CONFIG_OPTION_ENVIRONMENT) == "D") {
-            return "https://claimrevportaldevelopment.onmicrosoft.com/labs.claimrev.com/.default";
-        }
-        return "https://portalclaimrev.onmicrosoft.com/portal/api/.default";
+        return self::ZITADEL[$this->getEnvironment()]['authority'];
     }
 
-    public function getClientAuthority(): string
+    public function getZitadelProjectId(): string
     {
-        if ($this->getGlobalSetting(self::CONFIG_OPTION_ENVIRONMENT) == "S") {
-            return "https://stagingclaimrevcom.b2clogin.com/stagingclaimrevcom.onmicrosoft.com/B2C_1_sign-in-service/oauth2/v2.0/token";
-        } elseif ($this->getGlobalSetting(self::CONFIG_OPTION_ENVIRONMENT) == "D") {
-            return "https://claimrevportaldevelopment.b2clogin.com/claimrevportaldevelopment.onmicrosoft.com/B2C_1_sign-in-service/oauth2/v2.0/token";
-        }
-        return "https://portalclaimrev.b2clogin.com/portalclaimrev.onmicrosoft.com/B2C_1_sign-in-service/oauth2/v2.0/token";
+        return self::ZITADEL[$this->getEnvironment()]['projectId'];
     }
 
     public function getApiServer()
@@ -96,8 +85,8 @@ class GlobalConfig
     {
         $settings = [
             self::CONFIG_OPTION_ENVIRONMENT => [
-                'title' => 'ClaimRev Environment (P=Production)'
-                ,'description' => 'The system you connect to. P for production'
+                'title' => 'ClaimRev Environment (P=Production, S=Staging, D=Development)'
+                ,'description' => 'The system you connect to. Sign-in uses the ZITADEL key on the DORN Setup tab, which must come from the same environment.'
                 ,'type' => GlobalSetting::DATA_TYPE_TEXT
                 ,'default' => 'P'
             ],
@@ -105,18 +94,6 @@ class GlobalConfig
                 'title' => 'API URL'
                 ,'description' => 'The api system you to connect to'
                 ,'type' => GlobalSetting::DATA_TYPE_TEXT
-                ,'default' => ''
-            ]
-            ,self::CONFIG_OPTION_CLIENTID => [
-                'title' => 'Client ID'
-                ,'description' => 'Contact ClaimRev for the client ID'
-                ,'type' => GlobalSetting::DATA_TYPE_TEXT
-                ,'default' => ''
-            ]
-            ,self::CONFIG_OPTION_CLIENTSECRET => [
-                'title' => 'ClaimRev Client Secret'
-                ,'description' => 'Contact ClaimRev for this value'
-                ,'type' => GlobalSetting::DATA_TYPE_ENCRYPTED
                 ,'default' => ''
             ]
             ,self::CONFIG_ENABLE_MENU => [
